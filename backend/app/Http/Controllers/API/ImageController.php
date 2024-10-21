@@ -16,6 +16,7 @@ class ImageController extends Controller
     {
         $data = Image::query()->latest('id')->paginate(5);
         return response()->json([
+            "status" => "success",
             'message' => 'Danh sách Ảnh trang số ' . request('page', 1),
             'data' => $data
         ]);
@@ -47,6 +48,7 @@ class ImageController extends Controller
         $image = Image::create($validated);
 
         return response()->json([
+            "status" => "success",
             'message' => 'Ảnh mới đã được tạo',
             'data' => $image
         ], 201);
@@ -59,6 +61,7 @@ class ImageController extends Controller
     {
         //
         return response()->json([
+            "status" => "success",
             'message' => 'Chi tiết ảnh',
             'data' => $image
         ]);
@@ -90,6 +93,7 @@ class ImageController extends Controller
         $image->update($validated);
 
         return response()->json([
+            "status" => "success",
             'message' => 'Ảnh đã được cập nhật',
             'data' => $image
         ]);
@@ -104,6 +108,7 @@ class ImageController extends Controller
         $image->delete();
 
         return response()->json([
+            "status" => "success",
             'message' => 'Ảnh đã được xóa'
         ], 200);
     }

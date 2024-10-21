@@ -17,6 +17,7 @@ class SizeController extends Controller
         // Lấy danh sách kích thước
         $data = Size::query()->latest('id')->paginate(5);
         return response()->json([
+            "status" => "success",
             'message' => 'Danh sách kích thước trang số ' . request('page', 1),
             'data' => $data
         ]);
@@ -37,6 +38,7 @@ class SizeController extends Controller
         ]);
 
         return response()->json([
+            "status" => "success",
             'message' => 'Kích thước mới đã được tạo',
             'data' => $size
         ], 201);
@@ -49,6 +51,7 @@ class SizeController extends Controller
     {
         // Lấy chi tiết một kích thước
         return response()->json([
+            "status" => "success",
             'message' => 'Chi tiết kích thước',
             'data' => $size
         ]);
@@ -64,6 +67,7 @@ class SizeController extends Controller
         $size->update(array_filter($validated, fn($value) => !is_null($value)));
 
         return response()->json([
+            "status" => "success",
             'message' => 'Kích thước đã được cập nhật',
             'data' => $size
         ]);
@@ -78,6 +82,7 @@ class SizeController extends Controller
         $size->delete();
 
         return response()->json([
+            "status" => "success",
             'message' => 'Kích thước đã được xóa'
         ], 200);
     }

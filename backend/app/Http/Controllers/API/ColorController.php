@@ -20,12 +20,14 @@ class ColorController extends Controller
 
     if ($data->isEmpty()) {
         return response()->json([
+            "status" => "success",
             'message' => 'Không có màu nào được tìm thấy',
             'data' => $data
         ]);
     }
 
     return response()->json([
+        "status" => "success",
         'message' => 'Danh sách màu trang số ' . request('page', 1),
         'data' => $data
     ]);
@@ -45,6 +47,7 @@ class ColorController extends Controller
         $color = Color::create($validated);
 
         return response()->json([
+            "status" => "success",
             'message' => 'Màu mới đã được tạo',
             'data' => $color
         ], 201);
@@ -58,6 +61,7 @@ class ColorController extends Controller
         // Retrieve color by ID
         $data = Color::query()->findOrFail($id);
         return response()->json([
+            "status" => "success",
             'message' => 'Chi tiết màu id = ' . $id,
             'data' => $data
         ]);
@@ -79,6 +83,7 @@ class ColorController extends Controller
         $color->update(array_filter($validated, fn($value) => !is_null($value)));
 
         return response()->json([
+            "status" => "success",
             'message' => 'Màu đã được cập nhật',
             'data' => $color
         ]);
@@ -94,6 +99,7 @@ class ColorController extends Controller
         $color->delete();
 
         return response()->json([
+            "status" => "success",
             'message' => 'Màu đã được xóa'
         ], 200);
     }
