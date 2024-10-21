@@ -18,6 +18,10 @@ class ColorFactory extends Factory
     {
         return [
             //
+            'color_name' => $this->faker->colorName(), // Tạo tên màu ngẫu nhiên
+            'is_active' => $this->faker->boolean(), // Tạo giá trị true/false ngẫu nhiên
+            'created_at' => now(), // Thời gian tạo
+            'updated_at' => now(), // Thời gian cập nhật
         ];
     }
 }

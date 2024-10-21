@@ -23,6 +23,11 @@ class UpdateImageRequest extends FormRequest
     {
         return [
             //
+            'product_id' => 'sometimes|required|integer',
+            'variant_id' => 'sometimes|required|integer',
+            'image_url' => 'sometimes|required|string',
+            'alt_text' => 'nullable|string',
+            'is_active' => 'sometimes|required|boolean',
         ];
     }
 }

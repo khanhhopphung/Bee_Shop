@@ -13,5 +13,6 @@ class SizeSeeder extends Seeder
     public function run(): void
     {
         //
+        \App\Models\Size::factory(10)->create();
     }
 }

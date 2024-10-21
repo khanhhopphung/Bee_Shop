@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('sizes', function (Blueprint $table) {
             $table->id();
             $table->string('size_name', 50);
-            $table->timestamps();
+            $table->boolean('is_active'); // Thêm cột is_active
+            $table->timestamps(); 
         });
     }
 

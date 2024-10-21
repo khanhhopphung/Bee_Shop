@@ -23,6 +23,13 @@ class StoreImageRequest extends FormRequest
     {
         return [
             //
+            'product_id' => 'required|integer|exists:products,id',
+            'variant_id' => 'required|integer|exists:product_variants,id',
+            'image_url' => 'required|url',
+            'alt_text' => 'nullable|string|max:255',
+            'is_active' => 'required|boolean',
+            'created_at' => 'nullable|date',
+            'updated_at' => 'nullable|date',
         ];
     }
 }

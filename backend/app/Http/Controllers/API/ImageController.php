@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\Image;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Requests\UpdateImageRequest;
-
+use Illuminate\Http\Request;
 class ImageController extends Controller
 {
     /**
@@ -13,7 +14,11 @@ class ImageController extends Controller
      */
     public function index()
     {
-        //
+        $data = Image::query()->latest('id')->paginate(5);
+        return response()->json([
+            'message' => 'Danh sách Ảnh trang số ' . request('page', 1),
+            'data' => $data
+        ]);
     }
 
     /**
@@ -27,9 +32,24 @@ class ImageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreImageRequest $request)
+    public function store(request $request)
     {
         //
+        $validated = $request->validate([
+            'product_id' => 'required|integer',
+            'variant_id' => 'required|integer',
+            'image_url' => 'required|string',
+            'alt_text' => 'nullable|string',
+            'is_active' => 'required|boolean',
+        ]);
+
+        // Tạo mới ảnh
+        $image = Image::create($validated);
+
+        return response()->json([
+            'message' => 'Ảnh mới đã được tạo',
+            'data' => $image
+        ], 201);
     }
 
     /**
@@ -38,6 +58,10 @@ class ImageController extends Controller
     public function show(Image $image)
     {
         //
+        return response()->json([
+            'message' => 'Chi tiết ảnh',
+            'data' => $image
+        ]);
     }
 
     /**
@@ -51,9 +75,24 @@ class ImageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateImageRequest $request, Image $image)
+    public function update(request $request, Image $image)
     {
-        //
+        
+        $validated = $request->validate([
+            'product_id' => 'sometimes|required|integer',
+            'variant_id' => 'sometimes|required|integer',
+            'image_url' => 'sometimes|required|string',
+            'alt_text' => 'nullable|string',
+            'is_active' => 'sometimes|required|boolean',
+        ]);
+
+        // Update the image with validated data
+        $image->update($validated);
+
+        return response()->json([
+            'message' => 'Ảnh đã được cập nhật',
+            'data' => $image
+        ]);
     }
 
     /**
@@ -62,5 +101,10 @@ class ImageController extends Controller
     public function destroy(Image $image)
     {
         //
+        $image->delete();
+
+        return response()->json([
+            'message' => 'Ảnh đã được xóa'
+        ], 200);
     }
 }

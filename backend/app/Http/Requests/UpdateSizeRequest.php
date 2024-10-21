@@ -11,7 +11,7 @@ class UpdateSizeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,8 @@ class UpdateSizeRequest extends FormRequest
     {
         return [
             //
+            'size_name' => 'nullable|string|max:255', 
+            'is_active' => 'nullable|boolean',
         ];
     }
 }

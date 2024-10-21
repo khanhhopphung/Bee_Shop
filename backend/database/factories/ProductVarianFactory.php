@@ -2,22 +2,26 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
+use App\Models\ProductVarian;
+use App\Models\Size; // Nếu bạn có model Size
+use App\Models\Color; // Nếu bạn có model Color
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ProductVarian>
- */
 class ProductVarianFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = ProductVarian::class;
+
     public function definition(): array
     {
         return [
-            //
+            'product_id' => Product::factory(), // Giả sử bạn đã có ProductFactory
+            'size_id' => Size::factory(), // Giả sử bạn đã có SizeFactory
+            'color_id' => Color::factory(), // Giả sử bạn đã có ColorFactory
+            'price' => $this->faker->randomFloat(2, 10, 1000),
+            'stock' => $this->faker->numberBetween(1, 100),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

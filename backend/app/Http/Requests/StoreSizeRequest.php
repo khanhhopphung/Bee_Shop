@@ -11,7 +11,7 @@ class StoreSizeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,8 @@ class StoreSizeRequest extends FormRequest
     {
         return [
             //
+            'size_name' => 'required|string|max:255',
+            'is_active' => 'required|boolean',
         ];
     }
 }

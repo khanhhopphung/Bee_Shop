@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Models\Size;
 use App\Http\Requests\StoreSizeRequest;
 use App\Http\Requests\UpdateSizeRequest;
+use App\Http\Controllers\Controller;
 
 class SizeController extends Controller
 {
@@ -13,15 +14,12 @@ class SizeController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        // Lấy danh sách kích thước
+        $data = Size::query()->latest('id')->paginate(5);
+        return response()->json([
+            'message' => 'Danh sách kích thước trang số ' . request('page', 1),
+            'data' => $data
+        ]);
     }
 
     /**
@@ -29,7 +27,19 @@ class SizeController extends Controller
      */
     public function store(StoreSizeRequest $request)
     {
-        //
+        // Xác thực và lưu kích thước mới
+        $validated = $request->validated();
+
+        // Tạo mới kích thước
+        $size = Size::create([
+            'size_name' => $validated['size_name'],
+            'is_active' => $validated['is_active'],
+        ]);
+
+        return response()->json([
+            'message' => 'Kích thước mới đã được tạo',
+            'data' => $size
+        ], 201);
     }
 
     /**
@@ -37,15 +47,11 @@ class SizeController extends Controller
      */
     public function show(Size $size)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Size $size)
-    {
-        //
+        // Lấy chi tiết một kích thước
+        return response()->json([
+            'message' => 'Chi tiết kích thước',
+            'data' => $size
+        ]);
     }
 
     /**
@@ -53,7 +59,14 @@ class SizeController extends Controller
      */
     public function update(UpdateSizeRequest $request, Size $size)
     {
-        //
+        // Xác thực và cập nhật kích thước
+        $validated = $request->validated();
+        $size->update(array_filter($validated, fn($value) => !is_null($value)));
+
+        return response()->json([
+            'message' => 'Kích thước đã được cập nhật',
+            'data' => $size
+        ]);
     }
 
     /**
@@ -61,6 +74,11 @@ class SizeController extends Controller
      */
     public function destroy(Size $size)
     {
-        //
+        // Xóa kích thước
+        $size->delete();
+
+        return response()->json([
+            'message' => 'Kích thước đã được xóa'
+        ], 200);
     }
 }
