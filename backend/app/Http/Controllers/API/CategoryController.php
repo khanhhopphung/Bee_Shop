@@ -2,50 +2,36 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Category;
+use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BaseCrudController;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
-// use App\Http\Controllers\Controller;    
-use Illuminate\Routing\Controller;
+use App\Models\Category;
 
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->model = Category::class;
+    }
+
     public function index()
-{
-    try {
-        $categories = Category::where('is_active', true)->latest("id")->get();
-        if ($categories->isEmpty()) {
+    {
+        try {
+            return $this->get( $this->model);
+      
+        } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "No active categories found."
-            ], 404);
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
         }
-        return response()->json([
-            "status" => "success",
-            "datas" => $categories,
-            "total" => $categories->count()
-        ], 200);
-    } catch (\Exception $e) {
-        return response()->json([
-            "status" => "error",
-            "message" => "An error occurred: " . $e->getMessage()
-        ], 500);
     }
-}
-
 
     public function store(StoreCategoryRequest $request)
     {
         try {
-            $categories = Category::create($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "them thanh cong",
-                    "datas" => $categories
-            ], 200);
+            return $this->insert($this->model, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
@@ -56,25 +42,22 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // /**
+    //  * Display the specified resource.
+    //  */
     public function show(Category $category)
     {
-        if ($category->is_active == true) {
-            return response()->json([
-                "status" => "success",
-                "datas" => $category
-            ], 200);
-        } else if ($category->is_active == false) {
-            return response()->json([
-                "status" => "success",
-                "message" => "San pham da bi aarn di",
-                "datas" => $category
-            ], 200);
-        }
+        if ($category -> is_active == true) {
+            return $this->get($category,null,"id",$category->id);
+          }
+          else if ($category -> is_active ==false) {
+              return response()->json([
+                  "status" => "error",
+                  "message" => "This category is not active.",
+                  "datas" => $category
+              ], 200);
+          }
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -82,32 +65,29 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         try {
-            $category->update($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "update thanh cong",
-                    "datas" => $category
-            ], 200);
+            return $this->edit($category, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()
+                "message" => "An error occurred: " . $e->getMessage()."Code :".$e->getCode() ."line:".$e->getLine(),
+
             ], 500);
 
         }
-        
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // /**
+    //  * Remove the specified resource from storage.
+    //  */
     public function destroy(Category $category)
     {
-        $category->update(["is_active" => false]);
-        return response()->json([
-            "status" => "success",
-            "message" => "update thanh cong"
-        ], 200);
+        $data = [
+            "is_active" => false,
+            "deleted_at" => date('Y-m-d H:i:s')
+        ];
+        return $this->edit($category, $data );
+        
     }
 }

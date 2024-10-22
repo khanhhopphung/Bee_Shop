@@ -2,32 +2,24 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\ProductVarian;
+use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BaseCrudController;
+use App\Models\ProductVariant;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
-use App\Models\ProductVariant;
 use Illuminate\Routing\Controller;
 
-class ProductVariantController extends Controller
+class ProductVariantController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->model = ProductVariant::class;
+    }
     public function index()
     {
         try {
-            $productvariant = ProductVariant::where('is_active', true)->latest("id")->get();
-            if ($productvariant->isEmpty()) {
-                return response()->json([
-                    "status" => "error",
-                    "message" => "No active productvarian found."
-                ], 404);
-            }
-            return response()->json([
-                "status" => "success",
-                "datas" => $productvariant,
-                "total" => $productvariant->count()
-            ], 200);
+            return $this->get( $this->model);
+      
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
@@ -35,6 +27,7 @@ class ProductVariantController extends Controller
             ], 500);
         }
     }
+    
 
    
     /**
@@ -43,12 +36,7 @@ class ProductVariantController extends Controller
     public function store(StoreProductVariantRequest $request)
     {
         try {
-            $productvariants = ProductVariant::create($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "them thanh cong",
-                    "datas" => $productvariants
-            ], 200);
+            return $this->insert($this->model, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
@@ -64,27 +52,24 @@ class ProductVariantController extends Controller
      */
     public function show(ProductVariant $productVariant)
     {
-        if ($productVariant->is_active==true) {
-            return response()-> json ([
-                "status" => "success",
-                "datas"=> $productVariant
-            ],200);
-        }
-        else if ($productVariant->is_active==false) {
-            return response()->json([
-                "status" => "error",
-                "message" => "The productvariant is not active.",
-                "datas"=> $productVariant
-            ], 200);
-        }
+        if ($productVariant -> is_active == true) {
+            return $this->get($productVariant,null,"id",$productVariant->id);
+          }
+          else if ($productVariant -> is_active ==false) {
+              return response()->json([
+                  "status" => "error",
+                  "message" => "This productvariant is not active.",
+                  "datas" => $productVariant
+              ], 200);
+          }
     } 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ProductVariant $productVariant)
-    {
-        //
-    }
+//     /**
+//      * Show the form for editing the specified resource.
+//      */
+    // public function edit(ProductVariant $productVariant)
+    // {
+    //     //
+    // }
 
     /**
      * Update the specified resource in storage.
@@ -92,33 +77,28 @@ class ProductVariantController extends Controller
     public function update(UpdateProductVariantRequest $request, ProductVariant $productVariant)
     {
         try {
-            $productVariant->update($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "update thanh cong",
-                    "datas" => $productVariant
-            ], 200);
+            return $this->edit($productVariant, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()
+                "message" => "An error occurred: " . $e->getMessage()."Code :".$e->getCode() ."line:".$e->getLine(),
+
             ], 500);
 
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+//     /**
+//      * Remove the specified resource from storage.
+//      */
     public function destroy(ProductVariant $productVariant)
     {
-        $productVariant -> update (["is_active"=>false]);
-        return response()->json([
-            "status" => "success",
-            "message" => "Product update successfully.",
-            "datas" => $productVariant
-        ], 200);
-
+        $data = [
+            "is_active" => false,
+            "deleted_at" => date('Y-m-d H:i:s')
+        ];
+        return $this->edit($productVariant, $data );
+        
     }
 }

@@ -2,31 +2,24 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BaseCrudController;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Routing\Controller;
 
-class ProductController extends Controller
+class ProductController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->model = Product::class;
+    }
     public function index()
     {
         try {
-            $products = Product::where('is_active', true)->latest("id")->get();
-            if ($products->isEmpty()) {
-                return response()->json([
-                    "status" => "error",
-                    "message" => "No active products found."
-                ], 404);
-            }
-            return response()->json([
-                "status" => "success",
-                "datas" => $products,
-                "total" => $products->count()
-            ], 200);
+            return $this->get( $this->model);
+      
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
@@ -42,12 +35,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         try {
-            $products = Product::create($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "them thanh cong",
-                    "datas" => $products
-            ], 200);
+            return $this->insert($this->model, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
@@ -64,11 +52,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         if ($product -> is_active == true) {
-            return response()-> json ([
-                "status" => "success",
-                "datas"=> $product
-
-            ],200);
+          return $this->get($product,null,"id",$product->id);
         }
         else if ($product -> is_active ==false) {
             return response()->json([
@@ -80,38 +64,34 @@ class ProductController extends Controller
     }
 
   
-    /**
-     * Update the specified resource in storage.
-     */
+//     /**
+//      * Update the specified resource in storage.
+//      */
     public function update(UpdateProductRequest $request, Product $product)
     {
         try {
-            $product->update($request->all());
-                    return response()->json([
-                    "status" => "success",
-                    "message" => "update thanh cong",
-                    "datas" => $product
-            ], 200);
+            return $this->edit($product, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()
+                "message" => "An error occurred: " . $e->getMessage()."Code :".$e->getCode() ."line:".$e->getLine(),
+
             ], 500);
 
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+//     /**
+//      * Remove the specified resource from storage.
+//      */
     public function destroy(Product $product)
     {
-        $product -> update(["is_active" => false]);
-        return response()->json([
-            "status" => "success",
-            "message" => "Product update successfully.",
-            "datas" => $product
-        ], 200);
+        $data = [
+            "is_active" => false,
+            "deleted_at" => date('Y-m-d H:i:s')
+        ];
+        return $this->edit($product, $data );
+        
     }
 }
