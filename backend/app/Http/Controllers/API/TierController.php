@@ -2,28 +2,34 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BaseCrudController;
 use App\Models\Tier;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTierRequest;
 use App\Http\Requests\UpdateTierRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 
-class TierController extends Controller
+class TierController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
+    public function __construct()
+    {
+        $this->model = Tier::class;
+    }
     public function index()
     {
-        $tiers = Tier::all();
-
-        return response()->json([
-            "status" => "success",
-            'message' => 'danh sach tiers . ' . request('page', 1),
-            'data' => $tiers
-        ]);
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -39,74 +45,55 @@ class TierController extends Controller
      */
     public function store(StoreTierRequest $request)
     {
-        $tiers = Tier::query()->create($request->all());
-        return response()->json([
-            "status" => "success",
-            'message' => 'Tao moi thanh cong người dung',
-            'data' => $tiers
-        ], HttpResponse::HTTP_CREATED);
+        try {
+            return $this->insert($this->model, $request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
         try {
-            $tiers = Tier::query()->findOrFail($id);
-
-            return response()->json([
-                "status" => "success",
-                'message' => 'Chi tiết tier id = ' . $id,
-                'data' => $tiers
-            ]);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
+            $tier = Tier::find($id);
+            if (!$tier) {
                 return response()->json([
-                    "status" => "errors",
-                    'message' => 'Khong tim thay tier co id = ' . $id,
-                ], HttpResponse::HTTP_NOT_FOUND);
+                    "status" => "error",
+                    "message" => "Không tìm thấy bản ghi với ID: " . $id
+                ], 404);
             }
-
+            return $this->get($tier, null, "id", $tier->id);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Khong tim thay tier co id = ' . $id,
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Tier $tier)
-    {
-        //
-    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateTierRequest $request, Tier $tier)
     {
         try {
-
-            $tier = Tier::query()->findOrFail($id);
-
-            $tier->update($request->all());
-            return response()->json([
-                "status" => "success",
-                'message' => 'Cập nhật tier thành công',
-                'data' => $tier
-            ], HttpResponse::HTTP_OK);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                "status" => "error",
-                'message' => 'Không tìm thấy tier với ID = ' . $id,
-            ], HttpResponse::HTTP_NOT_FOUND);
+            $this->edit($tier, $request->all());
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                'message' => 'Lỗi khi cập nhật tier: ' . $e->getMessage(),
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage() . "Code :" . $e->getCode() . "line:" . $e->getLine(),
+            ], 500);
         }
     }
 
@@ -114,27 +101,24 @@ class TierController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+
+    public function destroy($id)
     {
-
         try {
-            $tiers = Tier::findOrFail($id);
-            $tiers->delete();
+
+            return $this->delete(Tier::class, $id);
+        } catch (ModelNotFoundException $e) {
 
             return response()->json([
-                "status" => "success",
-                'message' => 'Xóa thành công tier với ID = ' . $id,
-            ], HttpResponse::HTTP_OK);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                "status" => "errors",
-                'message' => 'Không tìm thấy tier với ID = ' . $id,
-            ], HttpResponse::HTTP_NOT_FOUND);
+                "status" => "error",
+                "message" => "Không tìm thấy bản ghi với ID: " . $id,
+            ], 404);
         } catch (\Exception $e) {
+
             return response()->json([
-                "status" => "errors",
-                'message' => 'Lỗi khi xóa tier: ' . $e->getMessage(),
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage(),
+            ], 500);
         }
     }
 }
