@@ -3,6 +3,9 @@
 use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\PromotionController;
 use App\Http\Controllers\API\TierController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\RoleController;
+
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,3 +31,6 @@ Route::apiResource('tiers', TierController::class);
 
 Route::apiResource('promotions', PromotionController::class);
 
+Route::apiResource( 'users', UserController::class);
+
+Route::apiResource('roles', RoleController::class);

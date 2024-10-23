@@ -1,66 +1,68 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\BaseController;
 use App\Models\Role;
-use App\Http\Requests\StoreRoleRequest;
-use App\Http\Requests\UpdateRoleRequest;
+use Illuminate\Http\Request;
 
-class RoleController extends Controller
+class RoleController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Lấy danh sách tất cả các vai trò
     public function index()
     {
-        //
+        $roles = Role::all();
+        return response()->json(['status' => 'success', 'data' => $roles]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Lấy chi tiết một vai trò theo ID
+    public function show($id)
     {
-        //
+        $role = Role::find($id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
+        }
+        return response()->json(['status' => 'success', 'data' => $role]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreRoleRequest $request)
+    // Tạo mới một vai trò
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'role_name' => 'required|string|max:50',
+            'description' => 'nullable|string|max:255',
+            'is_active' => 'required|boolean',
+        ]);
+
+        $role = Role::create($request->all());
+        return response()->json(['status' => 'success', 'message' => 'Role created successfully', 'data' => $role], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Role $role)
+    // Cập nhật một vai trò theo ID
+    public function update(Request $request, $id)
     {
-        //
+        $role = Role::find($id);
+        if (!$role) {
+            return response()->json(['status' => 'error', 'message' => 'Role not found'], 404);
+        }
+
+        $request->validate([
+            'role_name' => 'required|string|max:50',
+            'description' => 'nullable|string|max:255',
+            'is_active' => 'required|boolean',
+        ]);
+
+        $role->update($request->all());
+        return response()->json(['status' => 'success', 'message' => 'Role updated successfully', 'data' => $role]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Role $role)
+    // Xóa một vai trò theo ID
+    public function destroy(role $role )
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateRoleRequest $request, Role $role)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Role $role)
-    {
-        //
+        $role -> update( ["is_active"=>false]);
+        return response()->json([
+            "status" => "success",
+            "message"=> "update thanh cong"
+        ]);
     }
 }

@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
-use App\Http\Controllers\BaseCrudController;
 use App\Models\Tier;
 use App\Http\Requests\StoreTierRequest;
 use App\Http\Requests\UpdateTierRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
+
 
 class TierController extends BaseController
 {
