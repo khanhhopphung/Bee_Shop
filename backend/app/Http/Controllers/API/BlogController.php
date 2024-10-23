@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreBlogRequest;
 use App\Models\Blog;
 use Attribute;
@@ -10,20 +10,25 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 
-class BlogController extends Controller
+class BlogController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
+    public function __construct()
+    {
+        $this->model = Blog::class;
+    }
     public function index()
     {
-        $blogs = Blog::all();
-
-        return response()->json([
-            "status" => "success",
-            'message' => 'danh sach blogs . ' . request('page', 1),
-            'data' => $blogs
-        ]);
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -31,102 +36,85 @@ class BlogController extends Controller
      */
     public function store(StoreBlogRequest  $request)
     {
-        $blogs = Blog::query()->create($request->all());
-        return response()->json([
-            "status" => "success",
-            'message' => 'Tao moi thanh cong ng dung',
-            'data' => $blogs
-        ], HttpResponse::HTTP_CREATED);
+        try {
+            return $this->insert($this->model, $request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Blog $blog)
     {
-
         try {
-            $blogs = Blog::query()->findOrFail($id);
-
-            return response()->json([
-                "status" => "success",
-                'message' => 'chi tiet blogs id = ' . $id,
-                'data' => $blogs
-            ]);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
+            if ($blog->is_active) {
+                return $this->get($blog, null, "id", $blog->id);
+            } else {
                 return response()->json([
-                    'message' => 'Khong tim thay blogs co id = ' . $id,
-                ], HttpResponse::HTTP_NOT_FOUND);
+                    "status" => "error",
+                    "message" => "This blog is not active.",
+                    "data" => $blog
+                ], 200);
             }
-
+        } catch (\Exception $e) {
             return response()->json([
-                "status" => "errors",
-                'message' => 'Khong tim thay blogs co id = ' . $id,
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Blog $blog)
-    {
-        //
-    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Blog $blog)
     {
         try {
-            $blog = Blog::query()->findOrFail($id);
-            $blog->update($request->all());
-
-            return response()->json([
-                "status" => "success",
-                'message' => 'Cập nhật thành công blog với ID = ' . $id,
-                'data' => $blog
-            ]);
-        } catch (ModelNotFoundException $th) {
+            return $this->edit($blog, $request->all());
+        } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                'message' => 'Không tìm thấy blog với ID = ' . $id,
-            ], HttpResponse::HTTP_NOT_FOUND);
-        } catch (\Throwable $th) {
-            return response()->json([
-                "status" => "error",
-                'message' => 'Lỗi khi cập nhật blog: ' . $th->getMessage(),
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Blog $blog) 
+
     {
         try {
-            $blog = Blog::findOrFail($id);
-
-            $blog->update(['is_active' => false]);
+            $data = [
+                "is_active" => false,
+                "deleted_at" => now()
+            ];
+            $this->edit($blog, $data);
 
             return response()->json([
-                "status" => "success",
-                'message' => "Đã vô hiệu hóa blog thành công.",
+                "status" => true,
+                "message" => "Xóa blog thành công",
+                "data" => $data
             ], 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                "status" => "error",
-                'message' => "Không tìm thấy blog với ID = " . $id,
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                'message' => "Lỗi khi vô hiệu hóa blog: " . $e->getMessage(),
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
             ], 500);
         }
     }
+    
 }

@@ -88,11 +88,11 @@ class TierController extends BaseController
     public function update(UpdateTierRequest $request, Tier $tier)
     {
         try {
-            $this->edit($tier, $request->all());
+            return $this->edit($tier, $request->all());
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "Đã xảy ra lỗi: " . $e->getMessage() . "Code :" . $e->getCode() . "line:" . $e->getLine(),
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
             ], 500);
         }
     }
