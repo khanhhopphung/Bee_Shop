@@ -2,114 +2,113 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use App\Models\Image;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Requests\UpdateImageRequest;
-use Illuminate\Http\Request;
-class ImageController extends Controller
+
+class ImageController extends BaseController
 {
+    public function __construct()
+    {
+        $this->model = Image::class;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $data = Image::query()->latest('id')->paginate(5);
-        return response()->json([
-            "status" => "success",
-            'message' => 'Danh sách Ảnh trang số ' . request('page', 1),
-            'data' => $data
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(request $request)
+    public function store(StoreImageRequest $request)
     {
-        //
-        $validated = $request->validate([
-            'product_id' => 'required|integer',
-            'variant_id' => 'required|integer',
-            'image_url' => 'required|string',
-            'alt_text' => 'nullable|string',
-            'is_active' => 'required|boolean',
-        ]);
-
-        // Tạo mới ảnh
-        $image = Image::create($validated);
-
-        return response()->json([
-            "status" => "success",
-            'message' => 'Ảnh mới đã được tạo',
-            'data' => $image
-        ], 201);
+        try {
+            return $this->insert($this->model, $request->validated());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Image $image)
+    public function show($id)
     {
-        //
-        return response()->json([
-            "status" => "success",
-            'message' => 'Chi tiết ảnh',
-            'data' => $image
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Image $image)
-    {
-        //
+        try {
+            // Tìm kiếm bản ghi theo ID
+            $image = Image::find($id);
+    
+            // Kiểm tra nếu không tìm thấy thì trả về thông báo lỗi
+            if (!$image) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Không tìm thấy bản ghi với ID: " . $id
+                ], 404);
+            }
+    
+            // Nếu tìm thấy, trả về dữ liệu
+            return $this->get($image, null, "id", $image->id);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(request $request, Image $image)
+    public function update(UpdateImageRequest $request, Image $image)
     {
-        
-        $validated = $request->validate([
-            'product_id' => 'sometimes|required|integer',
-            'variant_id' => 'sometimes|required|integer',
-            'image_url' => 'sometimes|required|string',
-            'alt_text' => 'nullable|string',
-            'is_active' => 'sometimes|required|boolean',
-        ]);
-
-        // Update the image with validated data
-        $image->update($validated);
-
-        return response()->json([
-            "status" => "success",
-            'message' => 'Ảnh đã được cập nhật',
-            'data' => $image
-        ]);
+        try {
+            return $this->edit($image, $request->validated());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Image $image)
-    {
-        //
+{
+    try {
+        // Thực hiện xóa mềm
         $image->delete();
 
         return response()->json([
             "status" => "success",
-            'message' => 'Ảnh đã được xóa'
-        ], 200);
+            "message" => "Xóa mềm thành công",
+            "data" => [
+                "is_active" => false,
+                "deleted_at" => $image->deleted_at
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            "status" => "error",
+            "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+        ], 500);
     }
+}
+
 }

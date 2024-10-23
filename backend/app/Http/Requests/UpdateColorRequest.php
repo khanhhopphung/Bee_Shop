@@ -11,7 +11,7 @@ class UpdateColorRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,8 @@ class UpdateColorRequest extends FormRequest
     {
         return [
             //
+            'color_name' => 'sometimes|string|max:255',  // Đôi khi cần cập nhật, không bắt buộc
+            'is_active' => 'sometimes|boolean',  // Đôi khi cần cập nhật, không bắt buộc
         ];
     }
 }

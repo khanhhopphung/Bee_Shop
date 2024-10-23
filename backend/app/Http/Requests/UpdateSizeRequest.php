@@ -23,8 +23,8 @@ class UpdateSizeRequest extends FormRequest
     {
         return [
             //
-            'size_name' => 'nullable|string|max:255', 
-            'is_active' => 'nullable|boolean',
+            'size_name' => 'sometimes|string|max:255',
+            'is_active' => 'sometimes|boolean',
         ];
     }
 }

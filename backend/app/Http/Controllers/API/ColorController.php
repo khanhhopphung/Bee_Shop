@@ -3,104 +3,124 @@
 namespace App\Http\Controllers\API;
 
 use App\Models\Color;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController; // Nếu bạn có BaseController
 use App\Http\Requests\StoreColorRequest;
 use App\Http\Requests\UpdateColorRequest;
 use Illuminate\Http\Request;
 
-class ColorController extends Controller
+class ColorController extends BaseController // Thay đổi nếu cần thiết
 {
+    public function __construct()
+    {
+        $this->model = Color::class;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // Fetch paginated color data
-        $data = Color::query()->latest('id')->paginate(5);
-
-    if ($data->isEmpty()) {
-        return response()->json([
-            "status" => "success",
-            'message' => 'Không có màu nào được tìm thấy',
-            'data' => $data
-        ]);
-    }
-
-    return response()->json([
-        "status" => "success",
-        'message' => 'Danh sách màu trang số ' . request('page', 1),
-        'data' => $data
-    ]);
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreColorRequest $request)
     {
-        // Validate and store a new color
-        $validated = $request->validate([
-            'color_name' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
-        ]);
-
-        $color = Color::create($validated);
-
+        try {
+        return $this->insert($this->model, $request->validated());
+    } catch (\Exception $e) {
         return response()->json([
-            "status" => "success",
-            'message' => 'Màu mới đã được tạo',
-            'data' => $color
-        ], 201);
+            "status" => "error",
+            "message" => "An error occurred: " . $e->getMessage()
+        ], 500);
+    }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        // Retrieve color by ID
-        $data = Color::query()->findOrFail($id);
-        return response()->json([
-            "status" => "success",
-            'message' => 'Chi tiết màu id = ' . $id,
-            'data' => $data
-        ]);
+        try {
+            // Tìm kiếm bản ghi theo ID
+            $color = Color::find($id);
+    
+            // Kiểm tra nếu không tìm thấy bản ghi
+            if (!$color) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Không tìm thấy bản ghi với ID: " . $id
+                ], 404);
+            }
+    
+            // Kiểm tra nếu color không active
+            if (!$color->is_active) {
+                return response()->json([
+                    "status" => "error",
+                    "message" => "Màu này không hoạt động.",
+                    "data" => $color
+                ], 200);
+            }
+    
+            // Nếu tìm thấy và active, trả về dữ liệu
+            return $this->get($color, null, "id", $color->id);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
+    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateColorRequest $request, Color $color)
     {
-        // Validate the request data
-        $validated = $request->validate([
-            'color_name' => 'string|max:255',
-            'is_active' => 'boolean',
-        ]);
-
-        // Find color and update data
-        $color = Color::findOrFail($id);
-        $color->update(array_filter($validated, fn($value) => !is_null($value)));
-
-        return response()->json([
-            "status" => "success",
-            'message' => 'Màu đã được cập nhật',
-            'data' => $color
-        ]);
+        try {
+            return $this->edit($color, $request->validated());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage() . " Code: " . $e->getCode() . " Line: " . $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        // Find and delete color by ID
-        $color = Color::findOrFail($id);
-        $color->delete();
+    public function destroy(Color $color)
+{
+    try {
+        $data = [
+            "is_active" => false,
+            "deleted_at" => now()
+        ];
+        $this->edit($color, $data);
 
         return response()->json([
-            "status" => "success",
-            'message' => 'Màu đã được xóa'
+            "status" => true,
+            "message" => "Xóa màu thành công",
+            "data" => $data
         ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            "status" => "error",
+            "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+        ], 500);
     }
+}
+
 }

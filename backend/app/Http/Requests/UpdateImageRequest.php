@@ -11,7 +11,7 @@ class UpdateImageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,11 +23,11 @@ class UpdateImageRequest extends FormRequest
     {
         return [
             //
-            'product_id' => 'sometimes|required|integer',
-            'variant_id' => 'sometimes|required|integer',
-            'image_url' => 'sometimes|required|string',
-            'alt_text' => 'nullable|string',
-            'is_active' => 'sometimes|required|boolean',
+            'product_id' => 'sometimes|integer|exists:products,id',
+            'variant_id' => 'sometimes|integer|exists:product_variants,id',
+            'image_url' => 'sometimes|url|max:2048', // Ensure the URL is valid and not too long
+            'alt_text' => 'sometimes|nullable|string|max:255', // Allow for alt text but not required
+            'is_active' => 'sometimes|boolean', // Ensure it's a boolean if present
         ];
     }
 }

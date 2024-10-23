@@ -11,7 +11,7 @@ class StoreColorRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,10 @@ class StoreColorRequest extends FormRequest
     {
         return [
             //
+            
+                'color_name' => 'required|string|max:255',
+                'is_active' => 'required|boolean',
+        
         ];
     }
 }

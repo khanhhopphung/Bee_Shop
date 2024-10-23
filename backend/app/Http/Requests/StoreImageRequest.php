@@ -11,7 +11,7 @@ class StoreImageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,11 +25,9 @@ class StoreImageRequest extends FormRequest
             //
             'product_id' => 'required|integer|exists:products,id',
             'variant_id' => 'required|integer|exists:product_variants,id',
-            'image_url' => 'required|url',
+            'image_url' => 'required|url|max:2048', // Ensuring the URL length is not too long
             'alt_text' => 'nullable|string|max:255',
             'is_active' => 'required|boolean',
-            'created_at' => 'nullable|date',
-            'updated_at' => 'nullable|date',
         ];
     }
 }
