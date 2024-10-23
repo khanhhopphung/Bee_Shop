@@ -94,8 +94,7 @@ class BlogController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Blog $blog) 
-
+    public function destroy(Blog $blog)
     {
         try {
             $data = [
@@ -116,5 +115,4 @@ class BlogController extends BaseController
             ], 500);
         }
     }
-    
 }

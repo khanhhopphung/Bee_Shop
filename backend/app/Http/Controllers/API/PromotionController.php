@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use App\Models\Promotion;
 use App\Http\Requests\StorePromotionRequest;
 use App\Http\Requests\UpdatePromotionRequest;
@@ -10,22 +10,26 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 
-class PromotionController extends Controller
+class PromotionController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
+    public function __construct()
+    {
+        $this->model = Promotion::class;
+    }
     public function index()
     {
-        $promotions = Promotion::all();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'danh sach promotions . ' . request('page', 1),
-            'data' => $promotions
-        ]);
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -37,103 +41,83 @@ class PromotionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePromotionRequest $request)
+    public function store(StorePromotionRequest  $request)
     {
-        $promotions = Promotion::query()->create($request->all());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Tao moi thanh cong khuyến mãi',
-            'data' => $promotions
-        ], HttpResponse::HTTP_CREATED);
+        try {
+            return $this->insert($this->model, $request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
-
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Promotion $promotion)
     {
         try {
-            $promotions = Promotion::query()->findOrFail($id);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Chi tiết promotion id = ' . $id,
-                'data' => $promotions
-            ]);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
+            if ($promotion->is_active) {
+                return $this->get($promotion, null, "id", $promotion->id);
+            } else {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Khong tim thay promotion co id = ' . $id,
-                ], HttpResponse::HTTP_NOT_FOUND);
+                    "status" => "error",
+                    "message" => "This blog is not active.",
+                    "data" => $promotion
+                ], 200);
             }
-
+        } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Khong tim thay promotion co id = ' . $id,
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
+
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Promotion $promotion)
-    {
-        //
-    }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Promotion $promotion)
     {
         try {
-            $promotion = Promotion::query()->findOrFail($id);
-            $promotion->update($request->all());
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Cập nhật promotion thành công',
-                'data' => $promotion
-            ], HttpResponse::HTTP_OK);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không tìm thấy promotion với ID = ' . $id,
-            ], HttpResponse::HTTP_NOT_FOUND);
+            return $this->edit($promotion, $request->all());
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Lỗi khi cập nhật promotion: ' . $e->getMessage(),
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Promotion $promotion)
     {
         try {
-            $promotion = Promotion::findOrFail($id);
-            $promotion->update(['is_active' => false]);
+            $data = [
+                "is_active" => false,
+                "deleted_at" => now()
+            ];
+            $this->edit($promotion, $data);
 
             return response()->json([
-                'status' => 'success',
-                'message' => 'Đã vô hiệu hóa promotion với ID = ' . $id,
-            ], HttpResponse::HTTP_OK);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Không tìm thấy promotion với ID = ' . $id,
-            ], HttpResponse::HTTP_NOT_FOUND);
+                "status" => true,
+                "message" => "Xóa promotion thành công",
+                "data" => $data
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Lỗi khi vô hiệu hóa promotion: ' . $e->getMessage(),
-            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
         }
     }
 }
