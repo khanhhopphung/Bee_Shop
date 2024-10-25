@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\PromotionController;
+use App\Http\Controllers\API\ShippingAddressController;
 use App\Http\Controllers\API\TierController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\CartController;
@@ -31,6 +32,8 @@ Route::apiResource('tiers', TierController::class);
 Route::apiResource('promotions', PromotionController::class);
 
 Route::apiResource('orders', OrderController::class);
+
+Route::apiResource('addresses', ShippingAddressController::class);
 
 
 
