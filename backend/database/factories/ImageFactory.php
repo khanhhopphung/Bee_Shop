@@ -2,7 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\ProductVarian;
+
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Image>
@@ -17,7 +20,13 @@ class ImageFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'product_id' => Product::factory(), 
+            'variant_id' => $this->faker->optional()->randomElement(ProductVarian::pluck('id')),
+            'alt_text' => $this->faker->sentence(), 
+            'image_url' => $this->faker->imageUrl(640, 480, 'products'), 
+            'is_active' => $this->faker->boolean(), 
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

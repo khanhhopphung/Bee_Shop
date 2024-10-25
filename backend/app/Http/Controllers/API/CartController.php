@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Models\Cart;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\User;
 use App\Http\Requests\StoreCartRequest;
 use App\Http\Requests\UpdateCartRequest;
 
@@ -35,10 +38,11 @@ class CartController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Cart $cart)
+    public function show()
     {
-        //
+       
     }
+
 
     /**
      * Show the form for editing the specified resource.

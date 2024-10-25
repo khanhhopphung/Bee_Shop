@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Color;
+use App\Models\Product;
+use App\Models\Size;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +20,12 @@ class ProductVarianFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'product_id' => Product::factory(), 
+            'size_id' => Size::factory(), 
+            'color_id' => Color::factory(), 
+            'price' => $this->faker->randomFloat(2, 10, 1000),
+            'stock' => $this->faker->numberBetween(1, 100),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }
