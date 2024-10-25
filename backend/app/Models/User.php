@@ -1,11 +1,18 @@
 <?php
+
 namespace App\Models;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Auth\Authenticatable;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class User extends Model
+
+class User extends Model implements AuthenticatableContract
 {
+    use Authenticatable;
+    use HasApiTokens;
     use HasFactory;
 
     protected $table = "users";
@@ -21,8 +28,14 @@ class User extends Model
         'points_total',
         'total_spent',
     ];
-    public function category()
+    protected $hidden = [
+        'password_hash',
+        'remember_token',
+    ];
+    public function setPasswordAttribute($value)
     {
-        return $this->belongsTo(Category::class);
+        $this->attributes['password'] = bcrypt($value);
     }
+     
+   
 }
