@@ -93,7 +93,11 @@ class BaseController extends Controller
 
 
             return self::success($request, $message = 'Record created successfully !', $statusCode = HttpResponse::HTTP_CREATED);
+<<<<<<< HEAD
         } catch (Throwable $e) {
+=======
+        } catch (\Throwable $e) {
+>>>>>>> origin/fix-dev
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -109,7 +113,11 @@ class BaseController extends Controller
             $data = $model->update($request);
 
             return self::success($request, $message = 'Record updated successfully', $statusCode = HttpResponse::HTTP_OK);
+<<<<<<< HEAD
         } catch (Throwable $e) {
+=======
+        } catch (\Throwable $e) {
+>>>>>>> origin/fix-dev
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -125,11 +133,23 @@ class BaseController extends Controller
 
             return self::success(null, $message = 'Record deleted successfully !', $statusCode = HttpResponse::HTTP_OK);
 
+<<<<<<< HEAD
         } catch (Throwable $e) {
+=======
+        } catch (\Throwable $e) {
+>>>>>>> origin/fix-dev
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 
     }
+<<<<<<< HEAD
+=======
+    
+   
+
+
+
+>>>>>>> origin/fix-dev
 
    
     public static function success($data = null, $message = 'Success', $statusCode = HttpResponse::HTTP_OK): JsonResponse
@@ -149,4 +169,11 @@ class BaseController extends Controller
         ], $status);
     }
 
+<<<<<<< HEAD
 }
+=======
+}
+
+
+
+>>>>>>> origin/fix-dev

@@ -4,17 +4,17 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\BaseCrudController;
-use App\Http\Requests\StoreCategoryRequest;
-use App\Http\Requests\UpdateCategoryRequest;
-use App\Models\Category;
+use App\Models\ProductVariant;
+use App\Http\Requests\StoreProductVariantRequest;
+use App\Http\Requests\UpdateProductVariantRequest;
+use Illuminate\Routing\Controller;
 
-class CategoryController extends BaseController
+class ProductVariantController extends BaseController
 {
     public function __construct()
     {
-        $this->model = Category::class;
+        $this->model = ProductVariant::class;
     }
-
     public function index()
     {
         try {
@@ -27,8 +27,13 @@ class CategoryController extends BaseController
             ], 500);
         }
     }
+    
 
-    public function store(StoreCategoryRequest $request)
+   
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreProductVariantRequest $request)
     {
         try {
             return $this->insert($this->model, $request->all());
@@ -42,30 +47,37 @@ class CategoryController extends BaseController
         }
     }
 
-    // /**
-    //  * Display the specified resource.
-    //  */
-    public function show(Category $category)
+    /**
+     * Display the specified resource.
+     */
+    public function show(ProductVariant $productVariant)
     {
-        if ($category -> is_active == true) {
-            return $this->get($category,null,"id",$category->id);
+        if ($productVariant -> is_active == true) {
+            return $this->get($productVariant,null,"id",$productVariant->id);
           }
-          else if ($category -> is_active ==false) {
+          else if ($productVariant -> is_active ==false) {
               return response()->json([
                   "status" => "error",
-                  "message" => "This category is not active.",
-                  "datas" => $category
+                  "message" => "This productvariant is not active.",
+                  "datas" => $productVariant
               ], 200);
           }
-    }
+    } 
+//     /**
+//      * Show the form for editing the specified resource.
+//      */
+    // public function edit(ProductVariant $productVariant)
+    // {
+    //     //
+    // }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoryRequest $request, Category $category)
+    public function update(UpdateProductVariantRequest $request, ProductVariant $productVariant)
     {
         try {
-            return $this->edit($category, $request->all());
+            return $this->edit($productVariant, $request->all());
         }
         catch (\Exception $e) {
             return response()->json([
@@ -75,19 +87,18 @@ class CategoryController extends BaseController
             ], 500);
 
         }
-
     }
 
-    // /**
-    //  * Remove the specified resource from storage.
-    //  */
-    public function destroy(Category $category)
+//     /**
+//      * Remove the specified resource from storage.
+//      */
+    public function destroy(ProductVariant $productVariant)
     {
         $data = [
             "is_active" => false,
             "deleted_at" => date('Y-m-d H:i:s')
         ];
-        return $this->edit($category, $data );
+        return $this->edit($productVariant, $data );
         
     }
 }

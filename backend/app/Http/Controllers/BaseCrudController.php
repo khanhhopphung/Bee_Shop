@@ -148,4 +148,8 @@ class BaseCrudController extends Controller
             'message' => $message,
         ], $statusCode);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/fix-dev
