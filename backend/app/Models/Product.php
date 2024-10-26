@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+
+
     protected $fillable = [
         'name',
         'sku',
@@ -36,7 +38,9 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+
     public function image(){
         return $this->hasOne(Image::class);
     }
+
 }

@@ -16,6 +16,7 @@ use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
+
 class ProductController extends BaseController
 {
     public function __construct()
@@ -23,6 +24,7 @@ class ProductController extends BaseController
         $this->model = Product::class;
     }
     public function index()
+
     {       
         // $products = Product::with('image.image_url')->latest('id')->get();
         //     // return $this->get( $this->model);
@@ -32,6 +34,7 @@ class ProductController extends BaseController
     return $this->success($products);
     
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -67,7 +70,7 @@ class ProductController extends BaseController
 
 
     }
-        
+
     }
 
     /**
@@ -77,8 +80,8 @@ class ProductController extends BaseController
     {
         
           return $this->get($product,null,"id",$product->id);
-       
     }
+
 
   
 //     /**
@@ -86,6 +89,7 @@ class ProductController extends BaseController
 //      */
     public function update(UpdateProductRequest $request, Product $product)
     {
+
             return $this->edit($product, $request->all());
         
     }

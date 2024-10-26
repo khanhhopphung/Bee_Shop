@@ -21,6 +21,7 @@ class BaseController extends Controller
             if ($col === 'id' && $value) {
                 $data = $query->find($value);
                 if (!$data) {
+
                     return self::error('Data not found', HttpResponse::HTTP_NOT_FOUND);
                 }
 
@@ -134,8 +135,6 @@ class BaseController extends Controller
         }
 
     }
-    
-   
 
 
 
@@ -158,7 +157,6 @@ class BaseController extends Controller
         ], $status);
     }
 
+
 }
-
-
 

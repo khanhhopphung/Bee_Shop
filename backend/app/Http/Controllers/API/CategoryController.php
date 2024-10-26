@@ -18,7 +18,9 @@ class CategoryController extends BaseController
 
     public function index()
     {
+
             return $this->get( $this->model);     
+
     }
 
     public function store(StoreCategoryRequest $request)
@@ -36,8 +38,7 @@ class CategoryController extends BaseController
         }else {
             return response()->json(['error' => 'Category not found'], 404);        }
       
-            
-
+        
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Http\Controllers\BaseCrudController;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use App\Models\ProductVariant;
+
 use Illuminate\Routing\Controller;
 
 class ProductVariantController extends BaseController
@@ -17,6 +18,7 @@ class ProductVariantController extends BaseController
     }
     public function index()
     {
+
        
             return $this->get( $this->model);
 
@@ -30,6 +32,7 @@ class ProductVariantController extends BaseController
     public function store(StoreProductVariantRequest $request)
     {
 
+
             return $this->insert($this->model, $request->all());
 
     }
@@ -39,8 +42,10 @@ class ProductVariantController extends BaseController
      */
     public function show(ProductVariant $productVariant)
     {
+
        
             return $this->get($productVariant,null,"id",$productVariant->id);
+
 
     } 
 //     /**
@@ -56,7 +61,9 @@ class ProductVariantController extends BaseController
      */
     public function update(UpdateProductVariantRequest $request, ProductVariant $productVariant)
     {
+
             return $this->edit($productVariant, $request->all());
+
 
     }
 
