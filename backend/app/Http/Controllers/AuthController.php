@@ -1,93 +1,128 @@
 <?php
-namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use App\Mail\VerificationCodeMail;
+use App\Models\EmailVerification;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    
-    // Đăng ký
     public function register(Request $request)
     {
+        // Validate input
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|unique:users',
-            'email' => 'required|string|email|unique:users',
-            'password_hash' => 'required|string|min:6',
-            'phone' => 'required|string|min:10',
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|email|max:255|unique:users',
+            'password_hash' => 'required|min:6|string',
+            'phone'=>'required|string'
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
 
+        // Create user but set `is_active` to false
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
-            'password_hash' => Hash::make($request->password_hash) ,
             'phone' => $request->phone,
-            'role_id' => 1, 
-            'tier_id' => 1, 
+            'password_hash' => Hash::make($request->password_hash),
+            'is_active' => false,
+            'role_id' => 1,  
+            'tier_id' => 1,  
+
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Generate verification code
+        $verificationCode = Str::random(6);
+        $expiresAt = Carbon::now()->addMinutes(30);
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+        // Store verification code
+        EmailVerification::create([
+            'email' => $request->email,
+            'verification_code' => $verificationCode,
+            'expires_at' => $expiresAt,
         ]);
+
+        // Send verification email
+        Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
+
+        return response()->json(['message' => 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác nhận.']);
     }
-    
+    public function verifyEmail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'verification_code' => 'required|string',
+        ]);
 
-    // Đăng nhập
-    public function login(Request $request)
-{
-    $credentials = $request->only('username', 'password');
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
 
-    
+        $verification = EmailVerification::where('email', $request->email)
+            ->where('verification_code', $request->verification_code)
+            ->first();
 
-// Lấy người dùng
-    $user = User::where('username', $credentials['username'])->first();
+        if (!$verification || Carbon::now()->greaterThan($verification->expires_at)) {
+            return response()->json(['message' => 'Invalid or expired verification code.'], 400);
+        }
 
-    if ($user && Hash::check($credentials['password'], $user->password_hash)) {
-        
-   
-// Đăng nhập thành công
-        
-       
-Auth::login($user);
-        
-       
-return response()->json(['message' => 'Login successful']);
-    }
+        // Activate user
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $user->is_active = true;
+            $user->email_verified_at = Carbon::now();
+            $user->save();
 
-    
-    
-// Đăng nhập thất bại
-    return response()->json(['message' => 'Invalid credentials'], 401);
+            // Delete verification record
+            $verification->delete();
+
+            return response()->json(['message' => 'Email verified successfully.']);
 }
 
-
-    
-
-    // Lấy thông tin người dùng đã đăng nhập
-    public function user(Request $request)
-    {
-        return response()->json($request->user());
+        return response()->json(['message' => 'User not found.'], 404);
     }
 
-    
-    // Đăng xuất
-    public function logout(Request $request)
-    {
-        $request->user()->tokens()->delete();
+    public function login(Request $request)
+{
+    // Validate the incoming request data
+    $validator = Validator::make($request->all(), [
+        'username' => 'required|string',
+        'password' => 'required|string',
+    ]);
 
-        return response()->json([
-            'message' => 'Logged out successfully'
-        ]);
+    // Return validation errors if any
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
     }
+
+    // Find the user by username
+    $user = User::where('username', $request->username)->first();
+
+    // Check if the user exists and if the password matches
+    if (!$user || !Hash::check($request->password, $user->password_hash)) {
+        return response()->json(['message' => 'Invalid credentials.'], 401);
+    }
+
+    // Check if the user account is active
+    if (!$user->is_active) {
+        return response()->json(['message' => 'Please verify your email.'], 403);
+    }
+
+    // Create a token for the user
+    $token = $user->createToken('authToken')->plainTextToken;
+
+    // Return success response with the token
+    return response()->json([
+        'message' => 'Login successful.', // Success message
+        'access_token' => $token
+    ], 200);
+}
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\AuthController;
 
+
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,4 +40,5 @@ Route::apiResource('promotions', PromotionController::class);
 Route::apiResource( 'users', UserController::class);
 
 Route::apiResource('roles', RoleController::class);
+
 
