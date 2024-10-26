@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\ProductController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,9 +17,13 @@ use App\Http\Controllers\API\CategoryController;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::group(["prefix"=> "categories"], function () {
-    Route::get("search", [CategoryController::class,'search']);
-});
-Route::get('categories-search', [CategoryController::class, 'search'])->name('categories.search');
 
-Route::resource('categories', CategoryController::class);
+Route::group(["prefix"=> "products"], function () {
+    Route::get("search", [ProductController::class,'search']);
+});
+Route::get('products-search', [ProductController::class, 'search'])->name('products.search');
+
+Route::get('products/category/{category?}', [ProductController::class, 'filterByCategory'])->name('products.category');
+
+Route::resource('products', ProductController::class);
+
