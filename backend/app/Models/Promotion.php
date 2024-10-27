@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Promotion extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'code',
         'discount_type',
@@ -19,8 +20,4 @@ class Promotion extends Model
         'min_purchase_amount',
         'tier_id',
     ];
-    public function tier()
-    {
-        return $this->belongsTo(Tier::class);
-    }
 }

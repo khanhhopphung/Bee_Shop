@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
@@ -14,7 +14,6 @@ class OrderController extends Controller
     public function index()
     {
         //
-        
     }
 
     /**

@@ -11,7 +11,7 @@ class StoreColorRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -22,25 +22,7 @@ class StoreColorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'color_name' => 'required|string|max:255',
-            'is_active' => 'required|boolean',
+            //
         ];
-    }
-
-    /**
-     * Xử lý lỗi validation và trả về JSON response.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
-     */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        $errors = $validator->errors();
-
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Validation errors',
-            'errors' => $errors
-        ], 422));
     }
 }

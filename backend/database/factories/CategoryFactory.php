@@ -27,4 +27,4 @@ class CategoryFactory extends Factory
             'image_url' => $this->faker->imageUrl(640, 480, 'categories', true), // Tạo URL hình ảnh ngẫu nhiên
         ];
     }
-} 
+}

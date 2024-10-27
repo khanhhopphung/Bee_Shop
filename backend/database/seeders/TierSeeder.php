@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tier;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,8 +13,6 @@ class TierSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        \App\Models\Tier::factory(10)->create();
-
+        Tier::factory(5)->create();
     }
 }

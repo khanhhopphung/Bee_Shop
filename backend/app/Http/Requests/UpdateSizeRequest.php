@@ -11,7 +11,7 @@ class UpdateSizeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Xác thực người dùng (có thể thay đổi tùy theo yêu cầu)
+        return false;
     }
 
     /**
@@ -22,25 +22,7 @@ class UpdateSizeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'size_name' => 'sometimes|required|string|max:255', // Tên kích thước là cần thiết khi được cung cấp
-            'is_active' => 'sometimes|boolean', // Trạng thái hoạt động có thể cập nhật, không bắt buộc
+            //
         ];
-    }
-
-    /**
-     * Handle a failed validation attempt.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return void
-     */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        $errors = $validator->errors();
-
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Validation errors',
-            'errors' => $errors
-        ], 422));
     }
 }

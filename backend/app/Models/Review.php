@@ -8,24 +8,4 @@ use Illuminate\Database\Eloquent\Model;
 class Review extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'user_id',
-        'product_id',
-        'comment',
-        'rating',
-        'review_date',
-        'is_verified',
-    ];
-
-    // Thiết lập mối quan hệ với User
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    // Thiết lập mối quan hệ với Product
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
 }

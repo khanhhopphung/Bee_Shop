@@ -18,13 +18,6 @@ class ShippingAddressFactory extends Factory
     {
         return [
             //
-            'user_id' => rand(1,10), // Tạo liên kết với một user
-            'recipient_name' => $this->faker->name,
-            'phone' => $this->faker->phoneNumber,
-            'address_line' => $this->faker->address,
-            'city' => $this->faker->city,
-            'state' => $this->faker->state,
-            'is_default' => $this->faker->boolean(80), // 80% khả năng là true
         ];
     }
 }

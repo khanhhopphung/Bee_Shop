@@ -2,50 +2,43 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Category;
+use App\Http\Controllers\BaseController;
+use App\Http\Controllers\BaseCrudController;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
-use App\Http\Controllers\Controller;    
-class CategoryController extends Controller
+use App\Models\Category;
+use Illuminate\Http\Request;
+
+class CategoryController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        $this->model = Category::class;
+    }
+
     public function index()
     {
-        //
+
+            return $this->get( $this->model);     
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreCategoryRequest $request)
     {
-        //
+            return $this->insert($this->model, $request->all());    
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // /**
+    //  * Display the specified resource.
+    //  */
     public function show(Category $category)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Category $category)
-    {
-        //
+        if($category){
+            return $this->get($category,null,"id",$category->id);
+        }else {
+            return response()->json(['error' => 'Category not found'], 404);        }
+      
+        
     }
 
     /**
@@ -53,14 +46,23 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        //
+            return $this->edit($category, $request->all());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // /**
+    //  * Remove the specified resource from storage.
+    //  */
     public function destroy(Category $category)
     {
-        //
+        $data = [
+            "is_active" => false,
+            "deleted_at" => date('Y-m-d H:i:s')
+        ];
+        return $this->edit($category, $data );
+        
     }
+
+    public function search(Request $request){
+        return $this->get( $this->model, null,'name',$request->key,null,null,null);
+    } 
 }
