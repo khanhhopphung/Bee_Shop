@@ -18,6 +18,10 @@ class SizeFactory extends Factory
     {
         return [
             //
+            'size_name' => $this->faker->word(),  // Tên kích thước ngẫu nhiên
+            'is_active' => $this->faker->boolean(), // Trạng thái ngẫu nhiên (true/false)
+            'created_at' => now(), // Thời gian tạo hiện tại
+            'updated_at' => now(),
         ];
     }
 }

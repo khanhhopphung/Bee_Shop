@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\CustomerSupport;
 use App\Http\Requests\StoreCustomerSupportRequest;
 use App\Http\Requests\UpdateCustomerSupportRequest;

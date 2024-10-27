@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Models\ProductVarian;
+use App\Http\Requests\StoreProductVarianRequest;
+use App\Http\Requests\UpdateProductVarianRequest;
 
-class ProductController extends Controller
+class ProductVarianController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        echo "hhah";
+        //
     }
 
     /**
@@ -27,7 +27,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductVarianRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(ProductVarian $productVarian)
     {
         //
     }
@@ -43,7 +43,7 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(ProductVarian $productVarian)
     {
         //
     }
@@ -51,7 +51,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductVarianRequest $request, ProductVarian $productVarian)
     {
         //
     }
@@ -59,7 +59,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(ProductVarian $productVarian)
     {
         //
     }

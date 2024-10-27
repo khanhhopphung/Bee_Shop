@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
 use App\Models\ShippingAddress;
 use App\Http\Requests\StoreShippingAddressRequest;

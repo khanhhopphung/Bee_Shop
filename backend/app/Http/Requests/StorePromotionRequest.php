@@ -3,9 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\Response;
 
 class StorePromotionRequest extends FormRequest
 {
@@ -25,26 +22,26 @@ class StorePromotionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => 'required|string|max:50|unique:promotions,code', 
-            'discount_type' => 'required|in:percentage', 
-            'discount_value' => 'required|numeric|min:0|max:100', 
-            'usage_limit' => 'required|integer|min:1', 
-            'start_date' => 'required|date|before_or_equal:end_date', 
-            'end_date' => 'nullable|date|after_or_equal:start_date', 
-            'is_active' => 'boolean', 
-            'min_purchase_amount' => 'nullable|numeric|min:0', 
-            'tier_id' => 'required|exists:tiers,id',
+            'code' => 'required|string|max:255|unique:promotions,code',
+            'discount_type' => 'required|string|in:percentage,amount', // Chỉ cho phép 2 giá trị
+            'discount_value' => 'required|numeric|min:0',
+            'usage_limit' => 'nullable|integer|min:1',
+            'start_date' => 'required|date|before_or_equal:end_date', // Start date phải nhỏ hơn end date
+            'end_date' => 'required|date|after_or_equal:start_date', // End date phải lớn hơn hoặc bằng start date
+            'is_active' => 'required|boolean',
+            'min_purchase_amount' => 'nullable|numeric|min:0',
+            'tier_id' => 'required|integer|exists:tiers,id',
         ];
     }
-
-    protected function failedValidation(Validator $validator)
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
         $errors = $validator->errors();
-
-        $response = response()->json([
-            'errors' => $errors->messages(),
-        ], Response::HTTP_BAD_REQUEST);
-
-        throw new HttpResponseException($response);
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $errors
+        ], 422));
     }
+    
+   
 }

@@ -12,6 +12,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+         //
+         \App\Models\Role::factory(10)->create();
     }
 }
