@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Tier extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'tier_name',
         'points_required',
         'discount_tier',
-        'benefits'
+        'benefits',
     ];
 }

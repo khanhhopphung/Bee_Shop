@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('colors', function (Blueprint $table) {
             $table->id();
             $table->string('color_name', 50);
+            $table->boolean('is_active')->default(true); // Trường trạng thái, mặc định là true
             $table->timestamps();
         });
     }

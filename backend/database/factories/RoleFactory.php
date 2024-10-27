@@ -18,6 +18,9 @@ class RoleFactory extends Factory
     {
         return [
             //
+            'role_name' => $this->faker->word,
+            'description' => $this->faker->sentence,
+            'is_active' => $this->faker->boolean,
         ];
     }
 }
