@@ -7,6 +7,7 @@ use App\Http\Controllers\BaseCrudController;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use Illuminate\Http\Request;
 
 class CategoryController extends BaseController
 {
@@ -17,29 +18,14 @@ class CategoryController extends BaseController
 
     public function index()
     {
-        try {
-            return $this->get( $this->model);
-      
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()
-            ], 500);
-        }
+
+            return $this->get( $this->model);     
+
     }
 
     public function store(StoreCategoryRequest $request)
     {
-        try {
-            return $this->insert($this->model, $request->all());
-        }
-        catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()
-            ], 500);
-
-        }
+            return $this->insert($this->model, $request->all());    
     }
 
     // /**
@@ -47,16 +33,12 @@ class CategoryController extends BaseController
     //  */
     public function show(Category $category)
     {
-        if ($category -> is_active == true) {
+        if($category){
             return $this->get($category,null,"id",$category->id);
-          }
-          else if ($category -> is_active ==false) {
-              return response()->json([
-                  "status" => "error",
-                  "message" => "This category is not active.",
-                  "datas" => $category
-              ], 200);
-          }
+        }else {
+            return response()->json(['error' => 'Category not found'], 404);        }
+      
+        
     }
 
     /**
@@ -64,18 +46,7 @@ class CategoryController extends BaseController
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-        try {
             return $this->edit($category, $request->all());
-        }
-        catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage()."Code :".$e->getCode() ."line:".$e->getLine(),
-
-            ], 500);
-
-        }
-
     }
 
     // /**
@@ -90,4 +61,8 @@ class CategoryController extends BaseController
         return $this->edit($category, $data );
         
     }
+
+    public function search(Request $request){
+        return $this->get( $this->model, null,'name',$request->key,null,null,null);
+    } 
 }
