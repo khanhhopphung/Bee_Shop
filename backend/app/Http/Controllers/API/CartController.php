@@ -1,66 +1,44 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Http\Requests\StoreCartRequest;
 use App\Http\Requests\UpdateCartRequest;
+use App\Models\CartDetail;
+use App\Models\Product;
+use Illuminate\Http\Request;
 
-class CartController extends Controller
+class CartController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function addToCart(Request $request)
     {
-        //
+        $cart = Cart::firstOrCreate([
+            'user_id' => auth()->id()
+        ]);
+
+        $cartDetail = $cart->cartDetails()->create([
+            'product_id' => $request->product_id,
+            'quantity' => $request->quantity,
+            'product_price' => Product::find($request->product_id)->price,
+            'discount_value' => $request->discount_value ?? 0,
+        ]);
+
+        return $this->success($cartDetail) ;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Xem giỏ hàng
+    public function viewCart()
     {
-        //
+        $cart = Cart::with('cartDetails.product')->where('user_id', auth()->id())->first();
+return $this->success($cart) ;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCartRequest $request)
+    // Xóa sản phẩm khỏi giỏ hàng
+    public function removeFromCart($id)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCartRequest $request, Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Cart $cart)
-    {
-        //
+        $cartDetail = CartDetail::findOrFail($id);
+        $cartDetail->delete();
+return $this->success($cartDetail) ;
     }
 }
