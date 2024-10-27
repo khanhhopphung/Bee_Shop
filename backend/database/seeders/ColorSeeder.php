@@ -13,6 +13,5 @@ class ColorSeeder extends Seeder
     public function run(): void
     {
         //
-        \App\Models\Color::factory(10)->create();
     }
 }
