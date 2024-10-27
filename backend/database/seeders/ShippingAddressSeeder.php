@@ -13,5 +13,6 @@ class ShippingAddressSeeder extends Seeder
     public function run(): void
     {
         //
+        \App\Models\ShippingAddress::factory(10)->create();
     }
 }

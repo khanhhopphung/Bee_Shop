@@ -2,26 +2,32 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Review;
+use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
+use App\Models\Review;
+use Illuminate\Support\Facades\Auth;
 
-class ReviewController extends Controller
+class ReviewController extends BaseController
 {
+    public function __construct()
+    {
+        $this->model = Review::class;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        try {
+            return $this->get($this->model);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -29,7 +35,32 @@ class ReviewController extends Controller
      */
     public function store(StoreReviewRequest $request)
     {
-        //
+        if (!Auth::check()) {
+            return response()->json([
+                "status" => "error",
+                "message" => "You must be logged in to leave a review."
+            ], 403);
+        }
+
+        // Kiểm tra xem người dùng đã mua hàng hay chưa (giả định có phương thức để kiểm tra)
+        $userId = Auth::id();
+        $hasPurchased = $this->checkIfUserHasPurchased($userId, $request->product_id);
+
+        if (!$hasPurchased) {
+            return response()->json([
+                "status" => "error",
+                "message" => "You must purchase the product before leaving a review."
+            ], 403);
+        }
+
+        try {
+            return $this->insert($this->model, $request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -37,15 +68,7 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Review $review)
-    {
-        //
+        return $this->get($review);
     }
 
     /**
@@ -53,7 +76,14 @@ class ReviewController extends Controller
      */
     public function update(UpdateReviewRequest $request, Review $review)
     {
-        //
+        try {
+            return $this->edit($review, $request->all());
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -61,6 +91,15 @@ class ReviewController extends Controller
      */
     public function destroy(Review $review)
     {
-        //
+        return $this->edit($review, ['is_active' => false, 'deleted_at' => now()]);
+    }
+
+    private function checkIfUserHasPurchased($userId, $productId)
+    {
+        // Logic kiểm tra xem người dùng đã mua sản phẩm chưa
+        // Giả định bạn có một model Order và có thể kiểm tra từ đó
+        return \App\Models\Order::where('user_id', $userId)->whereHas('orderItems', function ($query) use ($productId) {
+            $query->where('product_id', $productId);
+        })->exists();
     }
 }

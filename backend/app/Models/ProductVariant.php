@@ -19,4 +19,21 @@ class ProductVariant extends Model
         'updated_at',
         'deleted_at'
     ];
+    protected $table = 'product_variants';
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+        public function size()
+    {
+        return $this->belongsTo(Size::class);
+    }
+
+    public function color()
+    {
+        return $this->belongsTo(Color::class);
+    }
 }
+

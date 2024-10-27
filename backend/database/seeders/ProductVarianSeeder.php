@@ -13,5 +13,6 @@ class ProductVarianSeeder extends Seeder
     public function run(): void
     {
         //
+        ProductVarian::factory()->count(5)->create(); // Tạo 10 biến thể sản phẩ
     }
 }
