@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Http\Controllers\Controller;
 use App\Models\OrderDetail;
 use App\Http\Requests\StoreOrderDetailRequest;
 use App\Http\Requests\UpdateOrderDetailRequest;
@@ -13,7 +14,7 @@ class OrderDetailController extends Controller
      */
     public function index()
     {
-        //
+        
     }
 
     /**

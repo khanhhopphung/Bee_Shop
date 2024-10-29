@@ -111,36 +111,47 @@ class ProductController extends BaseController
         return $this->get( $this->model, null,'name',$request->key,null,null,null);
     }  
 
-    public function filterByCategory(Request $request, $categoryId=null)
-    {
-        $minPrice = $request->input('min_price'); 
-        $maxPrice = $request->input('max_price'); 
-        $query = Product::latest('id');
-        $datas = [];
-    
-        if ($minPrice && $maxPrice) {
-            $query->whereBetween('price', [$minPrice, $maxPrice]);
-        } elseif ($minPrice) {
-            $query->where('price', '>=', $minPrice);
-        } elseif ($maxPrice) {
-            $query->where('price', '<=', $maxPrice);
-        }
-        if($categoryId){
-            $query->where('category_id', $categoryId);
-            $category = Category::find($categoryId);
-            $datas["category_name"] = $category->name;
-            }
-    
-        $products = $query->get();
-        if($products->isEmpty()){
-            return $this->error('No products found for this category');
+    public function filter(Request $request, $categoryId = null)
+{
+    $minPrice = $request->input('min_price'); 
+    $maxPrice = $request->input('max_price'); 
+    $sortOrder = $request->input('sort_order'); // A-Z or Z-A
 
-        }
-    
-    
-        $datas["products"] =  $products;
-    
-        return $this->success($datas);
+    $query = Product::query();
+
+    if ($minPrice && $maxPrice) {
+        $query->whereBetween('price', [$minPrice, $maxPrice]);
+    } elseif ($minPrice) {
+        $query->where('price', '>=', $minPrice);
+    } elseif ($maxPrice) {
+        $query->where('price', '<=', $maxPrice);
     }
+
+    if ($categoryId) {
+        $query->where('category_id', $categoryId);
+        $category = Category::find($categoryId);
+        $datas["category_name"] = $category->name;
+    }
+
+    // Sắp xếp theo tên sản phẩm (A-Z hoặc Z-A)
+    if ($sortOrder === 'A-Z') {
+        $query->orderBy('name', 'asc');
+    } elseif ($sortOrder === 'Z-A') {
+        $query->orderBy('name', 'desc');
+    } else {
+        $query->latest('id'); // mặc định sắp xếp theo id mới nhất
+    }
+
+    $products = $query->get();
+
+    if ($products->isEmpty()) {
+        return $this->error('No products found for this category');
+    }
+
+    $datas["products"] = $products;
+
+    return $this->success($datas);
+}
+
     
 }

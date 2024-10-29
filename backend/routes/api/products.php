@@ -23,7 +23,7 @@ Route::group(["prefix"=> "products"], function () {
 });
 Route::get('products-search', [ProductController::class, 'search'])->name('products.search');
 
-Route::get('products/category/{category?}', [ProductController::class, 'filterByCategory'])->name('products.category');
+Route::get('products/category/{category?}', [ProductController::class, 'filter'])->name('products.category');
 
 Route::resource('products', ProductController::class);
 
