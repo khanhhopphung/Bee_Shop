@@ -6,6 +6,11 @@ use App\Http\Controllers\API\TierController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\API\ColorController;
+use App\Http\Controllers\API\SizeController;
+use App\Http\Controllers\API\ImageController;
+use App\Http\Controllers\API\ReviewController;
+
 
 
 use App\Models\Tier;
@@ -40,5 +45,9 @@ Route::apiResource('promotions', PromotionController::class);
 Route::apiResource( 'users', UserController::class);
 
 Route::apiResource('roles', RoleController::class);
+Route::apiResource('colors', ColorController::class);
+Route::apiResource('sizes', SizeController::class);
+Route::apiResource('images', ImageController::class);
+Route::apiResource('reviews', ReviewController::class);
 
 
