@@ -43,6 +43,14 @@ class AuthController extends Controller
     
         return response()->json(['message' => 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác nhận.']);
     }
+    public function logout(Request $request)
+{
+    // Xóa token hiện tại của người dùng
+    $request->user()->tokens()->delete();
+
+    // Trả về phản hồi thành công
+    return response()->json(['message' => 'Logout successful.'], 200);
+}
     public function verifyEmail(Request $request)
     {
         $validator = Validator::make($request->all(), [
