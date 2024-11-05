@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordMail;
+
 use App\Models\User;
 use App\Mail\VerificationCodeMail;
 use App\Models\EmailVerification;
@@ -13,21 +15,7 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        // Validate input
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|email|max:255|unique:users',
-            'password_hash' => 'required|min:6|string',
-            'phone'=>'required|string'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        // Create user but set `is_active` to false
+    public function register(Request $request){
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
@@ -36,23 +24,23 @@ class AuthController extends Controller
             'is_active' => false,
             'role_id' => 1,  
             'tier_id' => 1,  
-
+    
         ]);
-
+    
         // Generate verification code
         $verificationCode = Str::random(6);
         $expiresAt = Carbon::now()->addMinutes(30);
-
+    
         // Store verification code
         EmailVerification::create([
             'email' => $request->email,
             'verification_code' => $verificationCode,
             'expires_at' => $expiresAt,
         ]);
-
+    
         // Send verification email
         Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
-
+    
         return response()->json(['message' => 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác nhận.']);
     }
     public function verifyEmail(Request $request)
@@ -124,5 +112,5 @@ class AuthController extends Controller
         'message' => 'Login successful.', // Success message
         'access_token' => $token
     ], 200);
-}
+    }
 }
