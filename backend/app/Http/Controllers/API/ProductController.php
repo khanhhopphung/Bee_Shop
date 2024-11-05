@@ -16,6 +16,7 @@ use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends BaseController
 {
@@ -39,48 +40,54 @@ class ProductController extends BaseController
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
+{
+    try {
+        DB::beginTransaction();
 
-        try{
-            DB::beginTransaction();
-        $path = $request->file('image')->store('images', 'public'); // Lưu hình ảnh
+        // Lưu hình ảnh vào thư mục public/storage/images
+        $path = $request->file('image')->store('images', 'public');
+
+        // Tạo sản phẩm mới
         $pro = [
-            'name'=> $request->name,
-            'price'=> $request->price,
-            'sku'=> $request->sku,
+            'name' => $request->name,
+            'price' => $request->price,
+            'sku' => $request->sku,
             'description' => $request->description,
             'category_id' => $request->category_id,
             'stock' => $request->stock
         ];
         $product = Product::create($pro);
+
+        // Ghi thông tin hình ảnh vào bảng Image
         $data = [
             'product_id' => $product->id,
-            'image_url' =>  $path
+            'image_url' => $path
         ];
         Image::create($data);
+
         DB::commit();
 
-        
-            return $this->insert($this->model, $request->all());
-        } 
-        catch(Throwable $e){
-            DB::rollback();
-            return $this->error($e->getMessage());
-            // return response()->json(['error' => $e->getMessage()], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
-
-
+        // Trả về dữ liệu sản phẩm đã tạo
+        return $this->success($product);
+    } catch (Throwable $e) {
+        DB::rollback();
+        return $this->error($e->getMessage());
     }
+}
 
-    }
+
 
     /**
      * Display the specified resource.
      */
     public function show(Product $product)
-    {
-        
-          return $this->get($product,null,"id",$product->id);
-    }
+{
+    // Lấy sản phẩm cùng với hình ảnh liên quan
+    $productWithImage = Product::with('image')->find($product->id);
+
+    return $this->success($productWithImage);
+}
+
 
 
   
