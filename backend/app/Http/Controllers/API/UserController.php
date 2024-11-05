@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
 use App\Models\User;
-use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
 
 

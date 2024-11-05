@@ -2,65 +2,50 @@
 
 namespace App\Policies;
 
-use App\Models\ProductVarian;
+use App\Models\ProductVariant;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class ProductVarianPolicy
+class ProductVariantPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        //
+        // Logic kiểm tra quyền xem tất cả các ProductVariant (nếu có)
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, ProductVarian $productVarian): bool
+    public function view(User $user, ProductVariant $productVariant): bool
     {
-        //
+        // Logic kiểm tra quyền xem một ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        //
+        // Logic kiểm tra quyền tạo ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, ProductVarian $productVarian): bool
+    public function update(User $user, ProductVariant $productVariant): bool
     {
-        //
+        // Logic kiểm tra quyền cập nhật ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, ProductVarian $productVarian): bool
+    public function delete(User $user, ProductVariant $productVariant): bool
     {
-        //
+        // Logic kiểm tra quyền xóa ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, ProductVarian $productVarian): bool
+    public function restore(User $user, ProductVariant $productVariant): bool
     {
-        //
+        // Logic kiểm tra quyền khôi phục ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, ProductVarian $productVarian): bool
+    public function forceDelete(User $user, ProductVariant $productVariant): bool
     {
-        //
+        // Logic kiểm tra quyền xóa vĩnh viễn ProductVariant
+        return true; // Hoặc false tùy vào quyền của người dùng
     }
 }
