@@ -1,0 +1,201 @@
+import React, { useState, useEffect } from "react";
+import Layout from "../../components/Layout";
+import { useNavigate } from "react-router-dom";
+
+const Register: React.FC = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password_hash, setPassword_hash] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
+  const clickLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Bắt đầu gửi dữ liệu...");
+
+    try {
+      if (!username || !email || !password_hash || !phone) {
+        setError("Vui lòng điền đầy đủ thông tin đăng ký.");
+        return;
+      }
+      const response = await fetch(`http://127.0.0.1:8000/api/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password_hash, phone }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Phản hồi thành công từ server:", data);
+        setSuccess(data.message);
+        navigate("/verify");
+      } else {
+        const errorData = await response.json();
+        console.error("Lỗi từ server:", errorData);
+        setError(errorData.message || "Đăng ký thất bại, vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi yêu cầu:", error);
+      setError("Đã xảy ra lỗi khi kết nối với server.");
+    }
+  };
+
+  useEffect(() => {
+    // // Xóa l��i và thành công khi trang đăng ký hoàn tất
+    // setError(null);
+    // setSuccess(null);
+    console.log(username);
+  }, [username]);
+  return (
+    <Layout>
+      <div className="app app-signup p-0">
+        <div className="row g-0 app-auth-wrapper">
+          <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
+            <div className="auth-background-holder"></div>
+            <div className="auth-background-mask"></div>
+            <div className="auth-background-overlay p-3 p-lg-5">
+              <div className="d-flex flex-column align-content-end h-100">
+                <div className="h-100"></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center p-5">
+            <div className="d-flex flex-column align-content-end">
+              <div className="app-auth-body mx-auto">
+                <div className="app-auth-branding mb-4">
+                  <a className="app-logo" href="/">
+                    <p>BEE STORE</p>
+                  </a>
+                </div>
+                <h2 className="auth-heading text-center mb-4">Đăng ký</h2>
+
+                <div className="auth-form-container text-start mx-auto">
+                  {/* <form
+                    className="auth-form auth-signup-form"
+                    // onSubmit={handleSubmit}
+                  > */}
+                  <div className="username mb-3">
+                    <label className="sr-only" htmlFor="signup-name">
+                      Tên của bạn
+                    </label>
+                    <input
+                      id="signup-name"
+                      name="signup-name"
+                      type="text"
+                      className="form-control signup-name"
+                      placeholder="Họ và tên :"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="email mb-3">
+                    <label className="sr-only" htmlFor="signup-email">
+                      Email
+                    </label>
+                    <input
+                      id="signup-email"
+                      name="signup-email"
+                      type="email"
+                      className="form-control signup-email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="password mb-3">
+                    <label className="sr-only" htmlFor="signup-password">
+                      Mật khẩu
+                    </label>
+                    <input
+                      id="signup-password"
+                      name="signup-password"
+                      type="password"
+                      className="form-control signup-password"
+                      placeholder="Mật khẩu"
+                      value={password_hash}
+                      onChange={(e) => setPassword_hash(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="confirm-password mb-3">
+                    <label
+                      className="sr-only"
+                      htmlFor="signup-confirm-password"
+                    >
+                      Số điện thoại
+                    </label>
+                    <input
+                      id="signup-phone"
+                      name="signup-phone"
+                      type="text"
+                      className="form-control signup-phone"
+                      placeholder="Số điện thoại"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="extra mb-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        value=""
+                        id="RememberPassword"
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor="RememberPassword"
+                      >
+                        Tôi đồng ý với{" "}
+                        <a href="#" className="app-link">
+                          Terms of Service
+                        </a>{" "}
+                        và{" "}
+                        <a href="#" className="app-link">
+                          Privacy Policy
+                        </a>
+                        .
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <button
+                      type="submit"
+                      className="btn app-btn-primary w-100 theme-btn mx-auto"
+                      onClick={(e) => clickLogin(e)}
+                    >
+                      Đăng ký
+                    </button>
+                  </div>
+                  {/* </form> */}
+
+                  <div className="auth-option text-center pt-5">
+                    Bạn đã có tài khoản?{" "}
+                    <a className="text-link" href="/login">
+                      Đăng nhập
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <footer className="app-auth-footer"></footer>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default Register;

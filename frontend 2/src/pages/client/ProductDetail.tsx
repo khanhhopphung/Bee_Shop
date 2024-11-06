@@ -1,0 +1,584 @@
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Layout from "../../components/Layout";
+
+interface Product {
+  id: number;
+  name: string;
+  sku: string;
+  description: string;
+  price: number;
+  image: { image_url: string };
+}
+interface Size {
+  id: number;
+  size_name: string;
+}
+interface Color {
+  id: number;
+  color_name: string;
+}
+
+interface Error {
+  errorSize?: string;
+  errorColor?: string;
+}
+
+interface Data {
+  id: number;
+  sizeId: number;
+  colorId: number;
+  quantity: number;
+}
+const ProductDetail: React.FC = () => {
+  const [error, setError] = useState<Error>({});
+  const { id } = useParams();
+  const [sizes, setSize] = useState<Size[]>([]);
+
+  const [sizeId, setSizeId] = useState<number>();
+  const [colorId, setColorId] = useState<number>();
+
+  const [colors, setColor] = useState<Color[]>([]);
+  const [products, setProducts] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  // call api products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/products/${id}`
+        );
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra xem result có dữ liệu hợp lệ không
+        if (result && result.data) {
+          setProducts(result.data);
+        } else {
+          console.error("Data is not valid:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, [id]);
+
+  // call api sizes
+  useEffect(() => {
+    const fetchSizes = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/sizes`);
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra xem result có dữ liệu hợp lệ không
+        if (result && result.data) {
+          setSize(result.data);
+        } else {
+          console.error("Data is not valid for sizes:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching sizes:", error);
+      }
+    };
+
+    fetchSizes();
+  }, []); // Chạy chỉ một lần khi component được mount
+
+  // call api colors
+  useEffect(() => {
+    const fetchColors = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/colors`);
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra xem result có dữ liệu hợp lệ không
+        if (result && result.data) {
+          setColor(result.data);
+        } else {
+          console.error("Data is not valid for colors:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching colors:", error);
+      }
+    };
+
+    fetchColors();
+  }, []); // Chạy chỉ một lần khi component được mount
+
+  // addCart = async () => {
+  //   let response = await fetch(`http://127.0.0.1:8000/api/`);
+  // };
+  // handle size change
+  const handle = () => {
+    // console.log(sizeId);
+    // console.log(colorId);
+    // console.log(quantity);
+    const errorObject = {
+      errorSize: "",
+      errorColor: "",
+    };
+    if (!sizeId) {
+      errorObject.errorSize = "Vui lòng chọn kích thước!";
+    }
+
+    if (!colorId) {
+      errorObject.errorColor = "Vui lòng chọn màu sắc!";
+    }
+
+    // Cập nhật lỗi cùng một lúc
+    setError(errorObject);
+
+    if (sizeId && colorId) {
+      setError({
+        errorSize: "",
+        errorColor: "",
+      });
+      // go to cart
+      const product: Data = {
+        id: Number(id),
+        sizeId: sizeId || 0,
+        colorId: colorId || 0,
+        quantity: quantity || 0,
+      };
+    }
+  };
+  return (
+    <Layout>
+      <div className="container">
+        {/* bread-crumb */}
+        <div className="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
+          <a href="/" className="stext-109 cl8 hov-cl1 trans-04">
+            Home
+            <i
+              className="fa fa-angle-right m-l-9 m-r-10"
+              aria-hidden="true"
+            ></i>
+          </a>
+
+          <a href="/" className="stext-109 cl8 hov-cl1 trans-04">
+            Men
+            <i
+              className="fa fa-angle-right m-l-9 m-r-10"
+              aria-hidden="true"
+            ></i>
+          </a>
+
+          <span className="stext-109 cl4">{products?.name}</span>
+        </div>
+
+        <section className="sec-product-detail bg0 p-t-65 p-b-60">
+          <div className="container">
+            <div className="row">
+              <div className="col-md-6 col-lg-7 p-b-30">
+                <div className="p-l-25 p-r-30 p-lr-0-lg">
+                  <div className="wrap-slick3 flex-sb flex-w">
+                    <div className="wrap-slick3-dots"></div>
+                    {/* <div className="wrap-slick3-arrows flex-sb-m flex-w">
+                      ảnh
+                    </div> */}
+
+                    <div className="slick3 gallery-lb">
+                      <div
+                        className="item-slick3"
+                        data-thumb="images/product-detail-01.jpg"
+                      >
+                        <div className="wrap-pic-w pos-relative">
+                          {/* <img
+                            src={`http://127.0.0.1:8000/storage/${products?.image.image_url}`}
+                            alt="IMG-PRODUCT"
+                          /> */}
+                          <img
+                            src={`http://127.0.0.1:8000/storage/${
+                              products?.image?.image_url || "default-image.jpg"
+                            }`}
+                            alt="IMG-PRODUCT"
+                          />
+
+                          <a
+                            className="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04"
+                            href="images/product-detail-01.jpg"
+                          >
+                            <i className="fa fa-expand"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {products && (
+                <div className="col-md-6 col-lg-5 p-b-30 ">
+                  <div className="p-r-50 p-t-5 p-lr-0-lg">
+                    <h4
+                      className="mtext-105 cl2 js-name-detail p-b-14"
+                      style={{
+                        fontFamily: "Roboto, sans-serif",
+                        fontSize: "30px",
+                        color: "#2c3e50",
+                        marginBottom: "14px",
+                        fontWeight: "700",
+                      }}
+                    >
+                      <strong>{products.name}</strong>
+                    </h4>
+
+                    <span className=" stext-102 p-t-20 sku-adjust ">
+                      Mã :{products.sku}
+                    </span>
+                    <br />
+                    <span className="mtext-108 cl2 p-t-20 ">
+                      Giá: {products.price}
+                    </span>
+
+                    <div className="p-t-33">
+                      {/* Chọn Kích Thước */}
+                      <div className="flex-w flex-r-m p-b-10">
+                        <div className="size-203 flex-c-m respon6">Size</div>
+                        <div className="size-204 respon6-next">
+                          <div className="rs1-select2 bor8 bg0">
+                            <select
+                              className="js-select2"
+                              name="size"
+                              style={{
+                                width: "100%",
+                                padding: "10px",
+                                borderRadius: "4px",
+                              }}
+                              onChange={(e) => {
+                                setSizeId(parseInt(e.target.value));
+                              }}
+                            >
+                              <option>Chọn kích thước</option>
+                              {sizes?.map((size) => (
+                                <option key={size.id} value={size.id}>
+                                  {size.size_name}
+                                </option>
+                              ))}
+                            </select>
+                            {error.errorSize && (
+                              <div style={{ color: "red", marginTop: "8px" }}>
+                                {error.errorSize}
+                              </div>
+                            )}
+                            <div className="dropDownSelect2"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Chọn Màu Sắc */}
+                      <div className="flex-w flex-r-m p-b-10">
+                        <div className="size-203 flex-c-m respon6">Color</div>
+                        <div className="size-204 respon6-next">
+                          <div className="rs1-select2 bor8 bg0">
+                            <select
+                              className="js-select2"
+                              name="color"
+                              style={{
+                                width: "100%",
+                                padding: "10px",
+                                borderRadius: "4px",
+                              }}
+                              onChange={(e) => {
+                                setColorId(parseInt(e.target.value));
+                              }}
+                            >
+                              <option>Chọn màu sắc</option>
+                              {colors?.map((color) => (
+                                <option key={color.id} value={color.id}>
+                                  {color.color_name}
+                                </option>
+                              ))}
+                            </select>
+                            {error.errorColor && (
+                              <div style={{ color: "red", marginTop: "8px" }}>
+                                {error.errorColor}
+                              </div>
+                            )}
+                            <div className="dropDownSelect2"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Chọn Số Lượng */}
+                      <div className="flex-w flex-r-m p-b-10">
+                        <div className="size-204 flex-w flex-m respon6-next">
+                          <div className="size-204 flex-w flex-m respon6-next">
+                            <div className="wrap-num-product flex-w m-r-20 m-tb-10">
+                              <div
+                                className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={() =>
+                                  setQuantity((prevQuantity) =>
+                                    Math.max(prevQuantity - 1, 1)
+                                  )
+                                }
+                              >
+                                <i className="fs-16 zmdi zmdi-minus"></i>
+                              </div>
+
+                              <input
+                                className="mtext-104 cl3 txt-center num-product"
+                                type="number"
+                                name="num-product"
+                                min="1"
+                                max="10"
+                                value={quantity}
+                                onChange={handle}
+                              />
+
+                              <div
+                                className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={() =>
+                                  setQuantity((preQuantity) =>
+                                    Math.min(preQuantity + 1, 10)
+                                  )
+                                }
+                              >
+                                <i className="fs-16 zmdi zmdi-plus"></i>
+                              </div>
+                            </div>
+
+                            <div
+                              className="button-container"
+                              style={{ display: "flex", gap: "10px" }}
+                            >
+                              <button
+                                onClick={() => handle()}
+                                className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail"
+                              >
+                                Thêm vào giỏ
+                              </button>
+                              <button className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
+                                Mua ngay
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex-w flex-m p-l-100 p-t-40 respon7">
+                      <div className="flex-m bor9 p-r-10 m-r-11">
+                        <a
+                          href="#"
+                          className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 js-addwish-detail tooltip100"
+                          data-tooltip="Add to Wishlist"
+                        >
+                          <i className="zmdi zmdi-favorite"></i>
+                        </a>
+                      </div>
+
+                      <a
+                        href="#"
+                        className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
+                        data-tooltip="Facebook"
+                      >
+                        <i className="fa fa-facebook"></i>
+                      </a>
+
+                      <a
+                        href="#"
+                        className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
+                        data-tooltip="Twitter"
+                      >
+                        <i className="fa fa-twitter"></i>
+                      </a>
+
+                      <a
+                        href="#"
+                        className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
+                        data-tooltip="Google Plus"
+                      >
+                        <i className="fa fa-google-plus"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bor10 m-t-50 p-t-43 p-b-40">
+              <div className="tab01">
+                <ul className="nav nav-tabs" role="tablist">
+                  <li className="nav-item p-b-10">
+                    <a
+                      className="nav-link active"
+                      data-toggle="tab"
+                      href="#description"
+                      role="tab"
+                    >
+                      Mô tả
+                    </a>
+                  </li>
+
+                  <li className="nav-item p-b-10">
+                    <a
+                      className="nav-link"
+                      data-toggle="tab"
+                      href="#reviews"
+                      role="tab"
+                    >
+                      Đánh giá
+                    </a>
+                  </li>
+                </ul>
+
+                <div className="tab-content p-t-43">
+                  <div
+                    className="tab-pane fade show active"
+                    id="description"
+                    role="tabpanel"
+                  >
+                    <div className="how-pos2 p-lr-15-md">
+                      <p className="stext-102 cl6">{products?.description}</p>
+                    </div>
+                  </div>
+
+                  <div
+                    className="tab-pane fade"
+                    id="information"
+                    role="tabpanel"
+                  ></div>
+
+                  <div className="tab-pane fade" id="reviews" role="tabpanel">
+                    <div className="row">
+                      <div className="col-sm-10 col-md-8 col-lg-6 m-lr-auto">
+                        <div className="review">
+                          <div className="flex-w flex-t p-b-20">
+                            <div className="size-204 flex-w flex-t">
+                              <span className="mtext-106 cl2">John Doe</span>
+                              <span className="mtext-102 cl3 p-l-10">
+                                01 Jan 2023
+                              </span>
+                            </div>
+
+                            <div className="size-205">
+                              <div className="wrap-rating flex-m p-t-6">
+                                <input
+                                  className="rating"
+                                  type="hidden"
+                                  name="rating"
+                                  value={5}
+                                  onChange={handle}
+                                />
+                                <div className="wrap-rating">
+                                  <i className="zmdi zmdi-star"></i>
+                                  <i className="zmdi zmdi-star"></i>
+                                  <i className="zmdi zmdi-star"></i>
+                                  <i className="zmdi zmdi-star"></i>
+                                  <i className="zmdi zmdi-star"></i>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="stext-102 cl6">
+                            Great product! Highly recommend it to everyone.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="sec-relate-product bg0 p-t-45 p-b-105">
+          <div className="container">
+            <div className="p-b-45">
+              <h3 className="ltext-106 cl5 txt-center">Related Products</h3>
+            </div>
+            <div className="tab-content p-t-50">
+              <div
+                className="tab-pane fade show active"
+                id="best-seller"
+                role="tabpanel"
+              >
+                <div className="wrap-slick2">
+                  <div className="slick2">
+                    {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
+                    <div className="flex-w flex-sb-m p-l-15 p-r-15">
+                      {/* Sản phẩm 1 */}
+                      <div
+                        className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
+                        style={{ width: "25%" }}
+                      >
+                        <div className="block2">
+                          <div className="block2-pic hov-img0">
+                            <img
+                              src="images/product-01.jpg"
+                              alt="IMG-PRODUCT"
+                              style={{ width: "100%", height: "auto" }}
+                            />
+                            <a
+                              href="#"
+                              className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
+                            >
+                              Quick View
+                            </a>
+                          </div>
+                          <div className="block2-txt flex-w flex-t p-t-14">
+                            <div className="block2-txt-child1 flex-col-l">
+                              <a
+                                href="/"
+                                className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                              >
+                                Esprit Ruffle Shirt
+                              </a>
+                              <span className="stext-105 cl3">$16.64</span>
+                            </div>
+                            <div className="block2-txt-child2 flex-r p-t-3">
+                              <a
+                                href="#"
+                                className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
+                              >
+                                <img
+                                  className="icon-heart1 dis-block trans-04"
+                                  src="images/icons/icon-heart-01.png"
+                                  alt="ICON"
+                                />
+                                <img
+                                  className="icon-heart2 dis-block trans-04 ab-t-l"
+                                  src="images/icons/icon-heart-02.png"
+                                  alt="ICON"
+                                />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Thêm các sản phẩm khác nếu cần */}
+                  </div>
+                </div>
+              </div>
+              {/* Các tab khác */}
+            </div>
+          </div>
+        </section>
+      </div>
+    </Layout>
+  );
+};
+
+export default ProductDetail;
