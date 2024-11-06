@@ -49,15 +49,30 @@ return [
     
         // 'supports_credentials' => false, // Đặt thành true nếu bạn muốn gửi thông tin xác thực (cookie)
 
-        'paths' => ['api/*', 'login', 'logout', 'sanctum/csrf-cookie'],
-    'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:3000'],
-    'allowed_origins_patterns' => [],
-    'allowed_headers' => ['*'],
-    'exposed_headers' => [],
-    'max_age' => 0,
-    'supports_credentials' => true,
+    //     'paths' => ['api/*', 'login', 'logout', 'sanctum/csrf-cookie'],
+    // 'allowed_methods' => ['*'],
+    // 'allowed_origins' => ['http://localhost:3000'],
+    // 'allowed_origins_patterns' => [],
+    // 'allowed_headers' => ['*'],
+    // 'exposed_headers' => [],
+    // 'max_age' => 0,
+    // 'supports_credentials' => true,
     
+        'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    
+        'allowed_methods' => ['*'], // Cho phép tất cả các phương thức (GET, POST, ...)
+    
+        'allowed_origins' => ['http://127.0.0.1:3000'], // Cho phép từ nguồn frontend của bạn
+    
+        'allowed_origins_patterns' => [],
+    
+        'allowed_headers' => ['*'], // Cho phép tất cả các header
+    
+        'exposed_headers' => [],
+    
+        'max_age' => 0,
+    
+        'supports_credentials' => true, // Bật để cho phép gửi cookies, tokens
     
 
 ];

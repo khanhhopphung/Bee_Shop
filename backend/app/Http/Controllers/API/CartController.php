@@ -9,11 +9,16 @@ use App\Http\Requests\UpdateCartRequest;
 use App\Models\CartDetail;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
+use App\Http\Controllers\BaseController; 
+use Illuminate\Support\Facades\Auth;
 class CartController extends BaseController
 {
     public function addToCart(Request $request)
     {
+        
+        if (Auth::check()) {
+            // return Auth::user();
+
         $cart = Cart::firstOrCreate([
             'user_id' => auth()->id()
         ]);
@@ -26,6 +31,11 @@ class CartController extends BaseController
         ]);
 
         return $this->success($cartDetail) ;
+        } else {
+            return "Người dùng chưa đăng nhập";
+        }
+        
+       
     }
 
     // Xem giỏ hàng
