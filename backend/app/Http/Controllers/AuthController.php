@@ -45,11 +45,15 @@ class AuthController extends Controller
     }
     public function logout(Request $request)
 {
+    try{
     // Xóa token hiện tại của người dùng
     $request->user()->tokens()->delete();
 
     // Trả về phản hồi thành công
     return response()->json(['message' => 'Logout successful.'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => $e->getMessage(),$e->getFile(), $e->getLine()], 500);
+    }
 }
     public function verifyEmail(Request $request)
     {
@@ -114,7 +118,8 @@ class AuthController extends Controller
 
     // Create a token for the user
     $token = $user->createToken('authToken')->plainTextToken;
-
+    $user->api_token = $token;
+    $user->save();
     // Return success response with the token
     return response()->json([
         'message' => 'Login successful.', 
