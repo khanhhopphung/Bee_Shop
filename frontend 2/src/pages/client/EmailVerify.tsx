@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Layout from "../../components/Layout";
+import { message, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 
 type Props = {};
@@ -7,19 +7,19 @@ type Props = {};
 const EmailVerify = (props: Props) => {
   const [email, setEmail] = useState("");
   const [verification_code, setVerification_Code] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
 
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Bắt đầu gửi dữ liệu...");
+
+    if (!email || !verification_code) {
+      message.error("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
 
     try {
-      if (!email || !verification_code) {
-        setError("Vui lòng điền đầy đủ thông tin.");
-        return;
-      }
       const response = await fetch(`http://127.0.0.1:8000/api/verify-email`, {
         method: "POST",
         headers: {
@@ -30,21 +30,21 @@ const EmailVerify = (props: Props) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Phản hồi thành công từ server:", data);
-        setSuccess(data.message);
+        message.success("Xác thực thành công!");
         navigate("/login");
       } else {
         const errorData = await response.json();
-        console.error("Lỗi từ server:", errorData);
-        setError(errorData.message || "Xác thực thất bại, vui lòng thử lại.");
+        message.error(
+          errorData.message || "Xác thực thất bại, vui lòng thử lại."
+        );
       }
     } catch (error) {
       console.error("Lỗi khi gửi yêu cầu:", error);
-      setError("Đã xảy ra lỗi khi kết nối với server.");
+      message.error("Đã xảy ra lỗi khi kết nối với server.");
     }
   };
   return (
-    <Layout>
+    <Spin spinning={loading} tip="Đang đăng ký...">
       <div className="app app-signup p-0">
         <div className="row g-0 app-auth-wrapper">
           <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
@@ -126,7 +126,7 @@ const EmailVerify = (props: Props) => {
           </div>
         </div>
       </div>
-    </Layout>
+    </Spin>
   );
 };
 

@@ -1,20 +1,28 @@
 import React, { useState } from "react";
-import Layout from "../../components/Layout";
 import { Navigate, useNavigate } from "react-router-dom";
+import { message, Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
-const Login: React.FC = () => {
+type LoginProps = {
+  updateUserName: (name: string) => void;
+};
+const Login: React.FC<LoginProps> = ({ updateUserName }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!username || !password) {
-      setError("Vui lòng điền đầy đủ thông tin.");
+      message.error("Vui lòng điền đầy đủ thông tin.");
       return;
     }
+
+    setLoading(true); // Bắt đầu loading
 
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/login`, {
@@ -22,36 +30,43 @@ const Login: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
+        body: JSON.stringify({ username, password }),
       });
+
+      setLoading(false); // Kết thúc loading
 
       if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.message || "Something went wrong.");
+        message.error(
+          errorData.message || "Thông tin đăng nhập không chính xác."
+        );
         return;
       }
 
       const data = await response.json();
-      // Lưu token hoặc thông tin người dùng
-      console.log("Login successful:", data);
-      // Chuyển hướng hoặc thực hiện hành động khác sau khi đăng nhập thành công
+      message.success("Đăng nhập thành công!");
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_name", data.user_name);
       console.log(localStorage.getItem("user_name"));
-
+      updateUserName(data.user_name);
       navigate("/");
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      setLoading(false); // Kết thúc loading nếu có lỗi
+      message.error("Có lỗi xảy ra. Vui lòng thử lại.");
       console.error("Error during login:", error);
     }
   };
 
   return (
-    <div className="app app-login p-0">
-      <Layout>
+    <Spin
+      spinning={loading}
+      indicator={
+        <LoadingOutlined style={{ fontSize: 24, color: "green" }} spin />
+      }
+      tip={<span style={{ color: "green" }}>Đang đăng nhập...</span>}
+    >
+      <div className="app app-login p-0">
+        {/* <Layout q={10}> */}
         <div className="row g-0 app-auth-wrapper">
           <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
             <div className="auth-background-holder"></div>
@@ -88,7 +103,6 @@ const Login: React.FC = () => {
                         placeholder="Họ và tên :"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        required
                       />
                     </div>
                     <div className="password mb-3">
@@ -102,7 +116,6 @@ const Login: React.FC = () => {
                         className="form-control signin-password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
-                        required
                       />
                       <div className="extra mt-3 row justify-content-between">
                         <div className="col-6">
@@ -152,8 +165,9 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
-    </div>
+        {/* </Layout> */}
+      </div>
+    </Spin>
   );
 };
 

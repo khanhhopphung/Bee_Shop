@@ -1,26 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import AccountDropdown from "./AccountDropdown";
+import { message } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store/store";
 
-type Props = {};
+type Props = {
+  quantity: number;
+};
 
-const Header = (props: Props) => {
+const Header: React.FC<Props> = ({ quantity }) => {
+  const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
   const [userName, setUserName] = useState<string | null>("");
+  const quantityCart = useSelector(
+    (state: RootState) => state.quantity.quantity
+  );
+  console.log(useSelector((state: RootState) => state.quantity));
   useEffect(() => {
     if (token) {
       const user = localStorage.getItem("user_name");
       setUserName(user);
-      // console.log("hihi" + localStorage.getItem("user_name"));
     }
   }, [token]);
 
-  // console.log(token);
+  const updateUserName = (name: string) => {
+    setUserName(name);
+  };
 
   const handleLogout = async () => {
-    // localStorage.removeItem("access_token");
-    // setUserName(null);
-    // return;
     try {
       if (!token) {
         console.error("No access token found");
@@ -36,18 +44,18 @@ const Header = (props: Props) => {
         credentials: "include",
       });
 
-      const responseText = await response.text(); // Đọc nội dung phản hồi dưới dạng text
+      const responseText = await response.text();
 
       if (response.ok) {
         localStorage.removeItem("access_token");
         setUserName(null);
-        console.log("Logout successful");
-        // window.location.reload();
+        message.success("Đăng xuất thành công");
+        navigate("/"); // Thông báo thành công
       } else {
         console.error("Logout error:", {
           status: response.status,
           statusText: response.statusText,
-          response: responseText, // Hiển thị nội dung phản hồi
+          response: responseText,
         });
       }
     } catch (error) {
@@ -221,8 +229,12 @@ const Header = (props: Props) => {
               <div className="flex-c-m h-full p-l-18 p-r-70 bor5">
                 <div
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-                  data-notify={2}
+                  data-notify={quantityCart}
                 >
+                  {/* <div
+                  className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
+                  data-notify={quantity}
+                > */}
                   <Link
                     to="/carts"
                     style={{ color: "inherit", textDecoration: "none" }}
@@ -253,7 +265,7 @@ const Header = (props: Props) => {
           <div className="flex-c-m h-full p-lr-10 bor5">
             <div
               className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-              data-notify={2}
+              data-notify={quantityCart}
             >
               <i className="zmdi zmdi-shopping-cart" />
             </div>

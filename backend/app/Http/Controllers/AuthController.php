@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
+use Illuminate\Validation\ValidationException;
 
 use App\Models\User;
 use App\Mail\VerificationCodeMail;
@@ -15,30 +16,43 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function register(Request $request){
+    public function register(Request $request)
+    {
+        // Validate dữ liệu người dùng nhập vào
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'required|string|max:15|unique:users,phone',
+            'password_hash' => 'required|string|min:6|confirmed', // Xác nhận mật khẩu
+        ]);
+    
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+    
+        // Tạo người dùng mới
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
             'phone' => $request->phone,
             'password_hash' => Hash::make($request->password_hash),
             'is_active' => false,
-            'role_id' => 1,  
-            'tier_id' => 1,  
-    
+            'role_id' => 1,
+            'tier_id' => 1,
         ]);
     
-        // Generate verification code
+        // Tạo mã xác nhận
         $verificationCode = Str::random(6);
         $expiresAt = Carbon::now()->addMinutes(30);
     
-        // Store verification code
+        // Lưu mã xác nhận
         EmailVerification::create([
             'email' => $request->email,
             'verification_code' => $verificationCode,
             'expires_at' => $expiresAt,
         ]);
     
-        // Send verification email
+        // Gửi email xác nhận
         Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
     
         return response()->json(['message' => 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác nhận.']);
@@ -108,7 +122,7 @@ class AuthController extends Controller
 
     // Check if the user exists and if the password matches
     if (!$user || !Hash::check($request->password, $user->password_hash)) {
-        return response()->json(['message' => 'Invalid credentials.'], 401);
+        return response()->json(['message' => 'Tài khoản hoặc mật khẩu không chính xác! Vui lòng thử  lại'], 401);
     }
 
     // Check if the user account is active
