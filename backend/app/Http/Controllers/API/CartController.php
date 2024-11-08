@@ -9,13 +9,13 @@ use App\Http\Requests\UpdateCartRequest;
 use App\Models\CartDetail;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use App\Http\Controllers\BaseController; 
+use App\Models\ProductVariant;
 use Illuminate\Support\Facades\Auth;
 class CartController extends BaseController
 {
     public function addToCart(Request $request)
     {
-        
+        try{
         if (Auth::check()) {
             // return Auth::user();
 
@@ -23,10 +23,22 @@ class CartController extends BaseController
             'user_id' => auth()->id()
         ]);
 
+        $variant_id = ProductVariant::where('size_id', $request->size_id)->where('color_id', $request->color_id)->first();
+        if (!$variant_id) {
+            return $this->error('Not Found');
+            // $variant_id = ProductVariant::create([
+            //     'product_id' => $request->product_id,
+            //     'color_id' => $request->color_id,
+            //     'size_id' => $request->size_id
+
+            // ])->id;
+        };
+
         $cartDetail = $cart->cartDetails()->create([
             'product_id' => $request->product_id,
             'quantity' => $request->quantity,
             'product_price' => Product::find($request->product_id)->price,
+            'variant_id'=> $variant_id->id,
             'discount_value' => $request->discount_value ?? 0,
         ]);
 
@@ -34,6 +46,9 @@ class CartController extends BaseController
         } else {
             return "Người dùng chưa đăng nhập";
         }
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage());
+    }
         
        
     }

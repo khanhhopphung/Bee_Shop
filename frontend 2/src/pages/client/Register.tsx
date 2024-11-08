@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import Layout from "../../components/Layout";
+import React, { useState } from "react";
+import { Spin, message } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const Register: React.FC = () => {
@@ -8,19 +8,21 @@ const Register: React.FC = () => {
   const [password_hash, setPassword_hash] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // State để kiểm soát trạng thái loading
 
   const navigate = useNavigate();
 
   const clickLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Bắt đầu gửi dữ liệu...");
 
+    if (!username || !email || !password_hash || !phone) {
+      message.error("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    setLoading(true); // Bắt đầu loading
+    setError(null); // Xóa lỗi nếu có
     try {
-      if (!username || !email || !password_hash || !phone) {
-        setError("Vui lòng điền đầy đủ thông tin đăng ký.");
-        return;
-      }
       const response = await fetch(`http://127.0.0.1:8000/api/register`, {
         method: "POST",
         headers: {
@@ -31,29 +33,26 @@ const Register: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Phản hồi thành công từ server:", data);
-        setSuccess(data.message);
+        message.success(
+          "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác nhận."
+        ); // Hiển thị thông báo thành công
         navigate("/verify");
       } else {
         const errorData = await response.json();
-        console.error("Lỗi từ server:", errorData);
         setError(errorData.message || "Đăng ký thất bại, vui lòng thử lại.");
       }
     } catch (error) {
       console.error("Lỗi khi gửi yêu cầu:", error);
       setError("Đã xảy ra lỗi khi kết nối với server.");
+    } finally {
+      setLoading(false); // Kết thúc loading
     }
   };
 
-  useEffect(() => {
-    // // Xóa l��i và thành công khi trang đăng ký hoàn tất
-    // setError(null);
-    // setSuccess(null);
-    console.log(username);
-  }, [username]);
   return (
-    <Layout>
-      <div className="app app-signup p-0">
+    // <Layout q={10}>
+    <div className="app app-signup p-0">
+      <Spin spinning={loading} tip="Đang đăng ký...">
         <div className="row g-0 app-auth-wrapper">
           <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
             <div className="auth-background-holder"></div>
@@ -168,6 +167,9 @@ const Register: React.FC = () => {
                       </label>
                     </div>
                   </div>
+                  {error && (
+                    <div className="error text-center text-danger">{error}</div>
+                  )}
 
                   <div className="text-center">
                     <button
@@ -193,8 +195,9 @@ const Register: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-    </Layout>
+      </Spin>
+    </div>
+    // </Layout>
   );
 };
 
