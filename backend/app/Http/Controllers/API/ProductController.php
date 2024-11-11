@@ -27,9 +27,7 @@ class ProductController extends BaseController
     public function index()
 
     {       
-        // $products = Product::with('image.image_url')->latest('id')->get();
-        //     // return $this->get( $this->model);
-        //     return $this->success($products);
+        
 
             $products = Product::with('image')->latest('id')->get();
     return $this->success($products);
@@ -74,8 +72,6 @@ class ProductController extends BaseController
         return $this->error($e->getMessage());
     }
 }
-
-
 
     /**
      * Display the specified resource.
