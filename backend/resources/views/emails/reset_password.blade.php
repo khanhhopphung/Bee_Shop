@@ -2,12 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Reset Password</title>
+    <title>Đặt lại mật khẩu của bạn</title>
 </head>
 <body>
-    <h1>Reset Your Password</h1>
-    <p>To reset your password, click the link below:</p>
-<a href="{{ $resetLink }}">{{ $resetLink }}</a>
+    <h1>Đặt lại mật khẩu của bạn</h1>
+    <p>Để đặt lại mật khẩu của bạn, hãy nhấp nhập mã này vào reset password :</p>
+<a >{{ $resetLink }}</a>
 
 </body>
 </html>

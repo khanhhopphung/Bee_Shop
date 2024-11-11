@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
-use Illuminate\Validation\ValidationException;
 
 use App\Models\User;
 use App\Mail\VerificationCodeMail;
@@ -16,43 +15,30 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        // Validate dữ liệu người dùng nhập vào
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255|unique:users,username',
-            'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'required|string|max:15|unique:users,phone',
-            'password_hash' => 'required|string|min:6|confirmed', // Xác nhận mật khẩu
-        ]);
-    
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-    
-        // Tạo người dùng mới
+    public function register(Request $request){
         $user = User::create([
             'username' => $request->username,
             'email' => $request->email,
             'phone' => $request->phone,
             'password_hash' => Hash::make($request->password_hash),
             'is_active' => false,
-            'role_id' => 1,
-            'tier_id' => 1,
+            'role_id' => 1,  
+            'tier_id' => 1,  
+    
         ]);
     
-        // Tạo mã xác nhận
+        // Generate verification code
         $verificationCode = Str::random(6);
         $expiresAt = Carbon::now()->addMinutes(30);
     
-        // Lưu mã xác nhận
+        // Store verification code
         EmailVerification::create([
             'email' => $request->email,
             'verification_code' => $verificationCode,
             'expires_at' => $expiresAt,
         ]);
     
-        // Gửi email xác nhận
+        // Send verification email
         Mail::to($user->email)->send(new VerificationCodeMail($user->username, $verificationCode));
     
         return response()->json(['message' => 'Đăng ký thành công, vui lòng kiểm tra email để lấy mã xác nhận.']);
@@ -122,7 +108,7 @@ class AuthController extends Controller
 
     // Check if the user exists and if the password matches
     if (!$user || !Hash::check($request->password, $user->password_hash)) {
-        return response()->json(['message' => 'Tài khoản hoặc mật khẩu không chính xác! Vui lòng thử  lại'], 401);
+        return response()->json(['message' => 'Invalid credentials.'], 401);
     }
 
     // Check if the user account is active
@@ -141,4 +127,75 @@ class AuthController extends Controller
         'access_token' => $token
     ], 200);
 }
+public function sendOtp(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|exists:users,email',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    $users = User::where('email', $request->email)->first();
+    if ($users) {
+        // Tạo mã xác nhận OTP
+        $otp = random_int(100000, 999999); // Tạo mã OTP 6 chữ số
+        $expiresAt = Carbon::now()->addMinutes(10); // Thời gian hết hạn (ví dụ: 10 phút)
+
+        // Lưu mã OTP vào bảng password_resets (hoặc bảng phù hợp)
+        \DB::table('password_resets')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($otp),
+                'created_at' => now(),
+                'expires_at' => $expiresAt,
+            ]
+        );
+
+        // Gửi mã xác nhận qua email
+        Mail::to($request->email)->send(new ResetPasswordMail($otp));
+
+        return response()->json(['message' => 'Mã xác nhận đã được gửi đến email của bạn.']);
+    }
+
+    return response()->json(['error' => 'Không tìm thấy người dùng với email này.'], 404);
 }
+
+
+
+public function resetPassword(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|exists:users,email',
+        'token' => 'required|string',
+        'password' => 'required|string|min:6|confirmed',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    // Validate the token
+    $resetRecord = \DB::table('password_resets')
+        ->where('email', $request->email)
+        ->first();
+
+    if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
+        return response()->json(['message' => 'Invalid or expired token.'], 400);
+    }
+
+    // Update the user's password
+    $user = User::where('email', $request->email)->first();
+    $user->password_hash = Hash::make($request->password);
+    $user->save();
+
+    // Delete the password reset record
+    \DB::table('password_resets')->where('email', $request->email)->delete();
+
+    return response()->json(['message' => 'Password has been reset successfully.']);
+}
+
+}
+
+
