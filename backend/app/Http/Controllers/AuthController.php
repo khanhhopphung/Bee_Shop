@@ -127,4 +127,75 @@ class AuthController extends Controller
         'access_token' => $token
     ], 200);
 }
+public function sendOtp(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|exists:users,email',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    $users = User::where('email', $request->email)->first();
+    if ($users) {
+        // Tạo mã xác nhận OTP
+        $otp = random_int(100000, 999999); // Tạo mã OTP 6 chữ số
+        $expiresAt = Carbon::now()->addMinutes(10); // Thời gian hết hạn (ví dụ: 10 phút)
+
+        // Lưu mã OTP vào bảng password_resets (hoặc bảng phù hợp)
+        \DB::table('password_resets')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($otp),
+                'created_at' => now(),
+                'expires_at' => $expiresAt,
+            ]
+        );
+
+        // Gửi mã xác nhận qua email
+        Mail::to($request->email)->send(new ResetPasswordMail($otp));
+
+        return response()->json(['message' => 'Mã xác nhận đã được gửi đến email của bạn.']);
+    }
+
+    return response()->json(['error' => 'Không tìm thấy người dùng với email này.'], 404);
 }
+
+
+
+public function resetPassword(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email|exists:users,email',
+        'token' => 'required|string',
+        'password' => 'required|string|min:6|confirmed',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    // Validate the token
+    $resetRecord = \DB::table('password_resets')
+        ->where('email', $request->email)
+        ->first();
+
+    if (!$resetRecord || !Hash::check($request->token, $resetRecord->token)) {
+        return response()->json(['message' => 'Invalid or expired token.'], 400);
+    }
+
+    // Update the user's password
+    $user = User::where('email', $request->email)->first();
+    $user->password_hash = Hash::make($request->password);
+    $user->save();
+
+    // Delete the password reset record
+    \DB::table('password_resets')->where('email', $request->email)->delete();
+
+    return response()->json(['message' => 'Password has been reset successfully.']);
+}
+
+}
+
+

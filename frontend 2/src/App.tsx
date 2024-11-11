@@ -12,9 +12,12 @@ import RegisterAdmin from "./pages/admin/RegisterAdmin";
 import EmailVerify from "./pages/client/EmailVerify";
 import Blogs from "./pages/client/Blog";
 import AdminLayout from "./pages/admin/MainLayouts";
+import Categories from "./pages/admin/Categories"; // Đảm bảo chỉ có một dòng import này cho Categories
+import Review from "./pages/admin/Review"; // Đảm bảo chỉ có một dòng import này cho Review
+import ProductVariants from "./pages/admin/ProductVariant";
+import Product from "./pages/admin/Product";
+import Orders from "./pages/admin/Order";
 
-// import Header from './components/Header';
-// import Footer from './components/Footer';
 
 const App: React.FC = () => {
   return (
@@ -29,13 +32,19 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/verify" element={<EmailVerify />} />
         <Route path="/blogs" element={<Blogs />} />
+
         {/* Route cho phần admin */}
         <Route path="/admin/login" element={<LoginAdmin />} />
         <Route path="/admin/register" element={<RegisterAdmin />} />
-
+        
         <Route path="/admin" element={<AdminLayout />}>
-          {/* <Route path="products" element={<ProductsAdmin />} /> */}
+          <Route path="categories" element={<Categories />} />
+          <Route path="reviews" element={<Review />} />
+          <Route path="product-variants" element={<ProductVariants />} />
+          <Route path="products" element={<Product />} />
+          <Route path="orders" element={<Orders />} />
         </Route>
+        
       </Routes>
     </Router>
   );

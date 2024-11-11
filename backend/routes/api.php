@@ -52,4 +52,5 @@ Route::apiResource('sizes', SizeController::class);
 Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
 
-
+Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
