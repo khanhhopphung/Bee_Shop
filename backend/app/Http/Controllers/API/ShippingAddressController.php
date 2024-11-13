@@ -9,9 +9,7 @@ use App\Http\Requests\UpdateShippingAddressRequest;
 
 class ShippingAddressController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index()
     {
         //

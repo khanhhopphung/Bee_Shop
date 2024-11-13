@@ -6,10 +6,54 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\BaseController;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends BaseController
 {
+    function allAdrressesUser(){
+        $user = Auth::user();
+        $adrress = $user->addresses;
+        return $this->success($adrress);
+
+    }
+
+    public function updateDefaultAdressesUser(Request $request)
+{
+    // Lấy thông tin người dùng đã đăng nhập
+    $user = Auth::user();
+    
+    // Tìm địa chỉ cần cập nhật
+    $addressToUpdate = $user->addresses()->find($request->id);  // Sử dụng () để gọi phương thức query builder
+
+    if ($addressToUpdate) {
+        // Bắt đầu một giao dịch để đảm bảo tính toàn vẹn của dữ liệu
+        DB::beginTransaction();
+
+        try {
+            // Cập nhật địa chỉ hiện tại thành mặc định (is_default = 1)
+            $addressToUpdate->is_default = 1;
+            $addressToUpdate->save();
+
+            // Cập nhật tất cả các địa chỉ khác của người dùng thành không mặc định (is_default = 0)
+            $user->addresses()->where('id', '!=', $request->id)->update(['is_default' => 0]);
+
+            // Commit giao dịch nếu tất cả đều thành công
+            DB::commit();
+
+            // Trả về thông báo thành công
+            return $this->success('Update default address successfully');
+        } catch (\Exception $e) {
+            // Nếu có lỗi, hoàn tác giao dịch
+            DB::rollBack();
+            return $this->error('Failed to update default address');
+        }
+    }
+
+    return $this->error('Address not found');
+}
+
+
     // Lấy danh sách người dùng
     public function index()
     {
