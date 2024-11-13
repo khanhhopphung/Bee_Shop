@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Link } from "react-router-dom";
-
 const Home: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
 
@@ -225,7 +224,7 @@ const Home: React.FC = () => {
                                   to={`/products/${product.id}`}
                                   className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
                                 >
-                                  Xem nhanh
+                                  Mua Ngay
                                 </Link>
                               </div>
                               <div className="block2-txt flex-w flex-t p-t-14">

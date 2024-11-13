@@ -18,6 +18,21 @@ import PaymentPage from "./pages/client/Checkout";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
+import OrderSuccess from "./pages/client/OrderSuccess";
+import NotFound from "./components/404";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import AccountPage from "./pages/client/AccountPage";
+import OrderDetail from "./pages/client/OrderDetail";
+import UpdatePass from "./pages/client/UpdatePass";
+import Adrress from "./pages/client/Adrress";
+
+interface Cart {
+  product_id: any;
+  color_id: any;
+  size_id: any;
+  quantity: any;
+  discount_value?: any;
+}
 
 interface CartItem {
   product_id: any;
@@ -28,10 +43,14 @@ interface CartItem {
 }
 
 const App: React.FC = () => {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<Cart[]>([]);
   const dispatch = useDispatch();
-
+  const [cartItem, setCartItem] = useState<CartItem>();
   const token = localStorage.getItem("access_token");
+  const cartDetailIds = useSelector((state: RootState) => state.CartDetail.ids);
+
+  // Hàm thêm sản phẩm vào giỏ hàng
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // Cờ kiểm soát API
 
   // Hàm thêm sản phẩm vào giỏ hàng
   const addToCart = async (
@@ -40,6 +59,19 @@ const App: React.FC = () => {
     colorId: number | string | undefined,
     quantities: number | string
   ) => {
+    // Chuyển quantities thành số và kiểm tra tính hợp lệ
+    quantities = Number(quantities);
+    if (isNaN(quantities) || quantities <= 0) {
+      // Nếu quantities không hợp lệ, gán giá trị mặc định (1)
+      quantities = 1;
+    }
+    setCartItem({
+      product_id: productId,
+      color_id: colorId,
+      size_id: sizeId,
+      quantity: quantities,
+    });
+
     setCart((prevCart: any) => {
       const existingProductIndex = prevCart.findIndex(
         (item: any) =>
@@ -49,12 +81,20 @@ const App: React.FC = () => {
       );
 
       if (existingProductIndex >= 0) {
-        // Tăng số lượng nếu sản phẩm đã có
+        // Nếu sản phẩm đã tồn tại trong giỏ, cộng thêm số lượng
+        console.log(
+          "Current quantity:",
+          prevCart[existingProductIndex].quantity
+        );
         const updatedCart = [...prevCart];
         updatedCart[existingProductIndex].quantity += quantities;
+        console.log(
+          "Updated quantity:",
+          updatedCart[existingProductIndex].quantity
+        );
         return updatedCart;
       } else {
-        // Thêm sản phẩm mới vào giỏ hàng
+        // Nếu sản phẩm chưa có trong giỏ, thêm mới
         return [
           ...prevCart,
           {
@@ -66,12 +106,12 @@ const App: React.FC = () => {
         ];
       }
     });
+    setIsAddingToCart(true); // Đánh dấu cần gọi API
     message.success("Thêm vào giỏ hàng thành công!");
   };
 
-  // Gọi API sau khi cart được cập nhật
   useEffect(() => {
-    if (cart.length === 0) return;
+    if (!isAddingToCart) return; // Chỉ gọi API nếu flag isAddingToCart là true
 
     const addProductToCart = async () => {
       try {
@@ -81,7 +121,8 @@ const App: React.FC = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(cart[cart.length - 1]), // Gửi sản phẩm mới được thêm vào
+          // body: JSON.stringify(cart[cart.length - 1]),
+          body: JSON.stringify(cartItem),
         });
 
         if (!response.ok) {
@@ -93,13 +134,18 @@ const App: React.FC = () => {
         console.log("Product added to cart:", cart[cart.length - 1]);
       } catch (error) {
         console.error("Failed to add product to cart:", error);
+      } finally {
+        setIsAddingToCart(false); // Reset flag để ngăn chặn API gọi lại
       }
     };
-    dispatch(setQuantityCart(cart.length));
 
     addProductToCart();
-  }, [cart]);
+    dispatch(setQuantityCart(cart.length));
+  }, [cart, isAddingToCart]);
 
+  useEffect(() => {
+    dispatch(setQuantityCart(cart.length));
+  }, [cart, dispatch]);
   useEffect(() => {
     const fetchCarts = async () => {
       try {
@@ -116,7 +162,7 @@ const App: React.FC = () => {
         }
 
         const result = await response.json();
-        console.log(result.data.cart_details);
+        // console.log(result.data.cart_details);
         if (result && result.status && result.data) {
           // Kiểm tra xem API có trả về mảng sản phẩm không
           if (
@@ -164,6 +210,13 @@ const App: React.FC = () => {
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
           <Route path="payments" element={<PaymentPage />} />
+          <Route path="ordersuccess" element={<OrderSuccess />} />
+          <Route path="404" element={<NotFound />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/order-detail" element={<OrderDetail />} />
+          <Route path="/account" element={<AccountPage />} />
+          <Route path="/update-password" element={<UpdatePass />} />
+          <Route path="/adrress" element={<Adrress />} />
         </Route>
 
         {/* Route cho phần admin */}

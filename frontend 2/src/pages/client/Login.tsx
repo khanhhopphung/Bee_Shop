@@ -47,7 +47,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       message.success("Đăng nhập thành công!");
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_name", data.user_name);
-      console.log(localStorage.getItem("user_name"));
+      // console.log(localStorage.getItem("user_name"));
       updateUserName(data.user_name);
       navigate("/");
     } catch (error) {

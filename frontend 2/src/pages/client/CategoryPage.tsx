@@ -6,7 +6,7 @@ interface Category {
   name: string;
 }
 const CategoryPage = (props: Props) => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     const fetchCategories = async () => {

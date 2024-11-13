@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProductItem from "../../components/ProductItem";
 import Layout from "../../components/Layout";
+import { Pagination } from "antd";
 
 const Products: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -313,12 +314,7 @@ const Products: React.FC = () => {
 
         {/* Nút tải thêm sản phẩm */}
         <div className="flex-c-m flex-w w-full p-t-45">
-          <a
-            href="#"
-            className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
-          >
-            Xem thêm
-          </a>
+          <Pagination defaultCurrent={6} total={100} />
         </div>
       </div>
     </div>

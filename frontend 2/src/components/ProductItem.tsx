@@ -26,7 +26,7 @@ const ProductItem = (props: Props) => {
               href="#"
               className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04"
             >
-              Xem nhanh
+              Mua Ngay{" "}
             </a>
           </div>
         </Link>
@@ -36,7 +36,7 @@ const ProductItem = (props: Props) => {
               {name}
             </a>
 
-            <span className="stext-105 cl3">{price}</span>
+            <span className="stext-105 cl3">{price.toLocaleString()}₫</span>
           </div>
           <div className="block2-txt-child2 flex-r p-t-3">
             <a
