@@ -19,25 +19,23 @@ const Categories: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
 
-  // Fetch categories from the backend
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/categories');
-      console.log(response.data); // Check API response structure
+      console.log(response.data); 
       setCategories(Array.isArray(response.data.data) ? response.data.data : []);
     } catch (error) {
       message.error('Failed to load categories');
       setCategories([]);
     }
   };
-  
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const handleAdd = () => {
-    setCurrentCategory(null); // Reset the form
+    setCurrentCategory(null); 
     setIsModalVisible(true);
   };
 
@@ -46,24 +44,30 @@ const Categories: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await axios.delete(`http://127.0.0.1:8000/api/categories/${id}`);
-      message.success('Category deleted successfully');
-      fetchCategories(); // Refresh the list
-    } catch (error) {
-      message.error('Failed to delete category');
-    }
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this category?',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk: async () => {
+        try {
+          await axios.delete(`http://127.0.0.1:8000/api/categories/${id}`);
+          message.success('Category deleted successfully');
+          fetchCategories(); // Refresh the list
+        } catch (error) {
+          message.error('Failed to delete category');
+        }
+      },
+    });
   };
 
   const handleSubmit = async (values: any) => {
     try {
       if (currentCategory) {
-        // Update category
         await axios.put(`http://127.0.0.1:8000/api/categories/${currentCategory.id}`, values);
         message.success('Category updated successfully');
       } else {
-        // Create new category
         await axios.post('http://127.0.0.1:8000/api/categories', values);
         message.success('Category created successfully');
       }
@@ -106,10 +110,10 @@ const Categories: React.FC = () => {
           initialValues={currentCategory || { name: '', sku: '', is_active: false }}
           onFinish={handleSubmit}
         >
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]} >
+          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="sku" label="SKU" rules={[{ required: true, message: 'Please enter an SKU' }]} >
+          <Form.Item name="sku" label="SKU" rules={[{ required: true, message: 'Please enter an SKU' }]}>
             <Input />
           </Form.Item>
           <Form.Item name="is_active" label="Active" valuePropName="checked">

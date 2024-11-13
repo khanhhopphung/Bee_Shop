@@ -40,6 +40,12 @@ const AdminLayout = () => {
           <Menu.Item key="8" icon={<FileTextOutlined />}>
             <Link to="/admin/product-variants">Quản lý biến thể</Link>
           </Menu.Item>
+          <Menu.Item key="9" icon={<FileTextOutlined />}>
+            <Link to="/admin/promotions">Quản lý khuyến mãi</Link>
+          </Menu.Item>
+          <Menu.Item key="10" icon={<FileTextOutlined />}>
+            <Link to="/admin/blogs">Quản lý bài viết</Link>
+          </Menu.Item>
         </Menu>
       </Sider>
       <Layout>

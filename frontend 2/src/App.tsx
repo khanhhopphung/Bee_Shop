@@ -18,9 +18,14 @@ import PaymentPage from "./pages/client/Checkout";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
-import Categories from "./pages/admin/Categories"; // Đảm bảo chỉ có một dòng import này cho Categories
-import Review from "./pages/admin/Review"; // Đảm bảo chỉ có một dòng import này cho Review
+
+import Categories from "./pages/admin/Categories"; 
+import Promotions from './pages/admin/Promotions';
+import AdminBlogs from './pages/admin/Blogs';
+
+import Review from "./pages/admin/Review"; 
 import ProductVariants from "./pages/admin/ProductVariant";
+
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
 
@@ -177,10 +182,12 @@ const App: React.FC = () => {
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="categories" element={<Categories />} />
+          <Route path="promotions" element={<Promotions />} />
           <Route path="reviews" element={<Review />} />
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="blogs" element={<AdminBlogs />} />
           
         </Route>
       </Routes>

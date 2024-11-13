@@ -12,7 +12,7 @@ interface Product {
   stock: number;
   price: number;
   is_active: boolean;
-  image_url: string; // assuming you need image_url in the product object
+  image_url: string; 
 }
 
 const Products: React.FC = () => {
@@ -21,7 +21,7 @@ const Products: React.FC = () => {
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
-  const [image, setImage] = useState<any>(null); // To store selected image
+  const [image, setImage] = useState<any>(null); 
 
   // Fetch products and categories from API
   const fetchProducts = async () => {
@@ -112,7 +112,7 @@ const Products: React.FC = () => {
         message.success('Product created successfully');
       }
       setIsModalVisible(false);
-      fetchProducts(); // Refresh products list
+      fetchProducts(); 
     } catch (error) {
       message.error('Failed to save product');
     }
