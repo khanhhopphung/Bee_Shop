@@ -9,7 +9,10 @@ use App\Http\Requests\UpdateCartRequest;
 use App\Models\CartDetail;
 use App\Models\Product;
 use Illuminate\Http\Request;
+
+
 use App\Models\ProductVariant;
+
 use Illuminate\Support\Facades\Auth;
 class CartController extends BaseController
 {

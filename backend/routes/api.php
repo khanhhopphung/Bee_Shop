@@ -53,9 +53,14 @@ Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
 
 
+
 Route::middleware('auth:api')->group(function () {
     Route::get('/get-adrress-user', [UserController::class,'allAdrressesUser']);
     Route::put('/update-address-user', [UserController::class,'updateDefaultAdressesUser']);
 
 
 });
+
+Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+

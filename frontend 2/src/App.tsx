@@ -34,6 +34,16 @@ interface Cart {
   discount_value?: any;
 }
 
+import Categories from "./pages/admin/Categories"; 
+import Promotions from './pages/admin/Promotions';
+import AdminBlogs from './pages/admin/Blogs';
+
+import Review from "./pages/admin/Review"; 
+import ProductVariants from "./pages/admin/ProductVariant";
+
+import Product from "./pages/admin/Product";
+import Orders from "./pages/admin/Order";
+
 interface CartItem {
   product_id: any;
   color_id: any;
@@ -220,9 +230,18 @@ const App: React.FC = () => {
         </Route>
 
         {/* Route cho phần admin */}
+        <Route path="login" element={<LoginAdmin />} />
+        <Route path="register" element={<RegisterAdmin />} />
+
         <Route path="/admin" element={<AdminLayout />}>
-          <Route path="login" element={<LoginAdmin />} />
-          <Route path="register" element={<RegisterAdmin />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="promotions" element={<Promotions />} />
+          <Route path="reviews" element={<Review />} />
+          <Route path="product-variants" element={<ProductVariants />} />
+          <Route path="products" element={<Product />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          
         </Route>
       </Routes>
     </Router>

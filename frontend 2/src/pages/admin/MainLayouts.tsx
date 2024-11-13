@@ -7,7 +7,8 @@ import {
   PieChartOutlined,
 } from "@ant-design/icons";
 import { Outlet, Link } from "react-router-dom";
-
+import Categories from './Categories'; // Make sure this import is correct
+import Review from './Review';
 const { Header, Content, Footer, Sider } = Layout;
 
 const AdminLayout = () => {
@@ -16,22 +17,34 @@ const AdminLayout = () => {
       <Sider>
         <Menu theme="dark" mode="inline">
           <Menu.Item key="1" icon={<ShoppingCartOutlined />}>
-            <Link to="/admin">Quản lý sản phẩm</Link>
+            <Link to="/admin/products">Quản lý sản phẩm</Link>
           </Menu.Item>
           <Menu.Item key="2" icon={<FileTextOutlined />}>
-            <Link to="/admin">Quản lý danh mục</Link>
+            <Link to="/admin/categories">Quản lý danh mục</Link>
           </Menu.Item>
           <Menu.Item key="3" icon={<UserOutlined />}>
             <Link to="/admin">Quản lý tài khoản</Link>
           </Menu.Item>
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
-            <Link to="/admin">Quản lý giỏ hàng</Link>
+            <Link to="/admin/orders">Quản lý giỏ hàng</Link>
           </Menu.Item>
           <Menu.Item key="5" icon={<PieChartOutlined />}>
             <Link to="/admin">Thống kê</Link>
           </Menu.Item>
           <Menu.Item key="6" icon={<PieChartOutlined />}>
-            <Link to="/admin"> đăng nhâp</Link>
+            <Link to="/login"> đăng nhâp</Link>
+          </Menu.Item>
+          <Menu.Item key="7" icon={<FileTextOutlined />}>
+            <Link to="/admin/reviews">Quản lý bình luận</Link>
+          </Menu.Item>
+          <Menu.Item key="8" icon={<FileTextOutlined />}>
+            <Link to="/admin/product-variants">Quản lý biến thể</Link>
+          </Menu.Item>
+          <Menu.Item key="9" icon={<FileTextOutlined />}>
+            <Link to="/admin/promotions">Quản lý khuyến mãi</Link>
+          </Menu.Item>
+          <Menu.Item key="10" icon={<FileTextOutlined />}>
+            <Link to="/admin/blogs">Quản lý bài viết</Link>
           </Menu.Item>
         </Menu>
       </Sider>

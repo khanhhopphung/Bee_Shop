@@ -55,7 +55,7 @@ class BaseController extends Controller
             });
 
             // Lấy dữ liệu
-            $data = $query->where("is_active",true)->get();
+            $data = $query->get();
 
             // Nếu không có dữ liệu, trả về lỗi
             if ($data->isEmpty()) {
