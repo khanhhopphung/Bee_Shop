@@ -4,7 +4,7 @@ import AccountDropdown from "./AccountDropdown";
 import { message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
-
+import { setSearchRedux } from "../store/searchSlice";
 type Props = {
   quantity: number;
 };
@@ -16,6 +16,8 @@ const Header: React.FC<Props> = ({ quantity }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
   const [userName, setUserName] = useState<string | null>("");
+  const [key, setKey] = useState<string | null>("");
+  const dispatch = useDispatch();
   const quantityCart = useSelector(
     (state: RootState) => state.quantity.quantity
   );
@@ -65,6 +67,14 @@ const Header: React.FC<Props> = ({ quantity }) => {
       }
     } catch (error) {
       console.error("An error occurred during logout:", error);
+    }
+  };
+
+  const searchkey = () => {
+    // navigate(`/search?q=${key}`);
+    if (key) {
+      dispatch(setSearchRedux(key));
+      setKey("");
     }
   };
   useEffect(() => {
@@ -192,12 +202,18 @@ const Header: React.FC<Props> = ({ quantity }) => {
               {/* Icon search */}
               <div className="flex-c-m h-full p-r-24">
                 <div className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 js-show-modal-search">
-                  <i className="zmdi zmdi-search" />
+                  <Link to={"/products"}>
+                    <i
+                      className="zmdi zmdi-search"
+                      onClick={() => searchkey()}
+                    />
+                  </Link>
                 </div>
                 <input
                   type="text"
                   className="search-input"
                   placeholder="Tìm kiếm..."
+                  onChange={(e) => setKey(e.target.value)}
                 />
               </div>
 
@@ -211,10 +227,6 @@ const Header: React.FC<Props> = ({ quantity }) => {
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
                   data-notify={quantityCart}
                 >
-                  {/* <div
-                  className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-                  data-notify={quantity}
-                > */}
                   <Link
                     to="/carts"
                     style={{ color: "inherit", textDecoration: "none" }}

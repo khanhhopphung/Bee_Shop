@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import ProductItem from "../../components/ProductItem";
 import Layout from "../../components/Layout";
 import { Pagination } from "antd";
-
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { setSearchRedux } from "../../store/searchSlice";
+import { AppDispatch } from "../../store/store";
 const Products: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Products");
   const [products, setProducts] = useState<any[]>([]);
+  const key = useSelector((state: RootState) => state.Search.key);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,7 +41,8 @@ const Products: React.FC = () => {
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value);
+    // setSearch(event.target.value);
+    dispatch(setSearchRedux(event.target.value));
   };
 
   const handleFilter = (filter: string) => {
@@ -96,7 +102,7 @@ const Products: React.FC = () => {
                   className="mtext-107 cl2 size-114 plh2 p-r-15"
                   type="text"
                   placeholder="Search"
-                  value={search}
+                  value={key}
                   onChange={handleSearch}
                 />
               </div>
@@ -304,7 +310,7 @@ const Products: React.FC = () => {
                 product.category === selectedFilter
             )
             .filter((product) =>
-              product.name.toLowerCase().includes(search.toLowerCase())
+              product.name.toLowerCase().includes(key.toLowerCase())
             )
             .map((product) => (
               // <>{console.log(product)}</>
