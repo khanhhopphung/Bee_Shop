@@ -26,19 +26,11 @@ import OrderDetail from "./pages/client/OrderDetail";
 import UpdatePass from "./pages/client/UpdatePass";
 import Adrress from "./pages/client/Adrress";
 
-interface Cart {
-  product_id: any;
-  color_id: any;
-  size_id: any;
-  quantity: any;
-  discount_value?: any;
-}
+import Categories from "./pages/admin/Categories";
+import Promotions from "./pages/admin/Promotions";
+import AdminBlogs from "./pages/admin/Blogs";
 
-import Categories from "./pages/admin/Categories"; 
-import Promotions from './pages/admin/Promotions';
-import AdminBlogs from './pages/admin/Blogs';
-
-import Review from "./pages/admin/Review"; 
+import Review from "./pages/admin/Review";
 import ProductVariants from "./pages/admin/ProductVariant";
 
 import Product from "./pages/admin/Product";
@@ -51,7 +43,13 @@ interface CartItem {
   quantity: any;
   discount_value?: any;
 }
-
+interface Cart {
+  product_id: any;
+  color_id: any;
+  size_id: any;
+  quantity: any;
+  discount_value?: any;
+}
 const App: React.FC = () => {
   const [cart, setCart] = useState<Cart[]>([]);
   const dispatch = useDispatch();
@@ -241,7 +239,6 @@ const App: React.FC = () => {
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
           <Route path="blogs" element={<AdminBlogs />} />
-          
         </Route>
       </Routes>
     </Router>
