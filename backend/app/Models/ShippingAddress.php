@@ -8,9 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class ShippingAddress extends Model
 {
     use HasFactory;
-
-    protected $table = 'shipping_addresses';
-
     protected $fillable = [
         'user_id',
         'recipient_name',
@@ -18,12 +15,10 @@ class ShippingAddress extends Model
         'address_line',
         'city',
         'state',
-        'postal_code',
-        'country',
         'is_default',
     ];
 
-
+    // Định nghĩa quan hệ với model User
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Size;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Psy\Readline\Userland;
 
 class SizeSeeder extends Seeder
 {
@@ -14,6 +12,7 @@ class SizeSeeder extends Seeder
      */
     public function run(): void
     {
-        Size::factory(3)->create();
+        //
+        \App\Models\Size::factory(10)->create();
     }
 }

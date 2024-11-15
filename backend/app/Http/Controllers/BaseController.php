@@ -6,6 +6,8 @@ use App\Http\Responses\BaseResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Throwable;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\JsonResponse as HttpFoundationJsonResponse;
+
 class BaseController extends Controller
 {
     protected $model;
@@ -18,7 +20,8 @@ class BaseController extends Controller
             // Nếu có cột id và giá trị, tìm kiếm theo id cụ thể
             if ($col === 'id' && $value) {
                 $data = $query->find($value);
-                if (! $data) {
+                if (!$data) {
+
                     return self::error('Data not found', HttpResponse::HTTP_NOT_FOUND);
                 }
 
@@ -34,9 +37,11 @@ class BaseController extends Controller
                 });
             }
 
-            // Lọc theo các trường khác bổ sung (nếu có)
+            if($filters){
+                // Lọc theo các trường khác bổ sung (nếu có)
             foreach ($filters as $filterField => $filterValue) {
                 $query->where($filterField, $filterValue);
+            }
             }
 
             // Giới hạn số lượng kết quả trả về (nếu có)
@@ -46,7 +51,7 @@ class BaseController extends Controller
 
             // Nếu có cả cột và giá trị, thêm điều kiện where
             $query->when($col && $value, function ($q) use ($col, $value) {
-                return $q->where($col, $value);
+                return $q->where($col,'LIKE', '%'.$value.'%');
             });
 
             // Lấy dữ liệu
@@ -131,6 +136,9 @@ class BaseController extends Controller
 
     }
 
+
+
+
    
     public static function success($data = null, $message = 'Success', $statusCode = HttpResponse::HTTP_OK): JsonResponse
     {
@@ -149,4 +157,6 @@ class BaseController extends Controller
         ], $status);
     }
 
+
 }
+

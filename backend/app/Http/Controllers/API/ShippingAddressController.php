@@ -2,35 +2,27 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\BaseController;
+use App\Http\Controllers\Controller;
 use App\Models\ShippingAddress;
 use App\Http\Requests\StoreShippingAddressRequest;
 use App\Http\Requests\UpdateShippingAddressRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Facades\Auth;
 
-class ShippingAddressController extends BaseController
+class ShippingAddressController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function __construct()
-    {
-        $this->model = ShippingAddress::class;
-    }
-
     public function index()
     {
-        try {
-            return $this->get($this->model);
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
-            ], 500);
-        }
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
     }
 
     /**
@@ -38,51 +30,29 @@ class ShippingAddressController extends BaseController
      */
     public function store(StoreShippingAddressRequest $request)
     {
-        try {
-            return $this->insert($this->model, $request->all());
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
-            ], 500);
-        }
+        //
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($userId)
+    public function show(ShippingAddress $shippingAddress)
     {
-        try {
-            // Lấy danh sách địa chỉ của người dùng
-            $shippingAddresses = ShippingAddress::where('user_id', $userId)->get();
-
-            // Kiểm tra nếu người dùng không có địa chỉ nào
-            if ($shippingAddresses->isEmpty()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No shipping addresses found for this user.'
-                ], 404);
-            }
-
-            // Trả về danh sách địa chỉ
-            return response()->json([
-                'status' => 'success',
-                'shipping_addresses' => $shippingAddresses
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
-            ], 500);
-        }
+        //
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(ShippingAddress $shippingAddress)
+    {
+        //
+    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ShippingAddress $shippingAddress)
+    public function update(UpdateShippingAddressRequest $request, ShippingAddress $shippingAddress)
     {
         //
     }
@@ -90,23 +60,8 @@ class ShippingAddressController extends BaseController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(ShippingAddress $shippingAddress)
     {
-        try {
-
-            return $this->delete(ShippingAddress::class, $id);
-        } catch (ModelNotFoundException $e) {
-
-            return response()->json([
-                "status" => "error",
-                "message" => "Not fould address: " . $id,
-            ], 404);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                "status" => "error",
-                "message" => "An error occurred: " . $e->getMessage(),
-            ], 500);
-        }
+        //
     }
 }

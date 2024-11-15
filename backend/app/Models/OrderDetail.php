@@ -8,30 +8,27 @@ use Illuminate\Database\Eloquent\Model;
 class OrderDetail extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        'order_id',       
+        'order_id',
         'product_id',
         'variant_id',
         'quantity',
-        'price'
+        'price',
     ];
-
-    // Liên kết với bảng orders
-    public function order()
+    public function orders()
     {
-        return $this->belongsTo(Order::class, 'order_id', 'id');
+        return $this->belongsTo(Order::class);
+    }
+    public function products()
+    {
+        return $this->belongsTo(Product::class);
     }
 
-    // Liên kết với bảng products
-    public function product()
-    {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
-    }
+     
 
-    // Liên kết với bảng product_variants
-    public function variant()
+    public function product_variants()
     {
-        return $this->belongsTo(ProductVarian::class, 'variant_id', 'id');
+        return $this->belongsTo(Product_Varian::class);
     }
+    
 }

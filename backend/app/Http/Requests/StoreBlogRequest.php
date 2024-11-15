@@ -43,6 +43,4 @@ class StoreBlogRequest extends FormRequest
 
         throw new HttpResponseException($response);
     }
-
-    
 }

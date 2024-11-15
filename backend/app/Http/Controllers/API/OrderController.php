@@ -2,235 +2,144 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\BaseController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\OrderDetail;
-use App\Models\CartDetail;
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Cart;
-use App\Models\Promotion;
-use App\Models\Product;
-use App\Models\User;
-use App\Models\ShippingAddress;
-use Illuminate\Support\Facades\Auth;
+use App\Models\CartDetail;
+use App\Models\OrderDetail;
+use Illuminate\Support\Facades\DB;
 
-class OrderController extends BaseController
+class OrderController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        try {
+        $orders = Order::with('orderDetails','address')-> get();
+        // return $orders[0]->orderDetails;
+        return response()->json($orders, 200);
+    }
 
-            $orders = Order::with('orderDetails')
-                //  ->where('user_id', Auth::id()) //khi login
-                ->orderBy('order_date', 'desc')
-                ->paginate(10);
-
-            // Return the list of orders
-            return response()->json([
-                'status' => "success",
-                'orders' => $orders
-            ], 200);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'status' => "error",
-                'message' => 'An error occurred: ' . $e->getMessage()
-            ], 500);
-        }
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
+        DB::beginTransaction(); // Bắt đầu giao dịch
 
-        $userId = Auth::id();
-        //  $userId = 2; 
+    try {
+        // // Tạo đơn hàng mới
+        $order = Order::create([
+            'user_id' => $request->user_id,
+            'total_amount' => $request->total_amount,
+            'promotion_id' => $request->promotion_id,
+            'status' => 'pending', // Hoặc trạng thái khác tùy ý
+            'address_id' => $request->address_id,
+            'payment_method' => $request->payment_method,
+            'shipping_cost' => $request->shipping_cost,
+            'order_date' => now(), // Ngày đặt hàng
+        ]);
 
-        // Kiểm tra nếu người dùng chưa đăng nhập
-        if (!$userId) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
-        try {
-            // Lấy giỏ hàng của người dùng
-            $cart = Cart::with('cartDetails')->where('user_id', $userId)->first();
-
-            if (!$cart || $cart->cartDetails->isEmpty()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Cart is empty or not found'
-                ], 404);
-            }
-
-            // Tính tổng tiền
-            $totalAmount = 0;
-            foreach ($cart->cartDetails as $cartDetail) {
-                $totalAmount += $cartDetail->quantity * $cartDetail->product_price;
-            }
-
-            // Áp dụng mã giảm giá
-            $discountAmount = 0;
-            if ($request->has('promotion_code')) {
-                $promotion = Promotion::where('code', $request->input('promotion_code'))->first();
-                if ($promotion && $promotion->is_active && $promotion->start_date <= now() && ($promotion->end_date === null || $promotion->end_date >= now())) {
-                    if ($promotion->discount_type === 'percentage') {
-
-                        $discountAmount = $totalAmount * ($promotion->discount_value / 100);
-                    }
-                }
-            }
-
-            // Giảm tổng tiền theo discountAmount
-            $totalAmount1 = $totalAmount - $discountAmount;
-
-            // Phí ship = 0 (hoặc có thể lấy từ request nếu có)
-            $shippingCost = 0;
-
-            // Kiểm tra địa chỉ
-            $addressId = $request->input('address_id');
-            // $addressId = 1; test
-
-            // Kiểm tra nếu địa chỉ không tồn tại hoặc không phải của người dùng
-            if (!$addressId || !ShippingAddress::where('id', $addressId)->where('user_id', $userId)->exists()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Valid address is required'
-                ], 400);
-            }
-
-            // Tạo đơn hàng
-            $order = Order::create([
-                'user_id' => $userId,
-                'order_date' => now(),
-                'total_amount' => $totalAmount1 + $shippingCost,
-                'promotion_id' => $promotion->id ?? null,
-                'status' => 'pending',
-                'address_id' => $addressId,
-                'payment_method' => $request->input('payment_method', 'Thanh toán khi nhận hàng'),
-                'shipping_cost' => $shippingCost
-            ]);
-
+        // Lấy thông tin sản phẩm từ giỏ hàng
+        $cartItems = Cart::where('user_id', $request->user_id)->with('cartDetails')->first();
+        foreach ($cartItems->cartDetails as $cartDetail) {
             // Tạo chi tiết đơn hàng
-            foreach ($cart->cartDetails as $cartDetail) {
-                OrderDetail::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartDetail->product_id,
-                    'variant_id' => $cartDetail->variant_id,
-                    'quantity' => $cartDetail->quantity,
-                    'price' => $cartDetail->product_price
-                ]);
-            }
-
-            // Xóa giỏ hàng sau khi đặt hàng
-            $cart->cartDetails()->delete();
-            $cart->delete();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Order placed successfully',
+            OrderDetail::create([
                 'order_id' => $order->id,
-                'total_amount' => $totalAmount1,
+                'product_id' => $cartDetail->product_id,
+                'variant_id' => $cartDetail->variant_id,
+                'quantity' => $cartDetail->quantity,
+                'price' => $cartDetail->product_price,
             ]);
-        } catch (\Exception $e) {
-            // Xử lý ngoại lệ và trả về lỗi
-            return response()->json([
-                'status' => 'success',
-                'message' => 'An error occurred: ' . $e->getMessage()
-            ], 500);
         }
+
+        // Xóa dữ liệu trong bảng carts và cart_details
+        CartDetail::where('cart_id', $cartItems->id)->delete();
+        Cart::destroy($cartItems->id);
+
+        DB::commit(); // Xác nhận giao dịch
+        return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack(); // Hoàn tác giao dịch
+        return response()->json([
+            'error' => 'Could not create order. Please try again later.',
+            'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trường sản xuất
+            'line'=>$e->getLine(),
+            'file'=>$e->getFile(),
+        ], 500);
     }
+    }
+
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Order $order)
     {
         try {
-            $order = Order::with('orderDetails')->where('id', $id)->first();
-            if (!$order) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Order not found'
-                ], 404);
-            }
-
-            return response()->json($order);
-        } catch (\Exception $e) {
+            $order =  $order->with('orderDetails','address')->get();
+      
             return response()->json([
-                'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
+                'order' => $order,
+                // 'order_detail' => $orderDetail,
+                // 'address' => $address,
+            ], 200);
+        } catch (\Exception $e) {
+            // Trả về thông báo l��i
+            return response()->json([
+                'error' => 'Could not fetch product. Please try again later.',
+               'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trư��ng sản xuất
             ], 500);
         }
+            
+        
     }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Order $order)
+    {
+        //
+    }
+
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateOrderRequest $request, Order $order)
     {
-        try {
-            $order = Order::where('id', $id)->first();
+        $order->status = $request->status;
+        $order->payment_method = $request->payment_method;
+        $order->shipping_cost = $request->shipping_cost;
+        $order->address_id = $request->address_id;
+        $order->save();
 
-            if (!$order) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Order not found'
-                ], 404);
-            }
+        // Update the address details
+        
 
-            if ($request->has('status')) {
-                $status = $request->input('status');
-                if (!in_array($status, ['pending', 'completed', 'cancelled'])) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Invalid status'
-                    ], 400);
-                }
-                $order->status = $status;
-            }
-
-            $order->save();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Order updated successfully',
-                'order' => $order
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
-        }
+        return response()->json([
+            'message' => 'Order updated successfully!',
+            'order' => $order
+          
+        ], 200);
     }
+
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Order $order)
     {
-        try {
-
-            $order = Order::where('id', $id)->first();
-
-            // Check if the order exists and belongs to the authenticated user
-            if (!$order) {
-                return response()->json(['message' => 'Order not found'], 404);
-            }
-
-
-            if ($order->status !== 'pending') {
-                return response()->json(['message' => 'Order cannot be cancelled'], 400);
-            }
-
-            $order->status = 'cancelled';
-            $order->save();
-
-            return response()->json(['message' => 'Order cancelled successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
-        }
+        //
     }
 }

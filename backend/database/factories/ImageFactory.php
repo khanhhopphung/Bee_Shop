@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Image;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\ProductVarian;
-
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Image>
@@ -17,8 +17,10 @@ class ImageFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    protected $model = Image::class;
     public function definition(): array
     {
+        
         return [
             'product_id' => Product::factory(), 
             'variant_id' => $this->faker->optional()->randomElement(ProductVarian::pluck('id')),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreBlogRequest;
 use App\Models\Blog;
@@ -34,7 +35,7 @@ class BlogController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBlogRequest  $request)
+    public function store(StoreBlogRequest $request)
     {
         try {
             return $this->insert($this->model, $request->all());
@@ -45,6 +46,8 @@ class BlogController extends BaseController
             ], 500);
         }
     }
+    
+    
 
 
     /**

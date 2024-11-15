@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Color;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,6 +12,7 @@ class ColorSeeder extends Seeder
      */
     public function run(): void
     {
-        Color::factory(3)->create();
+        //
+        \App\Models\Color::factory(10)->create();
     }
 }

@@ -17,8 +17,10 @@ class SizeFactory extends Factory
     public function definition(): array
     {
         return [
-            'size_name' => $this->faker->word, // Tạo dữ liệu giả cho cột size_name
-            'created_at' => now(),
+            //
+            'size_name' => $this->faker->word(),  // Tên kích thước ngẫu nhiên
+            'is_active' => $this->faker->boolean(), // Trạng thái ngẫu nhiên (true/false)
+            'created_at' => now(), // Thời gian tạo hiện tại
             'updated_at' => now(),
         ];
     }

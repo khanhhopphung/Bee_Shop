@@ -17,9 +17,11 @@ class ColorFactory extends Factory
     public function definition(): array
     {
         return [
-            'color_name' => $this->faker->word, // Tạo dữ liệu giả cho cột size_name
-            'created_at' => now(),
-            'updated_at' => now(),
+            //
+            'color_name' => $this->faker->colorName(), // Tạo tên màu ngẫu nhiên
+            'is_active' => $this->faker->boolean(), // Tạo giá trị true/false ngẫu nhiên
+            'created_at' => now(), // Thời gian tạo
+            'updated_at' => now(), // Thời gian cập nhật
         ];
     }
 }

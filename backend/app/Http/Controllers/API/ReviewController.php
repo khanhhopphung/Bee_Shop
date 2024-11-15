@@ -1,27 +1,37 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
-use App\Models\Review;
+use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
+use App\Models\Review;
 
-class ReviewController extends Controller
+class ReviewController extends BaseController
 {
+    public function __construct()
+    {
+        $this->model = Review::class;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        try {
+            // Lấy tất cả các review mà không sử dụng điều kiện 'is_active'
+            $reviews = Review::orderBy('id', 'desc')->get();
+            return response()->json([
+                "status" => "success",
+                "data" => $reviews
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -29,7 +39,19 @@ class ReviewController extends Controller
      */
     public function store(StoreReviewRequest $request)
     {
-        //
+        try {
+            // Thêm review mới
+            $review = Review::create($request->all());
+            return response()->json([
+                "status" => "success",
+                "data" => $review
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -37,15 +59,17 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Review $review)
-    {
-        //
+        try {
+            return response()->json([
+                "status" => "success",
+                "data" => $review
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -53,7 +77,18 @@ class ReviewController extends Controller
      */
     public function update(UpdateReviewRequest $request, Review $review)
     {
-        //
+        try {
+            $review->update($request->all());
+            return response()->json([
+                "status" => "success",
+                "data" => $review
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -61,6 +96,18 @@ class ReviewController extends Controller
      */
     public function destroy(Review $review)
     {
-        //
+        try {
+            // Xóa mềm review
+            $review->delete();
+            return response()->json([
+                "status" => "success",
+                "message" => "Review deleted successfully."
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "An error occurred: " . $e->getMessage()
+            ], 500);
+        }
     }
 }
