@@ -20,6 +20,7 @@ import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
 //admin
 import Categories from "./pages/admin/Categories"; 
+import Promotions from './pages/admin/Promotions';
 import AdminBlogs from './pages/admin/Blogs';
 
 
@@ -178,6 +179,7 @@ const App: React.FC = () => {
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="categories" element={<Categories />} />
+          <Route path="promotions" element={<Promotions />} />
           <Route path="blogs" element={<AdminBlogs />} />
         </Route>
       </Routes>

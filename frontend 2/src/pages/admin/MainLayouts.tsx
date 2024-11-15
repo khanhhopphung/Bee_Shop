@@ -34,7 +34,7 @@ const AdminLayout = () => {
             <Link to="/admin/product-variants">Quản lý biến thể</Link>
           </Menu.Item>
           <Menu.Item key="7" icon={<FileTextOutlined />}>
-            <Link to="/admin">Quản lý khuyến mãi</Link>
+            <Link to="/admin/promotions">Quản lý khuyến mãi</Link>
           </Menu.Item>
           <Menu.Item key="8" icon={<FileTextOutlined />}>
             <Link to="/admin/blogs">Quản lý bài viết</Link>
