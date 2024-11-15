@@ -37,7 +37,7 @@ const AdminLayout = () => {
             <Link to="/admin">Quản lý khuyến mãi</Link>
           </Menu.Item>
           <Menu.Item key="8" icon={<FileTextOutlined />}>
-            <Link to="/admin">Quản lý bài viết</Link>
+            <Link to="/admin/blogs">Quản lý bài viết</Link>
           </Menu.Item>
           <Menu.Item key="9" icon={<PieChartOutlined />}>
             <Link to="/admin/statistics">Thống kê</Link>

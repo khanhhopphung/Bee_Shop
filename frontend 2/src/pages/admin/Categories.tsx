@@ -125,5 +125,4 @@ const Categories: React.FC = () => {
     </div>
   );
 };
-
 export default Categories;
