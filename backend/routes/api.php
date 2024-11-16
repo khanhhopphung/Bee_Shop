@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\PromotionController;
+use App\Http\Controllers\API\ShippingAddressController;
 use App\Http\Controllers\API\TierController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
@@ -39,10 +40,9 @@ Route::post('/logout', [AuthController::class,'logout'])->middleware('auth:sanct
 
 
 Route::apiResource('blogs', BlogController::class);
-
 Route::apiResource('tiers', TierController::class);
-
 Route::apiResource('promotions', PromotionController::class);
+Route::apiResource('addresses', ShippingAddressController::class);
 
 Route::apiResource( 'users', UserController::class);
 
