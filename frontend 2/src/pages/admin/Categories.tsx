@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, message, Switch } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+
 import axios from 'axios';
 
 interface Category {
@@ -16,17 +17,21 @@ interface Category {
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [searchText, setSearchText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
 
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/categories');
-      console.log(response.data); 
-      setCategories(Array.isArray(response.data.data) ? response.data.data : []);
+      const data = Array.isArray(response.data.data) ? response.data.data : [];
+      setCategories(data);
+      setFilteredCategories(data); // Set initial filtered data
     } catch (error) {
       message.error('Failed to load categories');
       setCategories([]);
+      setFilteredCategories([]);
     }
   };
 
@@ -34,8 +39,17 @@ const Categories: React.FC = () => {
     fetchCategories();
   }, []);
 
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+    const filteredData = categories.filter((category) =>
+      category.name.toLowerCase().includes(value.toLowerCase()) ||
+      category.sku.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredCategories(filteredData);
+  };
+
   const handleAdd = () => {
-    setCurrentCategory(null); 
+    setCurrentCategory(null);
     setIsModalVisible(true);
   };
 
@@ -97,8 +111,19 @@ const Categories: React.FC = () => {
 
   return (
     <div>
-      <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Add Category</Button>
-      <Table columns={columns} dataSource={categories} rowKey="id" />
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Add Category
+        </Button>
+        <Input
+          placeholder="Search by name or SKU"
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => handleSearch(e.target.value)}
+          style={{ width: 300 }}
+        />
+      </div>
+      <Table columns={columns} dataSource={filteredCategories} rowKey="id" />
 
       <Modal
         open={isModalVisible}
@@ -119,10 +144,13 @@ const Categories: React.FC = () => {
           <Form.Item name="is_active" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Button type="primary" htmlType="submit">Submit</Button>
+          <Button type="primary" htmlType="submit">
+            Submit
+          </Button>
         </Form>
       </Modal>
     </div>
   );
 };
+
 export default Categories;
