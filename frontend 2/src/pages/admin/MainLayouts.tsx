@@ -28,23 +28,23 @@ const AdminLayout = () => {
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
             <Link to="/admin/orders">Quản lý giỏ hàng</Link>
           </Menu.Item>
-          <Menu.Item key="5" icon={<PieChartOutlined />}>
-            <Link to="/admin">Thống kê</Link>
-          </Menu.Item>
-          <Menu.Item key="6" icon={<PieChartOutlined />}>
-            <Link to="/login"> đăng nhâp</Link>
-          </Menu.Item>
-          <Menu.Item key="7" icon={<FileTextOutlined />}>
+          <Menu.Item key="5" icon={<FileTextOutlined />}>
             <Link to="/admin/reviews">Quản lý bình luận</Link>
           </Menu.Item>
-          <Menu.Item key="8" icon={<FileTextOutlined />}>
+          <Menu.Item key="6" icon={<FileTextOutlined />}>
             <Link to="/admin/product-variants">Quản lý biến thể</Link>
           </Menu.Item>
-          <Menu.Item key="9" icon={<FileTextOutlined />}>
+          <Menu.Item key="7" icon={<FileTextOutlined />}>
             <Link to="/admin/promotions">Quản lý khuyến mãi</Link>
           </Menu.Item>
-          <Menu.Item key="10" icon={<FileTextOutlined />}>
+          <Menu.Item key="8" icon={<FileTextOutlined />}>
             <Link to="/admin/blogs">Quản lý bài viết</Link>
+          </Menu.Item>
+          <Menu.Item key="9" icon={<PieChartOutlined />}>
+            <Link to="/admin/statistics">Thống kê</Link>
+          </Menu.Item>
+          <Menu.Item key="10" icon={<PieChartOutlined />}>
+            <Link to="/login"> Đăng nhập</Link>
           </Menu.Item>
         </Menu>
       </Sider>
