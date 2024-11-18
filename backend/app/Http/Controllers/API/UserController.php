@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 
 use App\Http\Controllers\BaseController;
+use App\Models\Order;
+use App\Models\ShippingAddress;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,14 +13,14 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends BaseController
 {
-    function allAdrressesUser(){
+    function allAddressesUser(){
         $user = Auth::user();
-        $adrress = $user->addresses;
-        return $this->success($adrress);
+        $address = $user->addresses;
+        return $this->success($address);
 
     }
 
-    public function updateDefaultAdressesUser(Request $request)
+    public function updateDefaultAddressesUser(Request $request)
 {
     // Lấy thông tin người dùng đã đăng nhập
     $user = Auth::user();
@@ -85,6 +87,12 @@ class UserController extends BaseController
         return User::findOrFail($id);
     }
 
+    public function showUser()
+    {
+        $user = Auth::user();
+        return $this->success($user);
+    }
+
     // Cập nhật thông tin người dùng
     public function update(Request $request, $id)
     {
@@ -107,5 +115,72 @@ class UserController extends BaseController
             "message"=> "update thanh cong"
         ]);
     }
+    public function deleteAddress(string $id)
+    {
+        $user = Auth::user(); // Lấy người dùng đã đăng nhập
+    
+        // Tìm địa chỉ cần xóa
+        $address = $user->addresses->where('id',$id)->where('user_id',$user->id)->first();
+        // $orders = ShippingAddress::where('id',$addressId)->where('user_id',$user->id)->get();
+  
+        $order = Order::where('user_id',$user->id)->where('address_id',$address->id)->update(['address_id' => 0]);
+       
+        // return $addressId ;
+        if ($address) {
+            // Xóa địa chỉ
+            $address->delete();
+
+    
+            return response()->json([
+                "status" => "success",
+                "message" => "Địa chỉ đã bị xóa thành công"
+            ]);
+        }
+    
+        return response()->json([
+            "status" => "error",
+            "message" => "Địa chỉ không tồn tại"
+        ], 404);
+    }
+
+    public function addAddress(Request $request)
+    {
+        // Xác thực dữ liệu đầu vào
+        $validatedData = $request->validate([
+        'recipient_name' => 'required|string|max:255',
+        'phone'          => 'required|string|max:15',
+        'address_line'   => 'required|string|max:255',
+        'city'           => 'required|string|max:100',
+        'state'          => 'required|string|max:100',
+        'is_default' => 'boolean', // Có thể thêm mặc định hay không
+        ]);
+
+        // Lấy người dùng hiện tại
+        $user = Auth::user();
+
+        // Bắt đầu giao dịch
+        DB::beginTransaction();
+
+        try {
+            // Nếu is_default là true, đặt các địa chỉ khác về không mặc định
+            if (isset($validatedData['is_default']) && $validatedData['is_default']) {
+                $user->addresses()->update(['is_default' => false]);
+            }
+
+            // Tạo địa chỉ mới
+            $newAddress = $user->addresses()->create($validatedData);
+
+            // Hoàn tất giao dịch
+            DB::commit();
+
+            return $this->success($newAddress, 'Address added successfully');
+        } catch (\Exception $e) {
+            // Hoàn tác giao dịch nếu có lỗi
+            DB::rollBack();
+            return $this->error('Failed to add address: ' . $e->getMessage());
+        }
+    }
+    
+
 }
 
