@@ -10,6 +10,8 @@ use App\Http\Controllers\API\ColorController;
 use App\Http\Controllers\API\SizeController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
+use App\Http\Controllers\API\ShippingAddressController;
+
 
 
 
@@ -45,6 +47,10 @@ Route::apiResource('tiers', TierController::class);
 Route::apiResource('promotions', PromotionController::class);
 
 Route::apiResource( 'users', UserController::class);
+
+Route::apiResource('addresses', ShippingAddressController::class);
+
+
 
 Route::apiResource('roles', RoleController::class);
 Route::apiResource('colors', ColorController::class);

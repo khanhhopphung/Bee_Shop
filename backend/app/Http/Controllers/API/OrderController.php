@@ -119,27 +119,36 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, Order $order)
     {
+        // Cập nhật các trường khác
         $order->status = $request->status;
         $order->payment_method = $request->payment_method;
         $order->shipping_cost = $request->shipping_cost;
         $order->address_id = $request->address_id;
+    
+        // Nếu có trường 'is_active' trong request, cập nhật nó
+        if ($request->has('is_active')) {
+            $order->is_active = $request->is_active;
+        }
+    
         $order->save();
-
-        // Update the address details
-        
-
+    
         return response()->json([
             'message' => 'Order updated successfully!',
             'order' => $order
-          
         ], 200);
     }
+    
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Order $order)
     {
-        //
+        $order -> update( ["is_active"=>false]);
+        return response()->json([
+            "status" => "success",
+            "message"=> "update thanh cong"
+        ]);
     }
+   
 }

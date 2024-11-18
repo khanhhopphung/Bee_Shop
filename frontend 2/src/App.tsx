@@ -23,6 +23,7 @@ import Review from "./pages/admin/Review"; // Đảm bảo chỉ có một dòng
 import ProductVariants from "./pages/admin/ProductVariant";
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
+import User from "./pages/admin/User";
 
 interface CartItem {
   product_id: any;
@@ -181,6 +182,7 @@ const App: React.FC = () => {
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="users" element={<User />} />
           
         </Route>
       </Routes>

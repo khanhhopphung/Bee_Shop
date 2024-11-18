@@ -15,6 +15,7 @@ class ShippingAddress extends Model
         'address_line',
         'city',
         'state',
+        'is_active',
         'is_default',
     ];
 
