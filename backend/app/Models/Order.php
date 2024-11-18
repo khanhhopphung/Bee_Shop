@@ -17,6 +17,10 @@ class Order extends Model
         'address_id',
         'payment_method',
         'shipping_cost',
+        'order_code',
+        'name', 
+        'phone', 
+        'address',
     ];
     public function users()
     {

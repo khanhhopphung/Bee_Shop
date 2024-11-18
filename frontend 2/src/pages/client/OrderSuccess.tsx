@@ -2,8 +2,10 @@ import { Button, Result } from "antd";
 import React from "react";
 import { CheckCircleOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-
+import { useParams } from "react-router-dom";
 const OrderSuccess: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+
   return (
     <Result
       style={{ marginTop: "30px", marginBottom: "30px" }}
@@ -11,7 +13,7 @@ const OrderSuccess: React.FC = () => {
       title="Đặt hàng thành công!"
       subTitle="Cảm ơn bạn đã mua sắm tại Bee Shop. Đơn hàng của bạn đã được ghi nhận và sẽ sớm được xử lý."
       extra={[
-        <Link to={"/order-detail"}>
+        <Link to={`/order-detail/${id}`}>
           <Button type="primary" key="console">
             Xem chi tiết đơn hàng
           </Button>
