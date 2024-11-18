@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Link } from "react-router-dom";
+import Heart from "../../components/Heart";
 const Home: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
 
@@ -239,23 +240,7 @@ const Home: React.FC = () => {
                                     ${product.price}
                                   </span>
                                 </div>
-                                <div className="block2-txt-child2 flex-r p-t-3">
-                                  <a
-                                    href="#"
-                                    className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
-                                  >
-                                    <img
-                                      className="icon-heart1 dis-block trans-04"
-                                      src="images/icons/icon-heart-01.png"
-                                      alt="ICON"
-                                    />
-                                    <img
-                                      className="icon-heart2 dis-block trans-04 ab-t-l"
-                                      src="images/icons/icon-heart-02.png"
-                                      alt="ICON"
-                                    />
-                                  </a>
-                                </div>
+                                <Heart product_id={product.id} />
                               </div>
                             </div>
                           </div>

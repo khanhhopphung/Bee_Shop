@@ -7,7 +7,7 @@ type Blog = {
   title: string;
   content: string;
   created_at: string;
-  image: string;
+  image: { image_url: string };
 };
 
 const Blogs = () => {
@@ -52,7 +52,12 @@ const Blogs = () => {
             <div className="col-sm-6 col-md-4 p-b-40">
               <div className="blog-item">
                 <div className="hov-img0">
-                  <a href="blog-detail.html">{blog.image}</a>
+                  <a href="blog-detail.html">
+                    <img
+                      src={`http://127.0.0.1:8000/storage/${blog.image.image_url}`}
+                      alt={`Blog: ${blog.image}`}
+                    />
+                  </a>
                 </div>
                 <div className="p-t-15">
                   <h4 className="p-b-5">

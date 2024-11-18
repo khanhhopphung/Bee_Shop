@@ -329,9 +329,11 @@ const Carts: React.FC = () => {
                                   cart.quantity > 1 &&
                                     updateQuantity(cart.id, cart.quantity - 1);
                                 }}
+                                disabled={cart.quantity <= 1}
                               >
                                 <i className="fs-16 zmdi zmdi-minus"></i>
                               </button>
+
                               <input
                                 className="mtext-104 cl3 txt-center num-product p-2 text-lg"
                                 type="number"

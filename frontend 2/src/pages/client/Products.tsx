@@ -6,10 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { setSearchRedux } from "../../store/searchSlice";
 import { AppDispatch } from "../../store/store";
+import { addToFavorites, removeFromFavorites } from "../../store/favoriteSlice";
+
 const Products: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Products");
+  const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const [products, setProducts] = useState<any[]>([]);
   const key = useSelector((state: RootState) => state.Search.key);
 
@@ -55,7 +59,32 @@ const Products: React.FC = () => {
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };
-
+  // Hàm lọc sản phẩm
+  // const filteredProducts = products
+  //   .filter(
+  //     (product) =>
+  //       selectedFilter === "All Products" || product.category === selectedFilter
+  //   )
+  //   .filter((product) => product.name.toLowerCase().includes(key.toLowerCase()))
+  //   .filter((product) => {
+  //     if (selectedPrice) {
+  //       const price = parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
+  //       if (selectedPrice === "0-100k" && price <= 100000) return true;
+  //       if (selectedPrice === "100k-200k" && price > 100000 && price <= 200000)
+  //         return true;
+  //       if (selectedPrice === "200k-500k" && price > 200000 && price <= 500000)
+  //         return true;
+  //       if (selectedPrice === "500k+" && price > 500000) return true;
+  //       return false;
+  //     }
+  //     return true;
+  //   })
+  //   .filter((product) => {
+  //     if (selectedColor) {
+  //       return product.color.toLowerCase() === selectedColor.toLowerCase();
+  //     }
+  //     return true;
+  //   });
   return (
     // <Layout q={10}>
     <div className="bg0 m-t-23 p-b-140">
@@ -120,21 +149,16 @@ const Products: React.FC = () => {
         >
           <div className="wrap-filter flex-w bg6 w-full p-lr-40 p-t-27 p-lr-15-sm">
             <div className="filter-col1 p-r-15 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Sort By</div>
+              <div className="mtext-102 cl2 p-b-15">Lọc theo</div>
               <ul>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Default
+                    Mặc định
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Popularity
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Average rating
+                    Mua nhiều
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -142,68 +166,63 @@ const Products: React.FC = () => {
                     href="#"
                     className="filter-link stext-106 trans-04 filter-link-active"
                   >
-                    Newness
+                    Mới nhất
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Price: Low to High
+                    Giá: Thấp đến cao
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Price: High to Low
+                    Price: Cao đến thấp
                   </a>
                 </li>
               </ul>
             </div>
             <div className="filter-col2 p-r-15 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Price</div>
+              <div className="mtext-102 cl2 p-b-15">Giá</div>
               <ul>
                 <li className="p-b-6">
                   <a
                     href="#"
                     className="filter-link stext-106 trans-04 filter-link-active"
                   >
-                    All
+                    Tất cả
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    $0.00 - $50.00
+                    0đ - 100.000đ
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    $50.00 - $100.00
+                    100.000đ - 200.000đ
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    $100.00 - $150.00
+                    200.000đ - 500.000đ
                   </a>
                 </li>
                 <li className="p-b-6">
                   <a href="#" className="filter-link stext-106 trans-04">
-                    $150.00 - $200.00
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    $200.00+
+                    500.000đ +
                   </a>
                 </li>
               </ul>
             </div>
             <div className="filter-col3 p-r-15 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Color</div>
+              <div className="mtext-102 cl2 p-b-15">Màu sắc</div>
               <ul>
                 <li className="p-b-6">
                   <span className="fs-15 lh-12 m-r-6" style={{ color: "#222" }}>
                     <i className="zmdi zmdi-circle" />
                   </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Black
+                    Đen
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -217,7 +236,7 @@ const Products: React.FC = () => {
                     href="#"
                     className="filter-link stext-106 trans-04 filter-link-active"
                   >
-                    Blue
+                    Xanh
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -228,7 +247,7 @@ const Products: React.FC = () => {
                     <i className="zmdi zmdi-circle" />
                   </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Grey
+                    Xám
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -239,7 +258,7 @@ const Products: React.FC = () => {
                     <i className="zmdi zmdi-circle" />
                   </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Green
+                    Xánh lá
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -250,7 +269,7 @@ const Products: React.FC = () => {
                     <i className="zmdi zmdi-circle" />
                   </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Red
+                    Đỏ
                   </a>
                 </li>
                 <li className="p-b-6">
@@ -258,7 +277,7 @@ const Products: React.FC = () => {
                     <i className="zmdi zmdi-circle-o" />
                   </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    White
+                    Trắng
                   </a>
                 </li>
               </ul>

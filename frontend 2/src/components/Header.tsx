@@ -234,6 +234,12 @@ const Header: React.FC<Props> = ({ quantity }) => {
                     <i className="zmdi zmdi-shopping-cart" />
                   </Link>
                 </div>
+                <div
+                  className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
+                  data-notify={quantityCart}
+                >
+                  <i className="fa-solid fa-heart"></i>
+                </div>
               </div>
             </div>
           </nav>

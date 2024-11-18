@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button, Modal, message } from "antd";
+import { Button, Form, Input, List, Modal, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-
+import AddAddress from "../../components/AddAddress";
 interface Cart {
   id: number;
   cart_id: number;
@@ -65,6 +65,7 @@ interface Order {
   shipping_cost: number;
   carts_detail: number[];
 }
+
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -81,6 +82,13 @@ const PaymentPage: React.FC = () => {
   const [address, setAddress] = useState<Address[]>([]);
   const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
   const [order, setOrderdata] = useState<Order>();
+  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
   useEffect(() => {
     // setTimeout(() => {
     if (address) {
@@ -103,29 +111,73 @@ const PaymentPage: React.FC = () => {
     }
   };
 
+  const [discountCodes, setDiscountCodes] = useState<
+    { code: string; description: string }[]
+  >([]);
+  const [isDiscountModalVisible, setIsDiscountModalVisible] = useState(false);
+
+  // Hàm mở modal
+  const showDiscountModal = () => {
+    setIsDiscountModalVisible(true);
+  };
+
+  // Hàm đóng modal
+  const handleCancelDiscount = () => {
+    setIsDiscountModalVisible(false);
+  };
+
+  // Lấy mã giảm giá từ API
+  const fetchDiscountCodes = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/promotions`, {
+        // Thay đổi URL API của bạn
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể lấy mã giảm giá.");
+      }
+
+      const data = await response.json();
+      // Giả sử API trả về danh sách mã giảm giá trong trường 'discounts'
+      setDiscountCodes(data.discounts || []);
+    } catch (error) {
+      message.error("Đã có lỗi khi tải mã giảm giá");
+    }
+  };
+
+  // Sử dụng useEffect để gọi API khi component mount
+  useEffect(() => {
+    fetchDiscountCodes();
+  }, []);
+  // call api update địa chỉ
+  const updateAddress = async () => {
+    // try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/update-address-user`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: addressId }), // Đưa body ra ngoài headers
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setAddress(data.addresses);
+    }
+  };
   useEffect(() => {
     console.log(addressId);
-    const updateAddress = async () => {
-      // try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/update-address-user`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ id: addressId }), // Đưa body ra ngoài headers
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setAddress(data.addresses);
-      }
-    };
+
     updateAddress();
   }, [addressId]);
-
+  // call api chi tiết giỏ hàng
   useEffect(() => {
     const get = async (ids: number[]) => {
       // try {
@@ -137,7 +189,7 @@ const PaymentPage: React.FC = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ ids }), // Đưa body ra ngoài headers
+          body: JSON.stringify({ ids }),
         }
       );
       if (response.ok) {
@@ -147,28 +199,27 @@ const PaymentPage: React.FC = () => {
     };
     get(savedCartDetailOrder);
   }, []);
+  // call api địa chỉ người dùng
+  const get = async () => {
+    // try {
+    const response = await fetch(`http://127.0.0.1:8000/api/get-adrress-user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setAddress(data.data);
+    }
+    // } catch (error) {
+    //   message.error("Đã có lỗi xảy ");
+    // }
+  };
   useEffect(() => {
     console.log("run1");
-    const get = async () => {
-      // try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/get-adrress-user`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setAddress(data.data);
-      }
-      // } catch (error) {
-      //   message.error("Đã có lỗi xảy ");
-      // }
-    };
+
     get();
   }, [addressId]);
   // Hàm mở modal
@@ -198,6 +249,8 @@ const PaymentPage: React.FC = () => {
       carts_detail: savedCartDetailOrder,
     };
     setOrderdata(orderData);
+
+    // call api order
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
         method: "POST",
@@ -212,13 +265,18 @@ const PaymentPage: React.FC = () => {
         const data = await response.json();
         setOrderdata(data);
         message.success("Đặt hàng thành công!");
-        navigate("/ordersuccess");
+        console.log(data);
+        navigate(`/ordersuccess/${data.order.id}`);
       } else {
         message.error("Đặt hàng thất bại, vui lòng thử lại.");
       }
     } catch (error) {
       message.error("Có lỗi xảy ra khi tạo đơn hàng.");
     }
+  };
+
+  const submit = async () => {
+    get();
   };
   return (
     <form className="bg0 p-t-75 p-b-85">
@@ -346,7 +404,28 @@ const PaymentPage: React.FC = () => {
                 </div>
 
                 <div className="flex-c-m stext-101 cl2 size-119 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-10">
-                  Cập nhật giỏ hàng
+                  <div>
+                    {/* Thêm nút để mở modal danh sách mã giảm giá */}
+                    <Button onClick={showDiscountModal}>Xem mã giảm giá</Button>
+
+                    {/* Modal hiển thị danh sách mã giảm giá */}
+                    <Modal
+                      title="Danh sách mã giảm giá"
+                      visible={isDiscountModalVisible}
+                      onCancel={handleCancelDiscount}
+                      footer={null}
+                    >
+                      <List
+                        bordered
+                        dataSource={discountCodes}
+                        renderItem={(item) => (
+                          <List.Item>
+                            <strong>{item.code}</strong>: {item.description}
+                          </List.Item>
+                        )}
+                      />
+                    </Modal>
+                  </div>
                 </div>
               </div>
             </div>
@@ -495,32 +574,15 @@ const PaymentPage: React.FC = () => {
                           </div>
                         ))}
                       </div>
-
-                      {/* Thêm nút để tạo địa chỉ mới */}
-                      <Button
-                        type="primary"
-                        className="add-new-address-button"
+                      <div
                         style={{
-                          alignSelf: "center",
-                          padding: "8px 20px",
-                          borderRadius: "5px",
-                          fontWeight: "600",
-                          backgroundColor: "#666",
-                          color: "white",
-                          transition: "background-color 0.3s ease",
-                          marginTop: "15px",
-                        }}
-                        onMouseEnter={(e) => {
-                          const target = e.target as HTMLButtonElement; // Cast to HTMLButtonElement
-                          target.style.backgroundColor = "#7280e0";
-                        }}
-                        onMouseLeave={(e) => {
-                          const target = e.target as HTMLButtonElement; // Cast to HTMLButtonElement
-                          target.style.backgroundColor = "#7280e0";
+                          display: "flex", // Sử dụng Flexbox
+                          justifyContent: "center", // Căn giữa theo chiều ngang
+                          alignItems: "center", // Căn giữa theo chiều dọc
                         }}
                       >
-                        Thêm Địa Chỉ Mới
-                      </Button>
+                        <AddAddress onAddSuccess={get} />
+                      </div>
                     </div>
                   </Modal>
                 </div>

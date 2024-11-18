@@ -83,19 +83,21 @@ const AccountDropdown: React.FC<Props> = ({ userName, onLogout }) => {
               >
                 Lịch sử đơn hàng
               </div>
-              <div
-                className="dropdown-item"
-                style={{
-                  cursor: "pointer",
-                  color: "#333",
-                  padding: "5px 10px",
-                  fontSize: "14px",
-                  textAlign: "left",
-                  transition: "background 0.3s",
-                }}
-              >
-                Danh sách yêu thích
-              </div>
+              <Link to={`/favorite`}>
+                <div
+                  className="dropdown-item"
+                  style={{
+                    cursor: "pointer",
+                    color: "#333",
+                    padding: "5px 10px",
+                    fontSize: "14px",
+                    textAlign: "left",
+                    transition: "background 0.3s",
+                  }}
+                >
+                  Danh sách yêu thích
+                </div>
+              </Link>
               <div
                 className="dropdown-item"
                 onClick={onLogout}
