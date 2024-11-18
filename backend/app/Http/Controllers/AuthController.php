@@ -91,42 +91,51 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-{
-    // Validate the incoming request data
-    $validator = Validator::make($request->all(), [
-        'username' => 'required|string',
-        'password' => 'required|string',
-    ]);
-
-    // Return validation errors if any
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+    
+        // Return validation errors if any
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+    
+        // Find the user by username
+        $user = User::where('username', $request->username)->first();
+    
+        // Check if the user exists and if the password matches
+        if (!$user || !Hash::check($request->password, $user->password_hash)) {
+            return response()->json(['message' => 'Invalid credentials.'], 401);
+        }
+    
+        // Check if the user account is active
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Please verify your email.'], 403);
+        }
+    
+        // Create a token for the user
+        $token = $user->createToken('authToken')->plainTextToken;
+        $user->api_token = $token;
+        $user->save();
+    
+        // Prepare role-specific login logic
+        $loginMessage = $user->role_id == 2 
+            ? 'Welcome Admin!' 
+            : 'Welcome to the client dashboard.';
+    
+        // Return success response with the token and additional info (role_id, user_id)
+        return response()->json([
+            'message' => $loginMessage,
+            'user_name' => $user->username,
+            'access_token' => $token,
+            'role_id' => $user->role_id, // Add role_id
+            'user_id' => $user->id,      // Add user_id
+        ], 200);
     }
-
-    // Find the user by username
-    $user = User::where('username', $request->username)->first();
-
-    // Check if the user exists and if the password matches
-    if (!$user || !Hash::check($request->password, $user->password_hash)) {
-        return response()->json(['message' => 'Invalid credentials.'], 401);
-    }
-
-    // Check if the user account is active
-    if (!$user->is_active) {
-        return response()->json(['message' => 'Please verify your email.'], 403);
-    }
-
-    // Create a token for the user
-    $token = $user->createToken('authToken')->plainTextToken;
-    $user->api_token = $token;
-    $user->save();
-    // Return success response with the token
-    return response()->json([
-        'message' => 'Login successful.', 
-        'user_name' => $user->username,
-        'access_token' => $token
-    ], 200);
-}
+    
 public function sendOtp(Request $request)
 {
     $validator = Validator::make($request->all(), [

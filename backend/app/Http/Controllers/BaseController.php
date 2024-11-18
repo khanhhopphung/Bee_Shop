@@ -98,7 +98,7 @@ class BaseController extends Controller
 
 
             return self::success($request, $message = 'Record created successfully !', $statusCode = HttpResponse::HTTP_CREATED);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -114,7 +114,7 @@ class BaseController extends Controller
             $data = $model->update($request);
 
             return self::success($request, $message = 'Record updated successfully', $statusCode = HttpResponse::HTTP_OK);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -130,7 +130,7 @@ class BaseController extends Controller
 
             return self::success(null, $message = 'Record deleted successfully !', $statusCode = HttpResponse::HTTP_OK);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return self::error($message = $e->getMessage(), $status = HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
 

@@ -1,18 +1,32 @@
-import React, { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
 type LoginProps = {
   updateUserName: (name: string) => void;
 };
+
 const Login: React.FC<LoginProps> = ({ updateUserName }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+  const [loading, setLoading] = useState(false); // Trạng thái loading
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Kiểm tra nếu đã đăng nhập và có token
+    const accessToken = localStorage.getItem("access_token");
+    const roleId = localStorage.getItem("role_id");
+
+    if (accessToken && roleId) {
+      // Điều hướng dựa trên role_id
+      if (roleId == "2") {
+        navigate("/admin");
+      } else {
+        navigate("/"); // Điều hướng đến trang client
+      }
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +59,23 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
 
       const data = await response.json();
       message.success("Đăng nhập thành công!");
+
+      // Lưu thông tin vào localStorage
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_name", data.user_name);
+
+      localStorage.setItem("role_id", data.role_id); // Lưu role_id
+
+
       // console.log(localStorage.getItem("user_name"));
       updateUserName(data.user_name);
-      navigate("/");
+
+      // Điều hướng dựa trên role_id
+      if (data.role_id == "2") {
+        navigate("/admin"); // Đến trang admin
+      } else  {
+        navigate("/"); // Đến trang client
+      }
     } catch (error) {
       setLoading(false); // Kết thúc loading nếu có lỗi
       message.error("Có lỗi xảy ra. Vui lòng thử lại.");
@@ -66,38 +92,22 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       tip={<span style={{ color: "green" }}>Đang đăng nhập...</span>}
     >
       <div className="app app-login p-0">
-        {/* <Layout q={10}> */}
         <div className="row g-0 app-auth-wrapper">
           <div className="col-12 col-md-5 col-lg-6 h-100 auth-background-col">
             <div className="auth-background-holder"></div>
             <div className="auth-background-mask"></div>
-            <div className="auth-background-overlay p-3 p-lg-5">
-              <div className="d-flex flex-column align-content-end h-100">
-                <div className="h-100"></div>
-              </div>
-            </div>
           </div>
           <div className="col-12 col-md-7 col-lg-6 auth-main-col text-center p-5">
             <div className="d-flex flex-column align-content-end">
               <div className="app-auth-body mx-auto">
                 <div className="app-auth-branding mb-4">
-                  <a className="app-logo" href="/">
-                    <p>BEE STORE</p>
-                  </a>
+                  <p>BEE STORE</p>
                 </div>
                 <h2 className="auth-heading text-center mb-5">Đăng nhập</h2>
                 <div className="auth-form-container text-start">
-                  <form
-                    className="auth-form login-form"
-                    onSubmit={handleSubmit}
-                  >
+                  <form className="auth-form login-form" onSubmit={handleSubmit}>
                     <div className="username mb-3">
-                      <label className="sr-only" htmlFor="signup-name">
-                        Username
-                      </label>
                       <input
-                        id="signup-name"
-                        name="signup-name"
                         type="text"
                         className="form-control signup-name"
                         placeholder="Họ và tên :"
@@ -106,40 +116,13 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                       />
                     </div>
                     <div className="password mb-3">
-                      <label className="sr-only" htmlFor="signin-password">
-                        Mật khẩu
-                      </label>
                       <input
-                        id="signin-password"
-                        name="signin-password"
                         type="password"
                         className="form-control signin-password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
                       />
-                      <div className="extra mt-3 row justify-content-between">
-                        <div className="col-6">
-                          <div className="form-check">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              value=""
-                              id="RememberPassword"
-                            />
-                            <label
-                              className="form-check-label"
-                              htmlFor="RememberPassword"
-                            >
-                              Nhớ mật khẩu
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-6">
-                          <div className="forgot-password text-end">
-                            <a href="reset-password.html">Quên mật khẩu?</a>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                     <div className="text-center">
                       <button
@@ -151,9 +134,9 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                     </div>
                   </form>
                   <div className="auth-option text-center pt-5">
-                    Bạn chưa có tài khoản ? Đăng ký{" "}
+                    Bạn chưa có tài khoản?{" "}
                     <a className="text-link" href="/register">
-                      ở đây
+                      Đăng ký ở đây
                     </a>
                     .
                   </div>
@@ -165,7 +148,6 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
             </div>
           </div>
         </div>
-        {/* </Layout> */}
       </div>
     </Spin>
   );

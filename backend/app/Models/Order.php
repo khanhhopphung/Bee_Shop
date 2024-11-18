@@ -21,6 +21,7 @@ class Order extends Model
         'name', 
         'phone', 
         'address',
+        'is_active',
     ];
     public function users()
     {
