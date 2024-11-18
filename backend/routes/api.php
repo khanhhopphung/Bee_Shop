@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\PromotionController;
 use App\Http\Controllers\API\ShippingAddressController;
+use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\API\TierController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
@@ -45,7 +46,9 @@ Route::apiResource('blogs', BlogController::class);
 Route::apiResource('tiers', TierController::class);
 Route::apiResource('promotions', PromotionController::class);
 Route::apiResource('addresses', ShippingAddressController::class);
-
+Route::prefix('statistics')->group(function () {
+    Route::get('dashboard', [StatisticsController::class, 'dashboard']); 
+});
 Route::apiResource( 'users', UserController::class);
 
 Route::apiResource('addresses', ShippingAddressController::class);
