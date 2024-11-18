@@ -35,10 +35,23 @@ class BlogController extends BaseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBlogRequest  $request)
+    public function store(StoreBlogRequest $request)
     {
         try {
-            return $this->insert($this->model, $request->all());
+
+            if ($request->hasFile('image')) {
+                $path = $request->file('image')->store('public/images');
+                $data = $request->all();
+
+                $data['image'] = str_replace('public/', '', $path);
+
+                return $this->insert($this->model, $data);
+            }
+
+            return response()->json([
+                "status" => "error",
+                "message" => "Không có file ảnh."
+            ], 400);
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
@@ -46,6 +59,9 @@ class BlogController extends BaseController
             ], 500);
         }
     }
+
+    
+    
 
 
     /**
@@ -81,16 +97,30 @@ class BlogController extends BaseController
      * Update the specified resource in storage.
      */
     public function update(Request $request, Blog $blog)
-    {
-        try {
-            return $this->edit($blog, $request->all());
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
-            ], 500);
-        }
-    }
+     {
+         try {
+             $data = $request->all();
+     
+             if ($request->hasFile('image')) {
+                 $path = $request->file('image')->store('public/images');
+                 $data['image'] = str_replace('public/', '', $path);
+             }
+     
+             $blog->update($data);
+     
+             return response()->json([
+                 "status" => true,
+                 "message" => "Blog updated successfully",
+                 "data" => $blog
+             ], 200);
+         } catch (\Exception $e) {
+             return response()->json([
+                 "status" => "error",
+                 "message" => "Error: " . $e->getMessage()
+             ], 500);
+         }
+     }
+
 
     /**
      * Remove the specified resource from storage.

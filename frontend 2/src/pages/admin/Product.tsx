@@ -12,6 +12,7 @@ interface Product {
   stock: number;
   price: number;
   is_active: boolean;
+<<<<<<< HEAD
   image_url?: string;
   size_id?: number;
   color_id?: number;
@@ -32,6 +33,9 @@ interface Size {
 interface Color {
   id: number;
   color_name: string;
+=======
+  image_url: string; 
+>>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
 }
 
 const Products: React.FC = () => {
@@ -42,8 +46,14 @@ const Products: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+<<<<<<< HEAD
   const [searchText, setSearchText] = useState<string>('');
   const [fileList, setFileList] = useState<any[]>([]);
+=======
+  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [image, setImage] = useState<any>(null); 
+>>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
 
   const [form] = Form.useForm();
 
@@ -163,7 +173,11 @@ const Products: React.FC = () => {
       }
   
       setIsModalVisible(false);
+<<<<<<< HEAD
       fetchProducts(); // Refresh the list of products
+=======
+      fetchProducts(); 
+>>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
     } catch (error) {
       message.error('Failed to save product');
     }

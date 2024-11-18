@@ -1,0 +1,19 @@
+.position-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50; /* Đảm bảo dropdown ở trên các phần tử khác */
+  display: none; /* Đảm bảo dropdown ẩn khi không nhấn */
+}
+
+.position-dropdown.active {
+  display: block; /* Hiện dropdown khi nhấn */
+}
+
+.dropdown-menu {
+  display: block !important; /* Đảm bảo dropdown hiển thị */
+  position: absolute;
+  background-color: white;
+
+  z-index: 10;
+}

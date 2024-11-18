@@ -63,8 +63,12 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       // Lưu thông tin vào localStorage
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_name", data.user_name);
+<<<<<<< HEAD
       localStorage.setItem("role_id", data.role_id); // Lưu role_id
 
+=======
+      // console.log(localStorage.getItem("user_name"));
+>>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
       updateUserName(data.user_name);
 
       // Điều hướng dựa trên role_id

@@ -1,16 +1,233 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Button, Modal, message } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
+interface Cart {
+  id: number;
+  cart_id: number;
+  product_id: number;
+  variant_id: number | null;
+  quantity: number;
+  product_price: string;
+  discount_value: string;
+  product: {
+    id: number;
+    name: string;
+    sku: string;
+    description: string;
+    category_id: number;
+    stock: number;
+    price: number;
+    is_active: number;
+    image: {
+      id: number;
+      product_id: number;
+      variant_id: number;
+      alt_text: string;
+      image_url: string;
+    };
+  };
+  product_variant: {
+    id: number;
+    product_id: number;
+    size_id: number;
+    color_id: number;
+    price: number | string;
+    stock: number;
+    size: {
+      id: number;
+      size_name: string;
+    };
+    color: {
+      id: number;
+      color_name: string;
+    };
+  };
+}
+
+interface Address {
+  id: number;
+  user_id: number;
+  recipient_name: string;
+  phone: string;
+  address_line: string;
+  city: string;
+  state: string;
+  is_default: number;
+}
+interface Order {
+  total_amount: number;
+  promotion_id: number | string | null;
+  address_id: number;
+  payment_method: string;
+  shipping_cost: number;
+  carts_detail: number[];
+}
 const PaymentPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const cartDetailIdsRedux = useSelector(
+    (state: RootState) => state.CartDetail.ids
+  );
+  const [carts, setCarts] = useState<Cart[]>([]);
+  const token = localStorage.getItem("access_token");
+  const savedCartDetailOrder: number[] = JSON.parse(
+    localStorage.getItem("cartDetailOrder") || "[]"
+  );
+  const [addressId, setAddressId] = useState<number>();
+  const [address, setAddress] = useState<Address[]>([]);
+  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
+  const [order, setOrderdata] = useState<Order>();
+  useEffect(() => {
+    // setTimeout(() => {
+    if (address) {
+      const defaultAddress =
+        address.filter((address) => address.is_default == 1)[0] || null;
+      setDefaultAddress(defaultAddress);
+    }
+    // }, 200);
+  }, [address]);
+
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const total = carts.reduce((sum, cart) => {
+    return sum + cart.product.price * cart.quantity;
+  }, 0);
+
+  const checkPrime = (e: any, id: number | string) => {
+    if (e.target.checked) {
+      id = Number(id);
+      setAddressId(id);
+    }
+  };
+
+  useEffect(() => {
+    console.log(addressId);
+    const updateAddress = async () => {
+      // try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/update-address-user`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ id: addressId }), // Đưa body ra ngoài headers
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setAddress(data.addresses);
+      }
+    };
+    updateAddress();
+  }, [addressId]);
+
+  useEffect(() => {
+    const get = async (ids: number[]) => {
+      // try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/carts-detail-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ids }), // Đưa body ra ngoài headers
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCarts(data.cart_details);
+      }
+    };
+    get(savedCartDetailOrder);
+  }, []);
+  useEffect(() => {
+    console.log("run1");
+    const get = async () => {
+      // try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/get-adrress-user`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setAddress(data.data);
+      }
+      // } catch (error) {
+      //   message.error("Đã có lỗi xảy ");
+      // }
+    };
+    get();
+  }, [addressId]);
+  // Hàm mở modal
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+  // Hàm đóng modal
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const submitOrder = async () => {
+    if (!defaultAddress) {
+      message.error("Vui lòng chọn địa chỉ nhận hàng");
+      return;
+    }
+    if (!paymentMethod) {
+      message.error("Vui lòng chọn phương thức thanh toán");
+      return;
+    }
+    const orderData: Order = {
+      total_amount: total,
+      promotion_id: null,
+      address_id: defaultAddress.id,
+      payment_method: paymentMethod,
+      shipping_cost: 30000,
+      carts_detail: savedCartDetailOrder,
+    };
+    setOrderdata(orderData);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOrderdata(data);
+        message.success("Đặt hàng thành công!");
+        navigate("/ordersuccess");
+      } else {
+        message.error("Đặt hàng thất bại, vui lòng thử lại.");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi tạo đơn hàng.");
+    }
+  };
   return (
-    // <Layout q={10}>
     <form className="bg0 p-t-75 p-b-85">
       <div className="container">
         <div className="row">
-          <div className="col-lg-10 col-xl-7 m-lr-auto m-b-50">
+          <div
+            className="col-lg-10 col-xl-7 m-lr-auto m-b-50"
+            style={{ marginBottom: "20px" }}
+          >
             <div className="m-l-25 m-r--38 m-lr-0-xl">
               <div className="wrap-table-shopping-cart">
                 <table className="table-shopping-cart">
@@ -18,56 +235,113 @@ const PaymentPage: React.FC = () => {
                     <tr className="table_head">
                       <th className="column-1">Sản phẩm</th>
                       <th className="column-2"></th>
-                      <th className="column-3">Giá</th>
+                      <th className="column-3">Đơn Giá</th>
                       <th className="column-4">Số lượng</th>
-                      <th className="column-5">Tổng</th>
+                      <th className="column-5">Thành tiền</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="table_row">
-                      <td className="column-1">
-                        <div className="how-itemcart1">
-                          <img src="images/item-cart-04.jpg" alt="IMG" />
-                        </div>
-                      </td>
+                    {Array.isArray(carts) &&
+                      carts.map((cart, index) => (
+                        <tr className="table_row" key={index}>
+                          <td className="column-1">
+                            <img
+                              src={`http://127.0.0.1:8000/storage/${
+                                cart?.product.image?.image_url ||
+                                "default-image.jpg"
+                              }`}
+                              alt="IMG-PRODUCT"
+                              style={{
+                                width: "120px",
+                                height: "150px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          </td>
 
-                      <td className="column-2">ppp</td>
-                      <td className="column-3">$ 36.00</td>
-                      <td className="column-4">
-                        <div className="wrap-num-product flex-w m-l-auto m-r-0">
-                          <div className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m">
-                            <i className="fs-16 zmdi zmdi-minus"></i>
-                          </div>
-
-                          <input
-                            className="mtext-104 cl3 txt-center num-product"
-                            type="number"
-                            name="num-product1"
-                            defaultValue="1"
-                          />
-
-                          <div className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m">
-                            <i className="fs-16 zmdi zmdi-plus"></i>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="column-5">$ 36.00</td>
-                    </tr>
+                          <td
+                            className="column-2"
+                            style={{
+                              paddingLeft: "50px",
+                            }}
+                          >
+                            {cart.product.name}
+                            {cart.product_variant && (
+                              <p className="text-gray-500 text-sm">
+                                Kích thước:{" "}
+                                {cart.product_variant.size.size_name}, Màu sắc:{" "}
+                                {cart.product_variant.color.color_name}
+                              </p>
+                            )}
+                          </td>
+                          <td className="column-3">
+                            {cart.product.price.toLocaleString()}₫
+                          </td>
+                          <td className="column-4">
+                            <p>{cart.quantity}</p>
+                          </td>
+                          <td className="column-5">
+                            {(
+                              cart.product.price * cart.quantity
+                            ).toLocaleString()}
+                            ₫
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
-              </div>
+                <div
+                  className="note-seller mt-4"
+                  style={{
+                    height: "40px",
+                    display: "flex",
+                    justifyContent: "space-evenly",
+                  }}
+                >
+                  <div style={{ width: "10%" }}>
+                    <label
+                      htmlFor="note-seller"
+                      className="text-bold"
+                      style={{ marginLeft: "12px", fontWeight: "bold" }}
+                    >
+                      Lời nhắn :
+                    </label>
+                  </div>
 
+                  <div
+                    style={{
+                      width: "80%",
+                      marginTop: "-10px",
+                    }}
+                  >
+                    <textarea
+                      id="note-seller"
+                      className="form-control"
+                      placeholder="Lưu ý cho người bán"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="col-lg-10 col-xl-7 m-lr-auto m-b-50"
+            style={{ marginBottom: "20px" }}
+          >
+            <div className="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
               <div className="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
                 <div className="flex-w flex-m m-r-20 m-tb-5">
                   <input
                     className="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5"
                     type="text"
                     name="coupon"
-                    placeholder="Coupon Code"
+                    placeholder="Mã giảm giá"
                   />
 
                   <div className="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5">
-                    Nhập mã giảm giá
+                    Áp dụng
                   </div>
                 </div>
 
@@ -78,57 +352,237 @@ const PaymentPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="col-sm-10 col-lg-7 col-xl-5 m-lr-auto m-b-50">
+          <div className="col-lg-10 col-xl-7 m-lr-auto m-b-50">
             <div className="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
-              <h4 className="mtext-109 cl2 p-b-30">Tổng giỏ hàng</h4>
-
-              <div className="flex-w flex-t bor12 p-b-13">
-                <div className="size-208">
-                  <span className="stext-110 cl2">Tổng tiền:</span>
-                </div>
-
-                <div className="size-209">
-                  <span className="mtext-110 cl2">$79.65</span>
-                </div>
-              </div>
-
               <div className="flex-w flex-t bor12 p-t-15 p-b-30">
                 <div className="label size-208 w-full-ssm mt-3">
-                  <span className="text-lg text-gray-700 ">Địa chỉ:</span>
+                  <span
+                    className="text-lg text-gray-700 "
+                    style={{ fontSize: "15px", fontWeight: "bold" }}
+                  >
+                    <i className="fa-solid fa-location-dot"></i> Địa chỉ:
+                  </span>
+                </div>
+
+                <div className="address-card">
+                  <div className="address-content">
+                    <span
+                      className="address-name"
+                      style={{ fontSize: "14px", fontWeight: "bold" }}
+                    >
+                      {defaultAddress?.recipient_name}
+                    </span>{" "}
+                    |
+                    <span
+                      className="address-phone"
+                      style={{ fontSize: "14px", fontWeight: "bold" }}
+                    >
+                      {" "}
+                      {defaultAddress?.phone}
+                    </span>
+                    <br />
+                    <span
+                      className="address-details"
+                      style={{ marginLeft: "10px" }}
+                    >
+                      {defaultAddress?.address_line}-{defaultAddress?.state}-
+                      {defaultAddress?.city}
+                    </span>
+                    <Button style={{ marginLeft: "220px" }}>
+                      <a href="#" className="change-link" onClick={showModal}>
+                        Thay Đổi
+                      </a>
+                    </Button>
+                  </div>
+
+                  <Modal
+                    title="Địa chỉ của tôi"
+                    visible={isModalVisible}
+                    onCancel={handleCancel}
+                    footer={null}
+                    centered
+                    width={800}
+                    style={{ justifyContent: "center" }}
+                  >
+                    <div
+                      className="address-inputs"
+                      style={{
+                        padding: "10px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "15px",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {/* Địa chỉ hiện tại */}
+                      <div
+                        className="address-card"
+                        style={{
+                          padding: "15px",
+                          backgroundColor: "#f9f9f9",
+                          borderRadius: "8px",
+                          marginBottom: "15px",
+                          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+                        }}
+                      >
+                        {address?.map((address, index) => (
+                          <div
+                            key={index}
+                            className="address-content"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              marginBottom: "10px",
+                              marginLeft: "30px",
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name="address"
+                              checked={address.is_default === 1}
+                              className="address-checkbox"
+                              style={{ marginRight: "15px" }}
+                              onChange={(e) => checkPrime(e, address.id)}
+                            />
+                            <span
+                              className="address-name"
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#333",
+                                marginRight: "10px",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {address.recipient_name}
+                            </span>
+                            |
+                            <span
+                              className="address-phone"
+                              style={{
+                                fontSize: "14px",
+                                fontWeight: "600",
+                                color: "#333",
+                                marginLeft: "10px",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {address.phone}
+                            </span>
+                            <br />
+                            <span
+                              className="address-details"
+                              style={{
+                                fontSize: "13px",
+                                color: "#666",
+                                lineHeight: "1.5",
+                                marginLeft: "30px",
+                              }}
+                            >
+                              {address.address_line}-{address.state}-
+                              {address.city}
+                            </span>
+                            <Button
+                              className="update address"
+                              style={{
+                                display: "flex",
+                                marginLeft: "90px",
+                                color: "#666",
+                              }}
+                            >
+                              Cập nhật
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Thêm nút để tạo địa chỉ mới */}
+                      <Button
+                        type="primary"
+                        className="add-new-address-button"
+                        style={{
+                          alignSelf: "center",
+                          padding: "8px 20px",
+                          borderRadius: "5px",
+                          fontWeight: "600",
+                          backgroundColor: "#666",
+                          color: "white",
+                          transition: "background-color 0.3s ease",
+                          marginTop: "15px",
+                        }}
+                        onMouseEnter={(e) => {
+                          const target = e.target as HTMLButtonElement; // Cast to HTMLButtonElement
+                          target.style.backgroundColor = "#7280e0";
+                        }}
+                        onMouseLeave={(e) => {
+                          const target = e.target as HTMLButtonElement; // Cast to HTMLButtonElement
+                          target.style.backgroundColor = "#7280e0";
+                        }}
+                      >
+                        Thêm Địa Chỉ Mới
+                      </Button>
+                    </div>
+                  </Modal>
+                </div>
+              </div>
+              <div className="flex-w flex-t bor12 p-t-15 p-b-30">
+                <div className="label size-208 w-full-ssm mt-3">
+                  <span
+                    className="text-lg text-gray-700 "
+                    style={{ fontSize: "15px", fontWeight: "bold" }}
+                  >
+                    <i className="fa-regular fa-credit-card"></i> Phương thức
+                    thanh toán
+                  </span>
                 </div>
 
                 <div className="address-inputs size-209 p-x-18 p-x-0-sm w-full-ssm ">
                   <div className="p-y-15">
                     <div className="select-country bg-white mb-3 mt-2">
-                      <select className="w-full p-2" name="country">
-                        <option>Chọn địa chỉ giao hàng...</option>
-                        <option>USA</option>
-                        <option>UK</option>
-                        <option>Thêm địa chỉ mới</option>
+                      <select
+                        className="w-full p-2"
+                        name="country"
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      >
+                        <option value={""}>Chọn phương thức thanh toán</option>
+                        <option value={"cod"}>Thanh toán khi nhận hàng</option>
+                        <option value={"vnpay"}>Thanh toán bằng VN Pay</option>
+                        <option value={"momo"}>Thanh toán bằng Momo</option>
                       </select>
                     </div>
-
-                    {/* <div className="flex justify-center">
-                        <button className="update-button text-base text-gray-700 bg-light-gray border rounded-lg hover:bg-gray-300 p-2 cursor-pointer transition">
-                          Update Totals
-                        </button>
-                      </div> */}
                   </div>
                 </div>
               </div>
 
               <div className="flex-w flex-t p-t-27 p-b-33">
                 <div className="size-208">
-                  <span className="mtext-101 cl2">Tổng tiền:</span>
+                  <span
+                    className="mtext-101 cl2"
+                    style={{ fontSize: "15px", fontWeight: "bold" }}
+                  >
+                    <i className="fa-solid fa-money-bill-wave"></i> Tổng tiền
+                  </span>
                 </div>
 
                 <div className="size-209 p-t-1">
-                  <span className="mtext-110 cl2">$79.65</span>
+                  <span
+                    className="mtext-110 cl2"
+                    style={{
+                      fontSize: "25px",
+                      fontWeight: "bold",
+                      color: "red",
+                    }}
+                  >
+                    {total.toLocaleString()}₫
+                  </span>
                 </div>
               </div>
 
               <Link to="/payments">
-                <button className="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+                <button
+                  className="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer"
+                  onClick={() => submitOrder()}
+                >
                   Đặt hàng
                 </button>
               </Link>
@@ -137,7 +591,6 @@ const PaymentPage: React.FC = () => {
         </div>
       </div>
     </form>
-    // </Layout>
   );
 };
 

@@ -4,19 +4,26 @@ import AccountDropdown from "./AccountDropdown";
 import { message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
-
+import { setSearchRedux } from "../store/searchSlice";
 type Props = {
   quantity: number;
 };
-
+interface Category {
+  id: number;
+  name: string;
+}
 const Header: React.FC<Props> = ({ quantity }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
   const [userName, setUserName] = useState<string | null>("");
+  const [key, setKey] = useState<string | null>("");
+  const dispatch = useDispatch();
   const quantityCart = useSelector(
     (state: RootState) => state.quantity.quantity
   );
-  console.log(useSelector((state: RootState) => state.quantity));
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // console.log(useSelector((state: RootState) => state.quantity));
   useEffect(() => {
     if (token) {
       const user = localStorage.getItem("user_name");
@@ -63,6 +70,39 @@ const Header: React.FC<Props> = ({ quantity }) => {
     }
   };
 
+  const searchkey = () => {
+    // navigate(`/search?q=${key}`);
+    if (key) {
+      dispatch(setSearchRedux(key));
+      setKey("");
+    }
+  };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/categories");
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra nếu có dữ liệu và gán vào state categories
+        if (result && result.data && Array.isArray(result.data)) {
+          setCategories(result.data);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []); // Chạy chỉ một lần khi component được mount
+
   return (
     <header className="header-v2">
       {/* Header desktop */}
@@ -90,45 +130,28 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 <li>
                   <Link to="/products">Sản phẩm</Link>
                 </li>
+                {/* {categories.map((category,index) => ( */}
                 <li className="relative active-menu">
-                  <Link to="/category">Danh mục</Link>
+                  <Link to="">Danh Mục</Link>
+
                   <ul className="sub-menu absolute left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white shadow-lg rounded-md text-center">
-                    <li className="relative">
-                      <Link
-                        to="/sub-category"
-                        className="block px-4 hover:bg-gray-200"
-                      >
-                        Danh mục 1
-                        <i className="fa-solid fa-chevron-right pl-4"></i>
-                      </Link>
-                      <ul className="sub-menu absolute left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white shadow-lg rounded-md text-center">
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-1"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 1
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-2"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 2
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-3"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 3
-                          </Link>
-                        </li>
-                      </ul>
-                    </li>
-                    <li className="relative">
+                    {" "}
+                    {categories.map((category, index) => (
+                      <li key={index} className="relative">
+                        <Link
+                          to="/sub-category"
+                          className="flex items-center justify-between px-4 hover:bg-gray-200"
+                          style={{ textAlign: "left" }}
+                        >
+                          <span>{category.name}</span>
+                          <i
+                            className="fa-solid fa-chevron-right"
+                            style={{ justifyContent: "end" }}
+                          ></i>
+                        </Link>
+                      </li>
+                    ))}
+                    {/* <li className="relative">
                       <Link
                         to="/sub-category"
                         className="block px-4 hover:bg-gray-200"
@@ -162,53 +185,15 @@ const Header: React.FC<Props> = ({ quantity }) => {
                           </Link>
                         </li>
                       </ul>
-                    </li>
-                    <li className="relative">
-                      <Link
-                        to="/sub-category"
-                        className="block px-4 hover:bg-gray-200"
-                      >
-                        Danh mục 3
-                        <i className="fa-solid fa-chevron-right pl-4"></i>
-                      </Link>
-                      <ul className="sub-menu absolute left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white shadow-lg rounded-md text-center">
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-1"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 1
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-2"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 2
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-3"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 3
-                          </Link>
-                        </li>
-                      </ul>
-                    </li>
+                    </li> */}
                   </ul>
                 </li>
 
                 <li>
-                  <Link to="/about">About</Link>
+                  <Link to="/contact">Liên hệ</Link>
                 </li>
                 <li>
-                  <Link to="/contact">Contact</Link>
-                </li>
-                <li>
-                  <Link to="/blog">Blog</Link>
+                  <Link to="/blog">Bài viết</Link>
                 </li>
               </ul>
             </div>
@@ -217,8 +202,19 @@ const Header: React.FC<Props> = ({ quantity }) => {
               {/* Icon search */}
               <div className="flex-c-m h-full p-r-24">
                 <div className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 js-show-modal-search">
-                  <i className="zmdi zmdi-search" />
+                  <Link to={"/products"}>
+                    <i
+                      className="zmdi zmdi-search"
+                      onClick={() => searchkey()}
+                    />
+                  </Link>
                 </div>
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Tìm kiếm..."
+                  onChange={(e) => setKey(e.target.value)}
+                />
               </div>
 
               {/* Icon user */}
@@ -231,10 +227,6 @@ const Header: React.FC<Props> = ({ quantity }) => {
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
                   data-notify={quantityCart}
                 >
-                  {/* <div
-                  className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-                  data-notify={quantity}
-                > */}
                   <Link
                     to="/carts"
                     style={{ color: "inherit", textDecoration: "none" }}
@@ -307,7 +299,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
             </a>
           </li>
           <li>
-            <a href="blog.html">Blog</a>
+            <a href="blog.html">Bài viết</a>
           </li>
           <li>
             <a href="about.html">About</a>

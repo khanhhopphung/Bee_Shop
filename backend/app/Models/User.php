@@ -37,5 +37,9 @@ class User extends Model implements AuthenticatableContract
         $this->attributes['password'] = bcrypt($value);
     }
      
+    public function addresses()
+    {
+        return $this->hasMany(ShippingAddress::class); // Giả sử 1 người dùng có nhiều địa chỉ
+    }
    
 }

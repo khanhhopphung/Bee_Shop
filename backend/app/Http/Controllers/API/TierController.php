@@ -19,16 +19,19 @@ class TierController extends BaseController
         $this->model = Tier::class;
     }
     public function index()
-    {
-        try {
-            return $this->get($this->model);
-        } catch (\Exception $e) {
-            return response()->json([
-                "status" => "error",
-                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
-            ], 500);
-        }
+{
+    try {
+       
+        return $this->get( $this->model);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            "status" => "error",
+            "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+        ], 500);
     }
+}
+
 
     /**
      * Show the form for creating a new resource.

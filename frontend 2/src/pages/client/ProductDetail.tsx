@@ -4,6 +4,7 @@ import Layout from "../../components/Layout";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { setQuantityCart } from "../../store/quantityCartSlice";
+import { Rate } from "antd";
 
 interface Product {
   id: number;
@@ -140,14 +141,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
     fetchColors();
   }, []); // Chạy chỉ một lần khi component được mount
 
-  // addCart = async () => {
-  //   let response = await fetch(`http://127.0.0.1:8000/api/`);
-  // };
-  // handle size change
   const handle = async () => {
-    // console.log(sizeId);
-    // console.log(colorId);
-    // console.log(quantity);
     const errorObject = {
       errorSize: "",
       errorColor: "",
@@ -206,10 +200,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                       data-thumb="images/product-detail-01.jpg"
                     >
                       <div className="wrap-pic-w pos-relative">
-                        {/* <img
-                            src={`http://127.0.0.1:8000/storage/${products?.image.image_url}`}
-                            alt="IMG-PRODUCT"
-                          /> */}
                         <img
                           src={`http://127.0.0.1:8000/storage/${
                             products?.image?.image_url || "default-image.jpg"
@@ -250,7 +240,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                   </span>
                   <br />
                   <span className="mtext-108 cl2 p-t-20 ">
-                    Giá: {products.price}
+                    Giá: {products.price.toLocaleString()}₫
                   </span>
 
                   <div className="p-t-33">
@@ -484,11 +474,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                                 onChange={handle}
                               />
                               <div className="wrap-rating">
-                                <i className="zmdi zmdi-star"></i>
-                                <i className="zmdi zmdi-star"></i>
-                                <i className="zmdi zmdi-star"></i>
-                                <i className="zmdi zmdi-star"></i>
-                                <i className="zmdi zmdi-star"></i>
+                                <Rate />
                               </div>
                             </div>
                           </div>
@@ -522,7 +508,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                   {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
                   <div className="flex-w flex-sb-m p-l-15 p-r-15">
                     {/* Sản phẩm 1 */}
-                    <div
+                    {/* <div
                       className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
                       style={{ width: "25%" }}
                     >
@@ -569,7 +555,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                   {/* Thêm các sản phẩm khác nếu cần */}
                 </div>

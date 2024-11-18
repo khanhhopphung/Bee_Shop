@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
@@ -63,6 +64,7 @@ class ShippingAddressController extends BaseController
                     'message' => 'No shipping addresses found for this user.'
                 ], 404);
             }
+
             // Trả về danh sách địa chỉ
             return response()->json([
                 'status' => 'success',
@@ -75,6 +77,7 @@ class ShippingAddressController extends BaseController
             ], 500);
         }
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -90,13 +93,16 @@ class ShippingAddressController extends BaseController
     public function destroy($id)
     {
         try {
+
             return $this->delete(ShippingAddress::class, $id);
         } catch (ModelNotFoundException $e) {
+
             return response()->json([
                 "status" => "error",
                 "message" => "Not fould address: " . $id,
             ], 404);
         } catch (\Exception $e) {
+
             return response()->json([
                 "status" => "error",
                 "message" => "An error occurred: " . $e->getMessage(),

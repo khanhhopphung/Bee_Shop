@@ -16,7 +16,11 @@ class StoreShippingAddressRequest extends FormRequest
         return true;
     }
 
-    
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
@@ -29,12 +33,15 @@ class StoreShippingAddressRequest extends FormRequest
             'is_default' => 'boolean',
         ];
     }
+
     protected function failedValidation(Validator $validator)
     {
         $errors = $validator->errors();
+
         $response = response()->json([
             'errors' => $errors->messages(),
         ], Response::HTTP_BAD_REQUEST);
+
         throw new HttpResponseException($response);
     }
 }

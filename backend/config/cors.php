@@ -62,8 +62,13 @@ return [
 
     'allowed_methods' => ['*'], // Cho phép tất cả các phương thức (GET, POST, ...)
 
-   'allowed_origins' => ['http://localhost:3000'],
-'allowed_origins_patterns' => [],
+    'allowed_origins' => [
+        'http://localhost:3000',  // Frontend URL
+          // In case you use localhost as well
+    ],
+
+
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'], // Cho phép tất cả các header
 

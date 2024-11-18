@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setQuantityCart } from "../../store/quantityCartSlice";
+import { setCartDetailIds } from "../../store/cartDetailSlice";
+import { RootState } from "../../store/store";
+import {
+  Button,
+  Checkbox,
+  CheckboxProps,
+  message,
+  Popconfirm,
+  PopconfirmProps,
+} from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 
 type Props = {};
 interface Cart {
@@ -22,12 +34,70 @@ interface Cart {
     stock: number;
     price: number;
     is_active: number;
+    image: {
+      id: number;
+      product_id: number;
+      variant_id: number;
+      alt_text: string;
+      image_url: string;
+    };
+  };
+  product_variant: {
+    id: number;
+    product_id: number;
+    size_id: number;
+    color_id: number;
+    price: number | string;
+    stock: number;
+    size: {
+      id: number;
+      size_name: string;
+    };
+    color: {
+      id: number;
+      color_name: string;
+    };
   };
 }
 
 const Carts: React.FC = () => {
+  const dispatch = useDispatch();
+  const [ids, setIds] = useState<number[]>([]);
+  const [isCheckAll, setIsCheckAll] = useState(false);
   const [carts, setCarts] = useState<Cart[]>([]);
   const token = localStorage.getItem("access_token");
+
+  const onChange = (e: any, id: number) => {
+    console.log(`checked = ${e.target.checked}, id = ${id}`);
+    if (e.target.checked) {
+      setIds((prevIds) => [...prevIds, id]);
+    } else {
+      setIds((prevIds) => prevIds.filter((item) => item !== id));
+    }
+    console.log(ids);
+  };
+  useEffect(() => {
+    dispatch(setCartDetailIds(ids));
+    console.log("Updated ids:", ids);
+    localStorage.setItem("cartDetailOrder", JSON.stringify(ids));
+  }, [ids]);
+
+  const handleCheckAll = (e: any) => {
+    setIsCheckAll(e.target.checked);
+    if (e.target.checked) {
+      // Chọn tất cả id
+      const allIds = carts.map((cart) => cart.id);
+      setIds(allIds);
+    } else {
+      // Bỏ chọn tất cả
+      setIds([]);
+    }
+  };
+
+  const confirm: PopconfirmProps["onConfirm"] = (e) => {
+    console.log(e);
+    message.success("Xóa sản phẩm thành công!");
+  };
 
   useEffect(() => {
     const fetchCarts = async () => {
@@ -53,6 +123,8 @@ const Carts: React.FC = () => {
             Array.isArray(result.data.cart_details)
           ) {
             setCarts(result.data.cart_details); // Set giỏ hàng với danh sách sản phẩm
+            console.log("ố lương" + carts.length);
+            // dispatch(setQuantityCart(carts.length));
           } else {
             console.error("Giỏ hàng không chứa mảng sản phẩm:", result);
           }
@@ -66,6 +138,86 @@ const Carts: React.FC = () => {
 
     fetchCarts();
   }, []);
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/cart-detail/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        dispatch(setQuantityCart(carts.length));
+
+        message.success("Sản phẩm đã được xóa thành công!");
+        setCarts(carts.filter((cart) => cart.id !== id));
+      } else {
+        message.error("Đã có lỗi xảy ra khi xóa sản phẩm.");
+      }
+    } catch (error) {
+      message.error("Đã có lỗi xảy ra khi xóa sản phẩm.");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/carts-detail/`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids }), // Đưa body ra ngoài headers
+      });
+
+      if (response.ok) {
+        message.success("Sản phẩm đã được xóa thành công!");
+        setIds([]);
+        setCarts(carts.filter((cart) => !ids.includes(cart.id)));
+        dispatch(setQuantityCart(carts.length));
+      } else {
+        message.error("Đã có lỗi xảy ra khi xóa sản phẩm.");
+      }
+    } catch (error) {
+      message.error("Đã có lỗi xảy ra khi xóa sản phẩm.");
+    }
+  };
+
+  const updateQuantity = async (id: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/cart-detail/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quantity: newQuantity }),
+        }
+      );
+
+      if (response.ok) {
+        message.success("Số lượng đã được cập nhật!");
+        setCarts(
+          carts.map((cart) =>
+            cart.id === id ? { ...cart, quantity: newQuantity } : cart
+          )
+        );
+      } else {
+        message.error("Đã có lỗi xảy ra khi cập nhật số lượng.");
+      }
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+    }
+  };
   return (
     // <Layout q={10}>
     <form className="bg0 p-t-75 p-b-85">
@@ -75,52 +227,161 @@ const Carts: React.FC = () => {
             <div className="m-l-25 m-r-0 m-lr-0-xl">
               <div className="wrap-table-shopping-cart">
                 <table className="table-shopping-cart w-full">
+                  {/* Checkbox để check all */}
+
                   <thead>
-                    <tr className="table_head">
-                      <th className="column-1 text-xl">Chọn</th>{" "}
+                    <tr className="table_head ">
+                      <th
+                        className="column-1 text-xl"
+                        // style={{ display: "flex" }}
+                      >
+                        <Checkbox
+                          checked={isCheckAll}
+                          onChange={handleCheckAll}
+                        ></Checkbox>
+                        <Popconfirm
+                          style={{ marginRight: "5px" }}
+                          title="Xóa sản phẩm"
+                          description="Bạn có chắc muốn xóa sản phẩm không?"
+                          onConfirm={() => handleDeleteAll()}
+                          okText="Có"
+                          cancelText="Không"
+                        >
+                          <Button danger>
+                            <DeleteOutlined />
+                          </Button>
+                        </Popconfirm>
+                      </th>{" "}
                       {/* Cột mới cho checkbox */}
-                      <th className="column-2 text-xl">Sản phẩm</th>
+                      <th className="column-2 text-xl ">Sản phẩm</th>
+                      <th className="column text-xl "></th>
                       <th className="column-3 text-xl">Giá</th>
                       <th className="column-4 text-xl">Số lượng</th>
                       <th className="column-5 text-xl">Tổng</th>
+                      <th className="column-6 text-xl ">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {carts.map((cart) => (
-                      <tr key={cart.id} className="table_row">
-                        <td className="column-1 p-4">
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-blue-500"
-                          />
-                        </td>
-                        <td className="column-2 text-lg">
-                          {cart.product.name}
-                        </td>
-                        <td className="column-3 text-lg">
-                          {cart.product.price}
-                        </td>
-                        <td className="column-4">
-                          <div className="wrap-num-product flex-w m-l-auto m-r-0">
-                            <div className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m">
-                              <i className="fs-16 zmdi zmdi-minus"></i>
-                            </div>
-                            <input
-                              className="mtext-104 cl3 txt-center num-product p-2 text-lg"
-                              type="number"
-                              name="num-product1"
-                              defaultValue={cart.quantity}
-                            />
-                            <div className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m">
-                              <i className="fs-16 zmdi zmdi-plus"></i>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="column-5 text-lg">
-                          {cart.product.price}
+                    {carts.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center">
+                          <p
+                            style={{ marginBottom: "40px", marginTop: "40px" }}
+                          >
+                            Không có sản phẩm nào trong giỏ hàng
+                          </p>
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      carts.map((cart) => (
+                        <tr key={cart.id} className="table_row">
+                          <td className="column-1 p-4">
+                            <Checkbox
+                              checked={ids.includes(cart.id)}
+                              onChange={(e: any) => onChange(e, cart.id)}
+                            ></Checkbox>
+                          </td>
+                          <td className="column-2 text-lg flex items-center space-x-4">
+                            {/* Hiển thị ảnh sản phẩm */}
+                            <Link
+                              to={`/products/${cart.product.id}`}
+                              className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                            >
+                              <img
+                                src={`http://127.0.0.1:8000/storage/${
+                                  cart?.product.image?.image_url ||
+                                  "default-image.jpg"
+                                }`}
+                                alt="IMG-PRODUCT"
+                                width="100"
+                                height="150"
+                                style={{
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                            </Link>
+                          </td>
+                          <td className="column text-lg">
+                            <Link
+                              to={`/products/${cart.product.id}`}
+                              className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                            >
+                              {cart.product.name}
+                            </Link>
+                            {cart.product_variant && (
+                              <p className="text-gray-500 text-sm">
+                                Kích thước:{" "}
+                                {cart.product_variant.size.size_name}, Màu sắc:{" "}
+                                {cart.product_variant.color.color_name}
+                              </p>
+                            )}
+                          </td>
+                          <td className="column-3 text-lg">
+                            {cart.product.price.toLocaleString()}₫
+                          </td>
+                          <td className="column-4">
+                            <div className="wrap-num-product flex-w m-l-auto m-r-0">
+                              <button
+                                className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  cart.quantity > 1 &&
+                                    updateQuantity(cart.id, cart.quantity - 1);
+                                }}
+                              >
+                                <i className="fs-16 zmdi zmdi-minus"></i>
+                              </button>
+                              <input
+                                className="mtext-104 cl3 txt-center num-product p-2 text-lg"
+                                type="number"
+                                name="num-product1"
+                                value={cart.quantity}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (
+                                    value >= 1 &&
+                                    value <= cart.product.stock
+                                  ) {
+                                    updateQuantity(cart.id, value);
+                                  }
+                                }}
+                              />
+                              <button
+                                className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  cart.quantity < cart.product.stock &&
+                                    updateQuantity(cart.id, cart.quantity + 1);
+                                }}
+                              >
+                                <i className="fs-16 zmdi zmdi-plus"></i>
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="column-5 text-lg">
+                            {(
+                              cart.product.price * cart.quantity
+                            ).toLocaleString()}
+                            ₫
+                          </td>
+                          <td className="column-6 text-lg">
+                            <Popconfirm
+                              title="Xóa sản phẩm"
+                              description="Bạn có chắc muốn xóa sản phẩm này không?"
+                              onConfirm={() => handleDelete(cart.id)}
+                              okText="Có"
+                              cancelText="Không"
+                            >
+                              <Button danger>
+                                <DeleteOutlined />
+                              </Button>
+                            </Popconfirm>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Cart;
 use App\Models\CartDetail;
 use App\Models\OrderDetail;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -39,9 +40,20 @@ class OrderController extends Controller
         DB::beginTransaction(); // Bắt đầu giao dịch
 
     try {
+        
+        $userId = auth()->id();
+    if (!$userId) {
+        return response()->json([
+            'error' => 'User not authenticated. Please log in.',
+        ], 401);
+    }
+    $idCartDetails = $request->carts_detail;
+        $CartDetails = CartDetail::whereIn('id', $idCartDetails)->get();
+
+        if ($CartDetails) {
         // // Tạo đơn hàng mới
         $order = Order::create([
-            'user_id' => $request->user_id,
+            'user_id' => $userId,
             'total_amount' => $request->total_amount,
             'promotion_id' => $request->promotion_id,
             'status' => 'pending', // Hoặc trạng thái khác tùy ý
@@ -51,25 +63,48 @@ class OrderController extends Controller
             'order_date' => now(), // Ngày đặt hàng
         ]);
 
-        // Lấy thông tin sản phẩm từ giỏ hàng
-        $cartItems = Cart::where('user_id', $request->user_id)->with('cartDetails')->first();
-        foreach ($cartItems->cartDetails as $cartDetail) {
+        
+
+        foreach ($CartDetails as $CartDetail) {
             // Tạo chi tiết đơn hàng
             OrderDetail::create([
                 'order_id' => $order->id,
-                'product_id' => $cartDetail->product_id,
-                'variant_id' => $cartDetail->variant_id,
-                'quantity' => $cartDetail->quantity,
-                'price' => $cartDetail->product_price,
+                'product_id' => $CartDetail->product_id,
+                'variant_id' => $CartDetail->variant_id,
+                'quantity' => $CartDetail->quantity,
+                'price' => $CartDetail->product_price,
             ]);
+
+        CartDetail::find($CartDetail->id)->delete();
+
         }
 
-        // Xóa dữ liệu trong bảng carts và cart_details
-        CartDetail::where('cart_id', $cartItems->id)->delete();
-        Cart::destroy($cartItems->id);
+
+
+        // // Lấy thông tin sản phẩm từ giỏ hàng
+        // $cartItems = Cart::where('user_id', $request->user_id)->with('cartDetails')->first();
+        // foreach ($cartItems->cartDetails as $cartDetail) {
+        //     // Tạo chi tiết đơn hàng
+        //     OrderDetail::create([
+        //         'order_id' => $order->id,
+        //         'product_id' => $cartDetail->product_id,
+        //         'variant_id' => $cartDetail->variant_id,
+        //         'quantity' => $cartDetail->quantity,
+        //         'price' => $cartDetail->product_price,
+        //     ]);
+        // }
+
+        // // Xóa dữ liệu trong bảng carts và cart_details
+        // CartDetail::where('cart_id', $cartItems->id)->delete();
+        // Cart::destroy($cartItems->id);
+        $order['order_details']=$order->orderDetails;
 
         DB::commit(); // Xác nhận giao dịch
         return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
+    } else {
+        DB::rollBack();
+        return response()->json(['message'=> 'Cart detail not found']);
+    }
 
     } catch (\Exception $e) {
         DB::rollBack(); // Hoàn tác giao dịch

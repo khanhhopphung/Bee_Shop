@@ -6,12 +6,45 @@ use App\Http\Controllers\Controller;
 use App\Models\CartDetail;
 use App\Http\Requests\StoreCartDetailRequest;
 use App\Http\Requests\UpdateCartDetailRequest;
+use Illuminate\Http\Request;
 
 class CartDetailController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function cartDetailOrder(Request $request) {
+        try{
+        $ids = $request->ids;
+    
+        // Load quan hệ 'products' và 'image' của sản phẩm để tối ưu hóa truy vấn
+        $cartDetails = CartDetail::whereIn("id", $ids)
+            ->with(['product.image', 'productVariant.color','productVariant.size']) // đảm bảo bạn đã khai báo quan hệ này
+            ->get();
+    
+        // $response = $cartDetails->map(function ($cartDetail) {
+        //     return [
+        //         'id' => $cartDetail->id,
+        //         'products' => [
+        //             'id' => $cartDetail->product->id ?? null,
+        //             'name' => $cartDetail->product->name ?? null,
+        //             'image' => $cartDetail->product->image->image_url ?? null, // Lấy URL hình ảnh
+        //         ],
+        //         'color' => $cartDetail->productVariant->color->name ?? null,
+        //         'size' => $cartDetail->productVariant->size->name ?? null,
+        //     ];
+        // });
+    
+        return response()->json([
+            'cart_details' =>  $cartDetails,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'mes'=> $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 400);
+    }
+}
+
+    
     public function index()
     {
         //

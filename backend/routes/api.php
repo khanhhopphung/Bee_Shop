@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\BlogController;
 use App\Http\Controllers\API\PromotionController;
+use App\Http\Controllers\API\ShippingAddressController;
 use App\Http\Controllers\API\TierController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
@@ -10,7 +11,7 @@ use App\Http\Controllers\API\ColorController;
 use App\Http\Controllers\API\SizeController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
-use App\Http\Controllers\API\ShippingAddressController;
+
 
 
 
@@ -41,10 +42,9 @@ Route::post('/logout', [AuthController::class,'logout'])->middleware('auth:sanct
 
 
 Route::apiResource('blogs', BlogController::class);
-
 Route::apiResource('tiers', TierController::class);
-
 Route::apiResource('promotions', PromotionController::class);
+Route::apiResource('addresses', ShippingAddressController::class);
 
 Route::apiResource( 'users', UserController::class);
 
@@ -58,5 +58,15 @@ Route::apiResource('sizes', SizeController::class);
 Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
 
+
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/get-adrress-user', [UserController::class,'allAdrressesUser']);
+    Route::put('/update-address-user', [UserController::class,'updateDefaultAdressesUser']);
+
+
+});
+
 Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+
