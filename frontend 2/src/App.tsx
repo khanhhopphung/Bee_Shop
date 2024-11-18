@@ -29,6 +29,7 @@ import Adrress from "./pages/client/Adrress";
 import Categories from "./pages/admin/Categories";
 import Promotions from "./pages/admin/Promotions";
 import AdminBlogs from "./pages/admin/Blogs";
+import Statistics from "./pages/admin/Statistics";
 
 import Review from "./pages/admin/Review";
 import ProductVariants from "./pages/admin/ProductVariant";
@@ -235,6 +236,8 @@ const App: React.FC = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="statistics" element={<Statistics  />} />
           <Route path="reviews" element={<Review />} />
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
@@ -242,7 +245,7 @@ const App: React.FC = () => {
 
           <Route path="users" element={<User />} />
           
-          <Route path="blogs" element={<AdminBlogs />} />
+          
 
         </Route>
       </Routes>
