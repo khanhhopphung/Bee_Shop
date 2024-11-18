@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space, Upload, InputNumber } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Switch, Select, Space, Upload } from 'antd';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 interface Product {
@@ -32,8 +32,6 @@ interface Size {
 interface Color {
   id: number;
   color_name: string;
-  image_url: string; 
-
 }
 
 const Products: React.FC = () => {
@@ -46,12 +44,8 @@ const Products: React.FC = () => {
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [searchText, setSearchText] = useState<string>('');
   const [fileList, setFileList] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState<any>(null); 
+  const [imageFile, setImageFile] = useState<any | null>(null); // Define the state for the selected file
 
-  const [form] = Form.useForm();
-
-  // Fetch categories, sizes, colors, and products
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/categories');
@@ -96,37 +90,35 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchText(value);
 
-    const filtered = products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(value.toLowerCase()) ||
-        product.sku.toLowerCase().includes(value.toLowerCase()) ||
-        product.description.toLowerCase().includes(value.toLowerCase())
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(value.toLowerCase()) ||
+      product.sku.toLowerCase().includes(value.toLowerCase()) ||
+      product.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredProducts(filtered);
   };
 
   const handleAdd = () => {
-    setCurrentProduct(null); 
+    setCurrentProduct(null);
     setIsModalVisible(true);
-    setFileList([]); 
+    setFileList([]);
   };
-
 
   const handleEdit = (product: Product) => {
     setCurrentProduct(product);
     setIsModalVisible(true);
+    setFileList([]);
   };
 
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
       message.success('Product deleted successfully');
-      fetchProducts(); 
+      fetchProducts();
     } catch (error) {
       message.error('Failed to delete product');
     }
@@ -135,48 +127,31 @@ const Products: React.FC = () => {
   const handleSubmit = async (values: any) => {
     try {
       const formData = new FormData();
-  
-      // Add form values to formData, setting undefined or '' for missing fields
       for (const key in values) {
-        if (values[key] === undefined || values[key] === '') {
-          formData.append(key, '');  // Set fields without data to empty string
-        } else if (key !== 'image') {
-          formData.append(key, values[key]);
-        }
+        formData.append(key, values[key]);
       }
-  
-      if (fileList.length > 0) {
-        formData.append('image', fileList[0].originFileObj);
-      } else {
-        formData.append('image', '');  // Set image to empty string if no image uploaded
+
+      if (imageFile) {
+        formData.append('image', imageFile);
       }
-  
-      // Send the data to the backend (POST or PUT depending on whether it's a new product or update)
+
       if (currentProduct) {
-        // Update product
         await axios.put(`http://127.0.0.1:8000/api/products/${currentProduct.id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         message.success('Product updated successfully');
       } else {
-        // Create new product
         await axios.post('http://127.0.0.1:8000/api/products', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         message.success('Product created successfully');
       }
-  
       setIsModalVisible(false);
-
-      fetchProducts(); // Refresh the list of products
-
-      fetchProducts(); 
-
+      fetchProducts();
     } catch (error) {
       message.error('Failed to save product');
     }
   };
-  
 
   const columns = [
     { title: 'STT', dataIndex: 'id', key: 'id' },
@@ -213,72 +188,61 @@ const Products: React.FC = () => {
       },
     },
     { title: 'Active', dataIndex: 'is_active', key: 'is_active', render: (active: boolean) => (active ? 'Yes' : 'No') },
-    { title: 'Created At', dataIndex: 'created_at', key: 'created_at' },
-    { title: 'Updated At', dataIndex: 'updated_at', key: 'updated_at' },
     {
-      title: 'Image',
-      key: 'image',
-      render: (record: Product) => (
-        record.image_url ? <img src={record.image_url} alt={record.name} style={{ width: 50, height: 50 }} /> : 'No Image'
+      title: 'Hình ảnh', dataIndex: 'image_url', key: 'image', render: (image: string) => (
+        <img
+          src={image ? 'http://127.0.0.1:8000/storage/${image}' : '/admin/default-image.jpg'}
+          alt="Product Image"
+          style={{ width: '100px', height: 'auto' }}
+        />
       ),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (record: Product) => (
-        <Space>
+        <>
           <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
           <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
-        </Space>
+        </>
       ),
     },
   ];
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
+      <Space style={{ marginBottom: 16 }}>
         <Input
-          placeholder="Search products by name, sku, or description"
-          prefix={<SearchOutlined />}
           value={searchText}
           onChange={handleSearchChange}
+          placeholder="Search by name, SKU, or description"
+          prefix={<SearchOutlined />}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Add Product
-        </Button>
-      </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Add Product</Button>
+      </Space>
 
-      <Table
-        columns={columns}
-        dataSource={filteredProducts}
-        rowKey="id"
-      />
+      <Table columns={columns} dataSource={filteredProducts} rowKey="id" />
 
       <Modal
+        open={isModalVisible}
         title={currentProduct ? 'Edit Product' : 'Add Product'}
-        visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        onOk={() => form.submit()}
         footer={null}
       >
         <Form
-          form={form}
-          initialValues={currentProduct || { is_active: true }}
+          initialValues={currentProduct || { name: '', sku: '', description: '', category_id: '', stock: 0, price: 0, size_id: '', color_id: '', is_active: true }}
           onFinish={handleSubmit}
         >
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please input product name!' }]}>
+          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please input product name!' }]}>
             <Input />
           </Form.Item>
-
-          <Form.Item name="sku" label="SKU" rules={[{ required: true, message: 'Please input SKU!' }]}>
+          <Form.Item label="SKU" name="sku" rules={[{ required: true, message: 'Please input SKU!' }]}>
             <Input />
           </Form.Item>
-
-          <Form.Item name="description" label="Description">
+          <Form.Item label="Description" name="description">
             <Input.TextArea />
           </Form.Item>
-
-          <Form.Item name="category_id" label="Category" rules={[{ required: true, message: 'Please select a category!' }]}>
+          <Form.Item label="Category" name="category_id" rules={[{ required: true, message: 'Please select category!' }]}>
             <Select>
               {categories.map((category) => (
                 <Select.Option key={category.id} value={category.id}>
@@ -287,16 +251,7 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="stock" label="Stock" rules={[{ required: true, message: 'Please input stock quantity!' }]}>
-            <InputNumber min={0} />
-          </Form.Item>
-
-          <Form.Item name="price" label="Price" rules={[{ required: true, message: 'Please input price!' }]}>
-            <InputNumber min={0} />
-          </Form.Item>
-
-          <Form.Item name="size_id" label="Size">
+          <Form.Item label="Size" name="size_id">
             <Select>
               {sizes.map((size) => (
                 <Select.Option key={size.id} value={size.id}>
@@ -305,8 +260,7 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="color_id" label="Color">
+          <Form.Item label="Color" name="color_id">
             <Select>
               {colors.map((color) => (
                 <Select.Option key={color.id} value={color.id}>
@@ -315,27 +269,29 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item label="Stock" name="stock">
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item label="Price" name="price">
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item label="Active" name="is_active" valuePropName="checked">
             <Switch />
           </Form.Item>
-
-          <Form.Item label="Image">
+          <Form.Item label="Image" name="image">
             <Upload
               fileList={fileList}
-              beforeUpload={(file) => {
-                setFileList([file]);
-                return false;
-              }}
-              listType="picture-card"
+              onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+              beforeUpload={(file) => { setImageFile(file); return false; }} // Update the imageFile state
+              showUploadList={false}
             >
-              {fileList.length === 0 && '+ Upload'}
+              <Button icon={<UploadOutlined />}>Select File</Button>
             </Upload>
+            {imageFile && <div>Selected Image: {imageFile.name}</div>}  {/* Display file name */}
           </Form.Item>
-
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              {currentProduct ? 'Update Product' : 'Add Product'}
+            <Button type="primary" htmlType="submit">
+              {currentProduct ? 'Save Changes' : 'Create Product'}
             </Button>
           </Form.Item>
         </Form>

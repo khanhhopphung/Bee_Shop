@@ -1,298 +1,311 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space, Upload } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, message, Select, InputNumber, Switch, DatePicker } from 'antd';
+import { DeleteOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import moment from 'moment';
 
-interface Product {
+// Define the types for Order, User, Address, and Promotion
+interface Order {
   id: number;
-  name: string;
-  sku: string;
-  description: string;
-  category_id: number;
-  stock: number;
-  price: number;
+  user_id: number;
+  order_date: string;
+  total_amount: number;
+  shipping_cost: number;
+  payment_method: string;
+  promotion_id: number | null;
+  address_id: number;
   is_active: boolean;
-  image_url?: string;
-  size_id?: number;  // New field for size
-  color_id?: number; // New field for color
+  status: string;
   created_at: string;
   updated_at: string;
 }
 
-interface Category {
+interface Promotion {
   id: number;
-  name: string;
+  code: string;
 }
 
-interface Size {
+interface User {
   id: number;
-  size_name: string;
+  username: string;
 }
 
-interface Color {
+interface Address {
   id: number;
-  color_name: string;
+  address: string;
 }
 
-const Products: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [sizes, setSizes] = useState<Size[]>([]);  // Sizes data
-  const [colors, setColors] = useState<Color[]>([]); // Colors data
+const Orders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [searchText, setSearchText] = useState<string>(''); // state for search input
-  const [fileList, setFileList] = useState<any[]>([]); // For image upload
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
 
-  // Fetch categories, sizes, colors, and products from the backend
-  const fetchCategories = async () => {
+  const [form] = Form.useForm();
+
+  const fetchOrders = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/categories');
-      setCategories(response.data.data || []);
+      const response = await axios.get('http://127.0.0.1:8000/api/orders');
+      const data = Array.isArray(response.data) ? response.data : [];
+      setOrders(data);
+      setFilteredOrders(data);
     } catch (error) {
-      message.error('Failed to load categories');
+      message.error('Failed to load orders');
+      setOrders([]);
+      setFilteredOrders([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchSizes = async () => {
+  const fetchPromotions = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/sizes');
-      setSizes(response.data.data || []);
+      const response = await axios.get('http://127.0.0.1:8000/api/promotions');
+      const data = Array.isArray(response.data) ? response.data : [];
+      setPromotions(data);
     } catch (error) {
-      message.error('Failed to load sizes');
+      message.error('Failed to load promotions');
+      setPromotions([]);
     }
   };
 
-  const fetchColors = async () => {
+  const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/colors');
-      setColors(response.data.data || []);
+      const response = await axios.get('http://127.0.0.1:8000/api/users');
+      const data = Array.isArray(response.data) ? response.data : [];
+      setUsers(data);
     } catch (error) {
-      message.error('Failed to load colors');
+      message.error('Failed to load users');
+      setUsers([]);
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchAddresses = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/products');
-      setProducts(response.data.data || []);
-      setFilteredProducts(response.data.data || []); // Set initial filtered products
+      const response = await axios.get('http://127.0.0.1:8000/api/addresses');
+      const data = Array.isArray(response.data) ? response.data : [];
+      setAddresses(data);
     } catch (error) {
-      message.error('Failed to load products');
+      message.error('Failed to load addresses');
+      setAddresses([]);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
-    fetchSizes();
-    fetchColors();
-    fetchProducts();
+    fetchOrders();
+    fetchPromotions();
+    fetchUsers();
+    fetchAddresses();
   }, []);
 
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchText(value);
+  useEffect(() => {
+    const lowerKeyword = searchKeyword.toLowerCase();
+    const filtered = orders.filter((order) => {
+      const userName = users.find((user) => user.id === order.user_id)?.username || '';
+      const address = addresses.find((addr) => addr.id === order.address_id)?.address || '';
+      return (
+        userName.toLowerCase().includes(lowerKeyword) ||
+        order.status.toLowerCase().includes(lowerKeyword) ||
+        address.toLowerCase().includes(lowerKeyword)
+      );
+    });
+    setFilteredOrders(filtered);
+  }, [searchKeyword, orders, users, addresses]);
 
-    // Filter products based on search text
-    const filtered = products.filter((product) =>product.name.toLowerCase().includes(value.toLowerCase()) ||
-      product.sku.toLowerCase().includes(value.toLowerCase()) ||
-      product.description.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  };
-
-  const handleAdd = () => {
-    setCurrentProduct(null); // Reset the form
+  const handleEdit = (order: Order) => {
+    setCurrentOrder(order);
     setIsModalVisible(true);
-    setFileList([]); // Reset file list when adding a new product
-  };
-
-  const handleEdit = (product: Product) => {
-    setCurrentProduct(product);
-    setIsModalVisible(true);
-    setFileList([]); // Reset file list when editing
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-      message.success('Product deleted successfully');
-      fetchProducts(); // Refresh the list
+      await axios.delete(`http://127.0.0.1:8000/api/orders/${id}`);
+      message.success('Order deleted successfully');
+      fetchOrders(); // Refresh the list
     } catch (error) {
-      message.error('Failed to delete product');
+      message.error('Failed to delete order');
     }
   };
 
   const handleSubmit = async (values: any) => {
     try {
-      const formData = new FormData();
-
-      // Add product data to formData
-      for (const key in values) {
-        formData.append(key, values[key]);
-      }
-
-      // Add image if available
-      if (fileList.length > 0) {
-        formData.append('image', fileList[0].originFileObj);
-      }
-
-      if (currentProduct) {
-        // Update product
-        await axios.put(`http://127.0.0.1:8000/api/products/${currentProduct.id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Product updated successfully');
-      } else {
-        // Create new product
-        await axios.post('http://127.0.0.1:8000/api/products', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Product created successfully');
+      if (currentOrder) {
+        await axios.put(`http://127.0.0.1:8000/api/orders/${currentOrder.id}`, values);
+        message.success('Order updated successfully');
+        fetchOrders(); // Refresh orders after updating
       }
       setIsModalVisible(false);
-      fetchProducts(); // Refresh the list
     } catch (error) {
-      message.error('Failed to save product');
+      message.error('Failed to update order');
     }
   };
+
+  const handleViewDetails = (orderId: number) => {
+    const order = orders.find((order) => order.id === orderId);
+    if (order) {
+      Modal.info({
+        title: 'Order Details',
+        content: (
+          <div>
+            <p>Order ID: {order.id}</p>
+            <p>User: {users.find((user) => user.id === order.user_id)?.username}</p>
+            <p>Order Date: {order.order_date}</p>
+            <p>Status: {order.status}</p>
+            <p>Total Amount: {order.total_amount}</p>
+            <p>Shipping Cost: {order.shipping_cost}</p>
+            <p>Payment Method: {order.payment_method}</p>
+            {order.promotion_id && (
+              <p>
+                Promotion: {promotions.find((promo) => promo.id === order.promotion_id)?.code || 'N/A'}
+              </p>
+            )}
+            <p>
+              Address: {addresses.find((address) => address.id === order.address_id)?.address || 'N/A'}
+            </p>
+            <p>Active: {order.is_active ? 'Yes' : 'No'}</p>
+          </div>
+        ),
+      });
+    }
+  };
+
   const columns = [
-    { title: 'STT', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'SKU', dataIndex: 'sku', key: 'sku' },
-    { title: 'Description', dataIndex: 'description', key: 'description' },
+    { title: 'Stt', dataIndex: 'id', key: 'id' },
     {
-      title: 'Category',
-      dataIndex: 'category_id',
-      key: 'category_id',
-      render: (categoryId: number) => {
-        const category = categories.find((cat) => cat.id === categoryId);
-        return category ? category.name : 'N/A';
-      },
+      title: 'User Name',
+      dataIndex: 'user_id',
+      key: 'user_id',
+      render: (userId: number) => users.find((user) => user.id === userId)?.username || 'Unknown',
     },
-    { title: 'Stock', dataIndex: 'stock', key: 'stock' },
-    { title: 'Price', dataIndex: 'price', key: 'price' },
-    {
-      title: 'Size',
-      dataIndex: 'size_id',
-      key: 'size_id',
-      render: (sizeId: number) => {
-        const size = sizes.find((s) => s.id === sizeId);
-        return size ? size.size_name : 'N/A';
+    { title: 'Order Date', dataIndex: 'order_date', key: 'order_date' },
+    { title: 'Total Amount', dataIndex: 'total_amount', key: 'total_amount' },
+    { title: 'Status', dataIndex: 'status', key: 'status' },
+    { title: 'Shipping Cost', dataIndex: 'shipping_cost', key: 'shipping_cost' },
+    { title: 'Payment Method', dataIndex: 'payment_method', key: 'payment_method' },
+    { 
+      title: 'Promotion Code', 
+      dataIndex: 'promotion_id', 
+      key: 'promotion_id',
+      render: (promoId: number) => {
+        const promo = promotions.find((p) => p.id === promoId);
+        return promo ? promo.code : 'N/A';
       },
     },
     {
-      title: 'Color',
-      dataIndex: 'color_id',
-      key: 'color_id',
-      render: (colorId: number) => {
-        const color = colors.find((c) => c.id === colorId); return color ? color.color_name : 'N/A';
+      title: 'Address', 
+      dataIndex: 'address_id',
+      key: 'address_id',
+      render: (addressId: number) => {
+        const address = addresses.find((address) => address.id === addressId);
+        return address ? address.address : 'N/A';
       },
     },
-    { title: 'Active', dataIndex: 'is_active', key: 'is_active', render: (active: boolean) => (active ? 'Yes' : 'No') },
     {
-      title: 'Image',
-      key: 'image',
-      render: (record: Product) => (
-        record.image_url ? <img src={record.image_url} alt={record.name} style={{ width: 50, height: 50 }} /> : 'No Image'
-      ),
+      title: 'Active',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (isActive ? 'Yes' : 'No'),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (record: Product) => (
+      render: (record: Order) => (
         <>
-          <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
-          <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
+          <Button
+            onClick={() => handleEdit(record)}
+            icon={<EditOutlined />}
+            style={{ marginRight: 8 }}
+          />
+          <Button
+            onClick={() => handleDelete(record.id)}
+            icon={<DeleteOutlined />}
+            danger
+            style={{ marginRight: 8 }}
+          />
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetails(record.id)}
+          />
         </>
       ),
     },
   ];
-  
 
   return (
     <div>
-      <Space style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <Input
-          value={searchText}
-          onChange={handleSearchChange}
-          placeholder="Search by name, SKU, or description"
+          placeholder="Search orders by user, status, or address"
           prefix={<SearchOutlined />}
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Add Product</Button>
-      </Space>
+      </div>
+      <Table
+        columns={columns}
+        dataSource={filteredOrders}
+        rowKey="id"
+        loading={loading}
+      />
 
-      <Table columns={columns} dataSource={filteredProducts} rowKey="id" />
-
+      {/* Modal for editing order */}
       <Modal
-        open={isModalVisible}
-        title={currentProduct ? 'Edit Product' : 'Add Product'}
+        title="Edit Order"
+        visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        footer={null}
+        onOk={() => currentOrder && form.submit()}
       >
         <Form
-          initialValues={currentProduct || { name: '', sku: '', description: '', category_id: '', stock: 0, price: 0, size_id: '', color_id: '', is_active: true }}
+          form={form}
+          initialValues={currentOrder ? {
+            order_date: moment(currentOrder.order_date),
+            total_amount: currentOrder.total_amount,
+            shipping_cost: currentOrder.shipping_cost,
+            payment_method: currentOrder.payment_method,
+            status: currentOrder.status,
+            promotion_id: currentOrder.promotion_id,
+            address_id: currentOrder.address_id,
+            is_active: currentOrder.is_active,
+          } : {}}
           onFinish={handleSubmit}
         >
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please input product name!' }]}>
+          <Form.Item name="order_date" label="Order Date" rules={[{ required: true }]}>
+            <DatePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="total_amount" label="Total Amount" rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+          <Form.Item name="shipping_cost" label="Shipping Cost" rules={[{ required: true }]}>
+            <InputNumber style={{ width: '100%' }} min={0} />
+          </Form.Item>
+          <Form.Item name="payment_method" label="Payment Method" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="SKU" name="sku" rules={[{ required: true, message: 'Please input SKU!' }]}>
+          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Description" name="description">
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item label="Category" name="category_id" rules={[{ required: true, message: 'Please select category!' }]}>
+          <Form.Item name="promotion_id" label="Promotion">
             <Select>
-              {categories.map((category) => (
-                <Select.Option key={category.id} value={category.id}>
-                  {category.name}
-                </Select.Option>
+              {promotions.map((promo) => (
+                <Select.Option key={promo.id} value={promo.id}>{promo.code}</Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Size" name="size_id">
+          <Form.Item name="address_id" label="Address" rules={[{ required: true }]}>
             <Select>
-              {sizes.map((size) => (
-                <Select.Option key={size.id} value={size.id}>
-                  {size.size_name}
-                </Select.Option>
+              {addresses.map((address) => (
+                <Select.Option key={address.id} value={address.id}>{address.address}</Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Color" name="color_id">
-            <Select>
-              {colors.map((color) => (
-                <Select.Option key={color.id} value={color.id}>
-                  {color.color_name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item><Form.Item label="Stock" name="stock" rules={[{ required: true, message: 'Please input stock!' }]}>
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please input price!' }]}>
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item label="Active" name="is_active" valuePropName="checked">
+          <Form.Item name="is_active" label="Active" valuePropName="checked">
             <Switch />
-          </Form.Item>
-          <Form.Item label="Image" valuePropName="fileList" getValueFromEvent={(e) => e?.fileList}>
-            <Upload
-              beforeUpload={() => false} // Prevent automatic upload
-              onChange={({ fileList }) => setFileList(fileList)}
-              fileList={fileList}
-            >
-              <Button>Upload Image</Button>
-            </Upload>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              {currentProduct ? 'Update Product' : 'Add Product'}
-            </Button>
           </Form.Item>
         </Form>
       </Modal>
@@ -300,4 +313,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;
+export default Orders;  
