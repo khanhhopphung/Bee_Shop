@@ -239,12 +239,11 @@ const App: React.FC = () => {
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
-<<<<<<< HEAD
+
           <Route path="users" element={<User />} />
           
-=======
           <Route path="blogs" element={<AdminBlogs />} />
->>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
+
         </Route>
       </Routes>
     </Router>

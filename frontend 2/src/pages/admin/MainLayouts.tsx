@@ -27,20 +27,15 @@ const AdminLayout = () => {
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
             <Link to="/admin/orders">Quản lý giỏ hàng</Link>
           </Menu.Item>
-<<<<<<< HEAD
+
           <Menu.Item key="5" icon={<PieChartOutlined />}>
             <Link to="/admin">Thống kê</Link>
           </Menu.Item>
-          <Menu.Item key="6" icon={<FileTextOutlined />}>
-            <Link to="/admin/reviews">Quản lý bình luận</Link>
-          </Menu.Item>
-          <Menu.Item key="7" icon={<FileTextOutlined />}>
-=======
           <Menu.Item key="5" icon={<FileTextOutlined />}>
             <Link to="/admin/reviews">Quản lý bình luận</Link>
           </Menu.Item>
           <Menu.Item key="6" icon={<FileTextOutlined />}>
->>>>>>> a8c72566f38a70ed3bfdc8102a0c6139f4bc3261
+
             <Link to="/admin/product-variants">Quản lý biến thể</Link>
           </Menu.Item>
           <Menu.Item key="7" icon={<FileTextOutlined />}>
@@ -52,9 +47,7 @@ const AdminLayout = () => {
           <Menu.Item key="9" icon={<PieChartOutlined />}>
             <Link to="/admin/statistics">Thống kê</Link>
           </Menu.Item>
-          <Menu.Item key="10" icon={<PieChartOutlined />}>
-            <Link to="/login"> Đăng nhập</Link>
-          </Menu.Item>
+  
         </Menu>
       </Sider>
       <Layout>
