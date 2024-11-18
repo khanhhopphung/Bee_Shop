@@ -191,7 +191,7 @@ const Products: React.FC = () => {
     {
       title: 'Hình ảnh', dataIndex: 'image_url', key: 'image', render: (image: string) => (
         <img
-          src={image ? 'http://127.0.0.1:8000/storage/${image}' : '/admin/default-image.jpg'}
+          src={image ? 'http://127.0.0.1:8000/storage/${image}' : 'http://127.0.0.1:8000/storage/${image}'}
           alt="Product Image"
           style={{ width: '100px', height: 'auto' }}
         />

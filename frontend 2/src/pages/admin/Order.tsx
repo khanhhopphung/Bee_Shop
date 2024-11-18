@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useEffect, useState } from "react";
 import {
   Table,
@@ -19,6 +20,14 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import moment from "moment";
+=======
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Modal, Form, Input, message, Select, InputNumber, Switch, DatePicker } from 'antd';
+import { DeleteOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import axios from 'axios';
+import axiosInstance from '../axiosConfig';
+import moment from 'moment';
+>>>>>>> fix-dev
 
 // Define the types for Order, User, Address, and Promotion
 interface Order {
@@ -67,12 +76,29 @@ const Orders: React.FC = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/orders");
+
+      const accessToken = localStorage.getItem("access_token");
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return;
+      }
+  
+      const response = await axios.get("http://127.0.0.1:8000/api/orders", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,  // Gửi token trong header Authorization
+        },
+      });
+  
+
       const data = Array.isArray(response.data) ? response.data : [];
       setOrders(data);
       setFilteredOrders(data);
     } catch (error) {
+<<<<<<< HEAD
       message.error("Failed to load orders");
+=======
+      message.error("Lỗi khi tải đơn hàng.");
+>>>>>>> fix-dev
       setOrders([]);
       setFilteredOrders([]);
     } finally {

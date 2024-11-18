@@ -11,8 +11,8 @@ interface Review {
   comment: string;
   created_at: string;
   updated_at: string;
-  review_date: string;  // Thêm trường review_date
-  is_verified: boolean; // Thêm trường is_verified
+  review_date: string;
+  is_verified: boolean;
 }
 
 const Reviews: React.FC = () => {
@@ -20,8 +20,9 @@ const Reviews: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>(''); // State for search term
 
-  // Lấy danh sách reviews từ API
+  // Fetch reviews from API
   const fetchReviews = async () => {
     setLoading(true);
     try {
@@ -38,78 +39,86 @@ const Reviews: React.FC = () => {
     fetchReviews();
   }, []);
 
-  // Xử lý khi nhấn nút "Add Review"
+  // Handle search term change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Filter reviews based on search term
+  const filteredReviews = reviews.filter((review) => {
+    return (
+      review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.rating.toString().includes(searchTerm) ||
+      review.review_date.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  // Handle Add Review
   const handleAdd = () => {
-    setCurrentReview(null); // Reset form
+    setCurrentReview(null);
     setIsModalVisible(true);
   };
 
-  // Xử lý khi nhấn nút "Edit"
+  // Handle Edit Review
   const handleEdit = (review: Review) => {
     setCurrentReview(review);
     setIsModalVisible(true);
   };
 
-  // Xử lý khi nhấn nút "Delete"
+  // Handle Delete Review
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/reviews/${id}`);
       message.success('Review deleted successfully');
-      fetchReviews(); // Refresh danh sách review
+      fetchReviews();
     } catch (error) {
       message.error('Failed to delete review');
     }
   };
 
-  // Xử lý khi submit form
+  // Handle Submit form
   const handleSubmit = async (values: any) => {
     try {
       const data = {
         ...values,
-        review_date: new Date().toISOString().split('T')[0],  // Lấy ngày hiện tại theo định dạng YYYY-MM-DD
-        is_verified: false,  // Mặc định là chưa được xác minh, có thể thay đổi sau
+        review_date: new Date().toISOString().split('T')[0],
+        is_verified: true,
+        product_id: 1,
+        user_id: 1,
       };
 
       if (currentReview) {
-        // Cập nhật review
         await axios.put(`http://127.0.0.1:8000/api/reviews/${currentReview.id}`, data);
         message.success('Review updated successfully');
       } else {
-        // Thêm review mới
         await axios.post('http://127.0.0.1:8000/api/reviews', data);
         message.success('Review created successfully');
       }
       setIsModalVisible(false);
-      fetchReviews(); // Refresh danh sách review
+      fetchReviews();
     } catch (error) {
       message.error('Failed to save review');
     }
   };
 
-  // Cấu hình các cột cho bảng
+  // Define columns for the table
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Product ID', dataIndex: 'product_id', key: 'product_id' },
-    { title: 'User ID', dataIndex: 'user_id', key: 'user_id' },
-    { title: 'Rating', dataIndex: 'rating', key: 'rating' },
-    { title: 'Comment', dataIndex: 'comment', key: 'comment' },
-    { title: 'Review Date', dataIndex: 'review_date', key: 'review_date' }, // Cột review_date
-    { title: 'Verified', dataIndex: 'is_verified', key: 'is_verified', render: (is_verified: boolean) => (is_verified ? 'Yes' : 'No') }, // Cột is_verified
     {
-      title: 'Actions',
+      title: 'STT',
+      render: (text: any, record: Review, index: number) => index + 1,
+      key: 'index',
+    },
+    { title: 'Rank', dataIndex: 'rating', key: 'rating' },
+    { title: 'Bình luận', dataIndex: 'comment', key: 'comment' },
+    { title: 'Ngày bình luận', dataIndex: 'review_date', key: 'review_date' },
+    { title: 'Hoạt động', dataIndex: 'is_verified', key: 'is_verified', render: (is_verified: boolean) => (is_verified ? 'Có' : 'Không') },
+    {
+      title: 'Hành động',
       key: 'actions',
       render: (record: Review) => (
         <>
-          <Button
-            onClick={() => handleEdit(record)}
-            icon={<EditOutlined />}
-            style={{ marginRight: 8 }}
-          />
-          <Button
-            onClick={() => handleDelete(record.id)}
-            icon={<DeleteOutlined />}
-            danger
-          />
+          <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} style={{ marginRight: 8 }} />
+          <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
         </>
       ),
     },
@@ -117,6 +126,15 @@ const Reviews: React.FC = () => {
 
   return (
     <div>
+      {/* Search Bar */}
+      <Input.Search
+        placeholder="Tìm kiếm theo bình luận, xếp hạng hoặc ngày"
+        value={searchTerm}
+        onChange={handleSearchChange}
+        onSearch={(value) => setSearchTerm(value)}
+        style={{ width: 300, marginBottom: 16 }}
+      />
+
       <Button
         type="primary"
         icon={<PlusOutlined />}
@@ -125,11 +143,13 @@ const Reviews: React.FC = () => {
       >
         Add Review
       </Button>
+
       <Table
         columns={columns}
-        dataSource={reviews}
+        dataSource={filteredReviews}
         rowKey="id"
         loading={loading}
+        pagination={false}
       />
 
       <Modal
@@ -139,22 +159,14 @@ const Reviews: React.FC = () => {
         footer={null}
       >
         <Form
-          initialValues={currentReview || { product_id: '', user_id: '', rating: 0, comment: '', review_date: '', is_verified: false }}
+          initialValues={currentReview || { rating: 0, comment: '', review_date: '', is_verified: true }}
           onFinish={handleSubmit}
         >
-          <Form.Item
-            name="product_id"
-            label="Product ID"
-            rules={[{ required: true, message: 'Please enter product ID' }]}
-          >
-            <Input />
+          <Form.Item name="product_id" hidden initialValue={1}>
+            <Input type="hidden" />
           </Form.Item>
-          <Form.Item
-            name="user_id"
-            label="User ID"
-            rules={[{ required: true, message: 'Please enter user ID' }]}
-          >
-            <Input />
+          <Form.Item name="user_id" hidden initialValue={1}>
+            <Input type="hidden" />
           </Form.Item>
           <Form.Item
             name="rating"
