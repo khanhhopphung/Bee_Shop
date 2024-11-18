@@ -22,7 +22,15 @@ class OrderController extends Controller
      */
     public function index()
     {
+      
+        if(auth::check()){
+            if(Auth::user()->role_id == 2){
         $orders = Order::with('orderDetails','address')-> get();
+
+            } else if(Auth::user()->role_id == 1){
+                $orders = Order::where('user_id', Auth::id())->with('orderDetails','address')->get();
+            }
+        }
         // return $orders[0]->orderDetails;
         return response()->json($orders, 200);
     }

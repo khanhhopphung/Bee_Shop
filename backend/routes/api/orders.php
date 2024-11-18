@@ -6,6 +6,5 @@ use App\Http\Controllers\API\OrderController;
 
 
 Route::middleware('auth:api')->group(function () {
-
 Route::resource('orders', OrderController::class);
 });
