@@ -26,11 +26,7 @@ const AdminLayout = () => {
           </Menu.Item>
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
             <Link to="/admin/orders">Quản lý giỏ hàng</Link>
-          </Menu.Item>
-
-          <Menu.Item key="5" icon={<PieChartOutlined />}>
-            <Link to="/admin">Thống kê</Link>
-          </Menu.Item>
+          </Menu.Item>      
           <Menu.Item key="5" icon={<FileTextOutlined />}>
             <Link to="/admin/reviews">Quản lý bình luận</Link>
           </Menu.Item>
