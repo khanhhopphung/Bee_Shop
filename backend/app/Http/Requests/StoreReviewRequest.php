@@ -16,11 +16,10 @@ class StoreReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
-            'product_id' => 'required|exists:products,id',
+          
             'comment' => 'required|string|max:1000',
             'rating' => 'required|integer|min:1|max:5',
-            'review_date' => 'required|date',
+           
             'is_verified' => 'boolean',
         ];
     }
