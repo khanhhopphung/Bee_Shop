@@ -9,8 +9,11 @@ use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Cart;
 use App\Models\CartDetail;
 use App\Models\OrderDetail;
+use App\Models\ShippingAddress;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class OrderController extends Controller
 {
@@ -19,7 +22,15 @@ class OrderController extends Controller
      */
     public function index()
     {
+      
+        if(auth::check()){
+            if(Auth::user()->role_id == 2){
         $orders = Order::with('orderDetails','address')-> get();
+
+            } else if(Auth::user()->role_id == 1){
+                $orders = Order::where('user_id', Auth::id())->with('orderDetails','address')->get();
+            }
+        }
         // return $orders[0]->orderDetails;
         return response()->json($orders, 200);
     }
@@ -50,7 +61,15 @@ class OrderController extends Controller
     $idCartDetails = $request->carts_detail;
         $CartDetails = CartDetail::whereIn('id', $idCartDetails)->get();
 
+        $prefix = 'ORDER';  // Tiền tố mã đơn
+        $date = Carbon::now()->format('Ymd');  // Ngày theo định dạng YYYYMMDD
+        $random_number = Str::upper(Str::random(5));  // Phần ngẫu nhiên
+
+        // Ví dụ: ORDER-20241117-ABCDE
+        
+
         if ($CartDetails) {
+            $Address = ShippingAddress::find($request->address_id);
         // // Tạo đơn hàng mới
         $order = Order::create([
             'user_id' => $userId,
@@ -60,7 +79,11 @@ class OrderController extends Controller
             'address_id' => $request->address_id,
             'payment_method' => $request->payment_method,
             'shipping_cost' => $request->shipping_cost,
+            'order_code' => $prefix . '-' . $date . '-' . $random_number,
             'order_date' => now(), // Ngày đặt hàng
+            'name'=>  $Address->recipient_name,
+            'phone'=>  $Address->phone,
+            'address'=> $Address->address_line.'-'.$Address->state.'-'.$Address->city,
         ]);
 
         
@@ -79,24 +102,6 @@ class OrderController extends Controller
 
         }
 
-
-
-        // // Lấy thông tin sản phẩm từ giỏ hàng
-        // $cartItems = Cart::where('user_id', $request->user_id)->with('cartDetails')->first();
-        // foreach ($cartItems->cartDetails as $cartDetail) {
-        //     // Tạo chi tiết đơn hàng
-        //     OrderDetail::create([
-        //         'order_id' => $order->id,
-        //         'product_id' => $cartDetail->product_id,
-        //         'variant_id' => $cartDetail->variant_id,
-        //         'quantity' => $cartDetail->quantity,
-        //         'price' => $cartDetail->product_price,
-        //     ]);
-        // }
-
-        // // Xóa dữ liệu trong bảng carts và cart_details
-        // CartDetail::where('cart_id', $cartItems->id)->delete();
-        // Cart::destroy($cartItems->id);
         $order['order_details']=$order->orderDetails;
 
         DB::commit(); // Xác nhận giao dịch
@@ -123,7 +128,12 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            $order =  $order->with('orderDetails','address')->get();
+            $orderDetails = $order->orderDetails;
+            $order['order_details'] = $orderDetails;
+            $address = $order->address;
+            $order['address'] = $address;
+
+            // $order =  $order->with('orderDetails','address')->get();
       
             return response()->json([
                 'order' => $order,

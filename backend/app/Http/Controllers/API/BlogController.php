@@ -23,7 +23,11 @@ class BlogController extends BaseController
     public function index()
     {
         try {
-            return $this->get($this->model);
+            $blogs= Blog::where('is_active', 1)->orderBy('id','desc')->get();
+
+            // return $this->get( $this->model);   
+            return $this->success($blogs);
+            // return $this->get($this->model);
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",

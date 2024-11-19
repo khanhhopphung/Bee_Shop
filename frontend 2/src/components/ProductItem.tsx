@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { AppDispatch } from "../store/store";
+import { RootState } from "../store/store";
+import { addToFavorites, removeFromFavorites } from "../store/favoriteSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 type Props = {
-  id: number;
+  id: number | string;
   name: string;
   price: string;
   image: { image_url: string };
@@ -10,6 +14,20 @@ type Props = {
 
 const ProductItem = (props: Props) => {
   const { id, name, price, image } = props;
+  const dispatch = useDispatch<AppDispatch>();
+
+  const favoriteItems = useSelector(
+    (state: RootState) => state.favorites.items
+  );
+  const isFavorite = favoriteItems.includes(id.toString());
+
+  const handleFavoriteToggle = () => {
+    if (isFavorite) {
+      dispatch(removeFromFavorites(id.toString()));
+    } else {
+      dispatch(addToFavorites(id.toString()));
+    }
+  };
 
   // console.log(image);
   return (
@@ -42,15 +60,18 @@ const ProductItem = (props: Props) => {
             <a
               href="#"
               className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
+              onClick={(e) => {
+                e.preventDefault(); // Ngăn tải lại trang
+                handleFavoriteToggle();
+              }}
             >
               <img
                 className="icon-heart1 dis-block trans-04"
-                src="images/icons/icon-heart-01.png"
-                alt="ICON"
-              />
-              <img
-                className="icon-heart2 dis-block trans-04 ab-t-l"
-                src="images/icons/icon-heart-02.png"
+                src={
+                  isFavorite
+                    ? "images/icons/icon-heart-02.png"
+                    : "images/icons/icon-heart-01.png"
+                }
                 alt="ICON"
               />
             </a>

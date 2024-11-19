@@ -36,6 +36,10 @@ import ProductVariants from "./pages/admin/ProductVariant";
 
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
+import FavoriteList from "./pages/client/FavoriteList";
+import Comment from "./components/Comment";
+import OrderList from "./pages/client/OrderList";
+import Voucher from "./pages/client/Voucher";
 import User from "./pages/admin/User";
 
 interface CartItem {
@@ -220,13 +224,17 @@ const App: React.FC = () => {
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
           <Route path="payments" element={<PaymentPage />} />
-          <Route path="ordersuccess" element={<OrderSuccess />} />
+          <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="404" element={<NotFound />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/order-detail" element={<OrderDetail />} />
+          <Route path="/order-detail/:id" element={<OrderDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/update-password" element={<UpdatePass />} />
           <Route path="/adrress" element={<Adrress />} />
+          <Route path="/favorite" element={<FavoriteList />} />
+          <Route path="/comment" element={<Comment />} />
+          <Route path="/order-list" element={<OrderList />} />
+          <Route path="/voucher" element={<Voucher />} />
         </Route>
 
         {/* Route cho phần admin */}
@@ -237,16 +245,13 @@ const App: React.FC = () => {
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="blogs" element={<AdminBlogs />} />
-          <Route path="statistics" element={<Statistics  />} />
+          <Route path="statistics" element={<Statistics />} />
           <Route path="reviews" element={<Review />} />
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
 
           <Route path="users" element={<User />} />
-          
-          
-
         </Route>
       </Routes>
     </Router>

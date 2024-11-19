@@ -1,7 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space, Upload } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+  Switch,
+  Select,
+  Space,
+  Upload,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
+import axios from "axios";
 
 interface Product {
   id: number;
@@ -12,7 +29,7 @@ interface Product {
   stock: number;
   price: number;
   is_active: boolean;
-  image_url?: string;
+  image: { image_url: string };
   size_id?: number;
   color_id?: number;
   created_at: string;
@@ -42,46 +59,51 @@ const Products: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [searchText, setSearchText] = useState<string>(''); 
+
+  const [searchText, setSearchText] = useState<string>("");
+
   const [fileList, setFileList] = useState<any[]>([]);
-  const [imageFile, setImageFile] = useState<any | null>(null); 
+  const [imageFile, setImageFile] = useState<any | null>(null);
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/categories');
+      const response = await axios.get("http://127.0.0.1:8000/api/categories");
       setCategories(response.data.data || []);
     } catch (error) {
-      message.error('Không thể tải danh mục');
+      message.error("Không thể tải danh mục");
     }
   };
 
   const fetchSizes = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/sizes');
+      const response = await axios.get("http://127.0.0.1:8000/api/sizes");
       setSizes(response.data.data || []);
     } catch (error) {
-      message.error('Không thể tải kích thước');
+      message.error("Không thể tải kích thước");
     }
   };
 
   const fetchColors = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/colors');
+      const response = await axios.get("http://127.0.0.1:8000/api/colors");
       setColors(response.data.data || []);
     } catch (error) {
-      message.error('Không thể tải màu sắc');
+      message.error("Không thể tải màu sắc");
     }
   };
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/products');
+      const response = await axios.get("http://127.0.0.1:8000/api/products");
       setProducts(response.data.data || []);
       setFilteredProducts(response.data.data || []);
     } catch (error) {
-      message.error('Không thể tải sản phẩm');
+      message.error("Không thể tải sản phẩm");
     }
   };
+  useEffect(() => {
+    console.log(products);
+  }, [products]);
 
   useEffect(() => {
     fetchCategories();
@@ -94,10 +116,11 @@ const Products: React.FC = () => {
     const value = e.target.value;
     setSearchText(value);
 
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(value.toLowerCase()) ||
-      product.sku.toLowerCase().includes(value.toLowerCase()) ||
-      product.description.toLowerCase().includes(value.toLowerCase())
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(value.toLowerCase()) ||
+        product.sku.toLowerCase().includes(value.toLowerCase()) ||
+        product.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredProducts(filtered);
   };
@@ -117,10 +140,11 @@ const Products: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-      message.success('Sản phẩm đã được xóa');
+
+      message.success("Sản phẩm đã được xóa");
       fetchProducts();
     } catch (error) {
-      message.error('Không thể xóa sản phẩm');
+      message.error("Không thể xóa sản phẩm");
     }
   };
 
@@ -132,78 +156,111 @@ const Products: React.FC = () => {
       }
 
       if (imageFile) {
-        formData.append('image', imageFile);
+        formData.append("image", imageFile);
       }
 
       if (currentProduct) {
-        await axios.put(`http://127.0.0.1:8000/api/products/${currentProduct.id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Sản phẩm đã được cập nhật');
+        await axios.put(
+          `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        message.success("Sản phẩm đã được cập nhật");
       } else {
-        await axios.post('http://127.0.0.1:8000/api/products', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        await axios.post("http://127.0.0.1:8000/api/products", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        message.success('Sản phẩm đã được tạo');
+
+        message.success("Sản phẩm đã được tạo");
       }
       setIsModalVisible(false);
       fetchProducts();
     } catch (error) {
-      message.error('Không thể lưu sản phẩm');
+      message.error("Không thể lưu sản phẩm");
     }
   };
 
   const columns = [
-    { title: 'STT', dataIndex: 'id', key: 'id' },
-    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-    { title: 'Mã sản phẩm ', dataIndex: 'sku', key: 'sku' },
-    { title: 'Mô tả', dataIndex: 'description', key: 'description' },
+    { title: "STT", dataIndex: "id", key: "id" },
+    { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
+    { title: "Mã sản phẩm ", dataIndex: "sku", key: "sku" },
+    { title: "Mô tả", dataIndex: "description", key: "description" },
     {
-      title: 'Danh mục',
-      dataIndex: 'category_id',
-      key: 'category_id',
+      title: "Danh mục",
+      dataIndex: "category_id",
+      key: "category_id",
+
       render: (categoryId: number) => {
         const category = categories.find((cat) => cat.id === categoryId);
-        return category ? category.name : 'N/A';
+        return category ? category.name : "N/A";
       },
     },
-    { title: 'Số lượng', dataIndex: 'stock', key: 'stock' },
-    { title: 'Giá', dataIndex: 'price', key: 'price' },
+    { title: "Số lượng", dataIndex: "stock", key: "stock" },
+    { title: "Giá", dataIndex: "price", key: "price" },
     {
-      title: 'Kích thước',
-      dataIndex: 'size_id',
-      key: 'size_id',
+      title: "Kích thước",
+      dataIndex: "size_id",
+      key: "size_id",
+
       render: (sizeId: number) => {
         const size = sizes.find((s) => s.id === sizeId);
-        return size ? size.size_name : 'N/A';
+        return size ? size.size_name : "N/A";
       },
     },
     {
-      title: 'Màu sắc',
-      dataIndex: 'color_id',
-      key: 'color_id',
+      title: "Màu sắc",
+      dataIndex: "color_id",
+      key: "color_id",
+
       render: (colorId: number) => {
         const color = colors.find((c) => c.id === colorId);
-        return color ? color.color_name : 'N/A';
+        return color ? color.color_name : "N/A";
       },
     },
-    { title: 'Kích hoạt', dataIndex: 'is_active', key: 'is_active', render: (active: boolean) => (active ? 'Có' : 'Không') },
+
     {
-      title: 'Hình ảnh', dataIndex: 'image_url', key: 'image', render: (image: string) => (
+      title: "Kích hoạt",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (active: boolean) => (active ? "Có" : "Không"),
+    },
+
+    {
+      title: "Active",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (active: boolean) => (active ? "Yes" : "No"),
+    },
+    {
+      title: "Hình ảnh",
+      dataIndex: "image",
+      key: "image",
+      render: (image: { image_url: string }) => (
         <img
-          src={image ? `http://127.0.0.1:8000/storage/${image}` : `http://127.0.0.1:8000/storage/${image}`}
+          src={
+            image
+              ? `http://127.0.0.1:8000/storage/${image}`
+              : `http://127.0.0.1:8000/storage/${image}`
+          }
           alt="Ảnh sản phẩm"
-          style={{ width: '100px', height: 'auto' }}
+          style={{ width: "100px", height: "auto" }}
         />
       ),
     },
     {
-      title: 'Thao tác',
-      key: 'actions',
+      title: "Thao tác",
+      key: "actions",
+
       render: (record: Product) => (
         <>
           <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
-          <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
+          <Button
+            onClick={() => handleDelete(record.id)}
+            icon={<DeleteOutlined />}
+            danger
+          />
         </>
       ),
     },
@@ -218,31 +275,59 @@ const Products: React.FC = () => {
           placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
           prefix={<SearchOutlined />}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Thêm sản phẩm</Button>
+
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Thêm sản phẩm
+        </Button>
       </Space>
 
       <Table columns={columns} dataSource={filteredProducts} rowKey="id" />
 
       <Modal
         open={isModalVisible}
-        title={currentProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}
+        title={currentProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
         <Form
-          initialValues={currentProduct || { name: '', sku: '', description: '', category_id: '', stock: 0, price: 0, size_id: '', color_id: '', is_active: true }}
+          initialValues={
+            currentProduct || {
+              name: "",
+              sku: "",
+              description: "",
+              category_id: "",
+              stock: 0,
+              price: 0,
+              size_id: "",
+              color_id: "",
+              is_active: true,
+            }
+          }
           onFinish={handleSubmit}
         >
-          <Form.Item label="Tên sản phẩm" name="name" rules={[{ required: true, message: 'Vui lòng nhập tên sản phẩm!' }]}>
+          <Form.Item
+            label="Tên sản phẩm"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item label="Mã sản phẩm " name="sku" rules={[{ required: true, message: 'Vui lòng nhập SKU!' }]}>
+          <Form.Item
+            label="Mã sản phẩm "
+            name="sku"
+            rules={[{ required: true, message: "Vui lòng nhập SKU!" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="Mô tả" name="description">
             <Input.TextArea />
           </Form.Item>
-          <Form.Item label="Danh mục" name="category_id" rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}>
+
+          <Form.Item
+            label="Danh mục"
+            name="category_id"
+            rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+          >
             <Select>
               {categories.map((category) => (
                 <Select.Option key={category.id} value={category.id}>
@@ -269,10 +354,18 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Số lượng" name="stock" rules={[{ required: true, message: 'Vui lòng nhập số lượng!' }]}>
+          <Form.Item
+            label="Số lượng"
+            name="stock"
+            rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item label="Giá" name="price" rules={[{ required: true, message: 'Vui lòng nhập giá!' }]}>
+          <Form.Item
+            label="Giá"
+            name="price"
+            rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
+          >
             <Input type="number" />
           </Form.Item>
           <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
@@ -291,7 +384,9 @@ const Products: React.FC = () => {
             </Upload>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">Lưu</Button>
+            <Button type="primary" htmlType="submit">
+              Lưu
+            </Button>
           </Form.Item>
         </Form>
       </Modal>

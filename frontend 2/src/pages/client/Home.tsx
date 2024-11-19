@@ -2,6 +2,14 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Link } from "react-router-dom";
+import Heart from "../../components/Heart";
+type Blog = {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+  image: { image_url: string };
+};
 const Home: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
 
@@ -30,7 +38,33 @@ const Home: React.FC = () => {
 
     fetchProducts();
   }, []); // Chạy chỉ một lần khi component được mount
+  const [blogs, setBlogs] = useState<Blog[]>([]);
 
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/blogs`);
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra nếu có dữ liệu và gán vào state categories
+        if (result && result.data && Array.isArray(result.data)) {
+          setBlogs(result.data);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
   return (
     // <Layout q={10}>
     <div>
@@ -239,23 +273,7 @@ const Home: React.FC = () => {
                                     ${product.price}
                                   </span>
                                 </div>
-                                <div className="block2-txt-child2 flex-r p-t-3">
-                                  <a
-                                    href="#"
-                                    className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
-                                  >
-                                    <img
-                                      className="icon-heart1 dis-block trans-04"
-                                      src="images/icons/icon-heart-01.png"
-                                      alt="ICON"
-                                    />
-                                    <img
-                                      className="icon-heart2 dis-block trans-04 ab-t-l"
-                                      src="images/icons/icon-heart-02.png"
-                                      alt="ICON"
-                                    />
-                                  </a>
-                                </div>
+                                <Heart product_id={product.id} />
                               </div>
                             </div>
                           </div>
@@ -282,32 +300,39 @@ const Home: React.FC = () => {
 
             <div className="row">
               {/* Bài blog 1 */}
-              <div className="col-sm-6 col-md-4 p-b-40">
-                <div className="blog-item">
-                  <div className="hov-img0">
-                    <a href="/">
-                      <img src="images/blog-01.jpg" alt="IMG-BLOG" />
-                    </a>
-                  </div>
-                  <div className="p-t-15">
-                    <h4 className="p-b-5">
-                      <a href="/" className="mtext-101 cl2 hov-cl1 trans-04">
-                        8 Inspiring Ways to Wear Dresses in the Winter
+              {blogs.map((blog, index) => (
+                <div key={index} className="col-sm-6 col-md-4 p-b-40">
+                  <div className="blog-item">
+                    <div className="hov-img0">
+                      <a href="/blogs">
+                        <img
+                          style={{ width: "520px", height: "300px" }}
+                          src={`http://127.0.0.1:8000/storage/${blog.image}`}
+                          alt={`Blog: ${blog.image}`}
+                        />
                       </a>
-                    </h4>
-                    <span className="stext-108 cl6 p-t-10">
-                      By Admin on January 25, 2018
-                    </span>
-                    <p className="stext-108 cl6 p-t-10">
-                      Proin nec vehicula lorem, a efficitur ex. Nam vehicula
-                      nulla vel erat efficitur, sit amet maximus felis varius.
-                    </p>
+                    </div>
+                    <div className="p-t-15">
+                      <h4 className="p-b-5">
+                        <a href="/" className="mtext-101 cl2 hov-cl1 trans-04">
+                          {blog.title}
+                        </a>
+                      </h4>
+                      <span className="stext-108 cl6 p-t-10">
+                        {new Date(blog.created_at).toLocaleDateString("vi-VN", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                        })}
+                      </span>
+                      <p className="stext-108 cl6 p-t-10">{blog.content}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
 
               {/* Bài blog 2 */}
-              <div className="col-sm-6 col-md-4 p-b-40">
+              {/* <div className="col-sm-6 col-md-4 p-b-40">
                 <div className="blog-item">
                   <div className="hov-img0">
                     <a href="/">
@@ -330,10 +355,10 @@ const Home: React.FC = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Bài blog 3 */}
-              <div className="col-sm-6 col-md-4 p-b-40">
+              {/* <div className="col-sm-6 col-md-4 p-b-40">
                 <div className="blog-item">
                   <div className="hov-img0">
                     <a href="/">
@@ -355,7 +380,7 @@ const Home: React.FC = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </section>

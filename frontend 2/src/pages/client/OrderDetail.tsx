@@ -8,30 +8,97 @@ import {
   TruckOutlined,
 } from "@ant-design/icons";
 import { Steps } from "antd";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+interface Order {
+  id: number;
+  user_id: number;
+  order_date: Date;
+  total_amount: number;
+  promotion_id: null;
+  status: string;
+  address_id: number;
+  payment_method: string;
+  shipping_cost: number;
+  created_at: Date;
+  updated_at: Date;
+  order_code: string;
+  order_details: [
+    {
+      id: number;
+      order_id: number;
+      product_id: number;
+      variant_id: number;
+      quantity: number;
+      price: number;
+      created_at: number;
+      updated_at: number;
+    }
+  ];
+  address: {
+    id: number;
+    user_id: number;
+    recipient_name: string;
+    phone: string;
+    address_line: string;
+    city: string;
+    state: string;
+    is_default: number;
+    created_at: null;
+    updated_at: number;
+  };
+}
 
 const OrderDetail = () => {
+  const { id } = useParams<{ id: string }>();
   const { Step } = Steps;
+  const token = localStorage.getItem("access_token");
 
-  const order = {
-    orderId: "ORD123456",
-    items: [
-      { id: 1, name: "Sản phẩm A", price: 100000, quantity: 2 },
-      { id: 2, name: "Sản phẩm B", price: 150000, quantity: 1 },
-    ],
-    shippingAddress: "123 Đường ABC, Quận 1, TP.HCM",
-    totalAmount: 350000,
-    paymentMethod: "Thanh toán khi nhận hàng",
-    orderStatus: "Đang giao",
-    estimatedDelivery: "Dự kiến giao vào ngày 15/11/2024",
-  };
+  const [order, setOrder] = useState<Order>();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      if (!id) {
+        console.error("Không có orderId trong URL");
+        return;
+      }
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/orders/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Lỗi khi lấy thông tin đơn hàng");
+        }
+        const data = await response.json();
+        setOrder(data.order);
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Gọi API khi có orderId
+    if (id) {
+      fetchOrderDetails();
+    }
+  }, [id]); // Phụ thuộc vào orderId để thực hiện lại khi nó thay đổi
+
+  if (loading) return <div>Đang tải dữ liệu...</div>;
+  if (!order) return <div>Không tìm thấy đơn hàng.</div>;
 
   return (
     <div className="order-detail-container">
       <h2>Chi tiết đơn hàng</h2>
       <div className="order-id">
         <strong>Mã đơn hàng: </strong>
-        {order.orderId}
+        {order.order_code}
       </div>
 
       {/* Thanh tiến trình */}
@@ -51,16 +118,17 @@ const OrderDetail = () => {
       {/* Thông tin đơn hàng */}
       <div className="order-items">
         <h4>Chi tiết sản phẩm</h4>
-        {order.items.map((item) => (
-          <div key={item.id} className="order-item">
-            <span>
-              {item.name} x {item.quantity}
-            </span>
-            <span className="item-price">
-              {item.price.toLocaleString()} VND
-            </span>
-          </div>
-        ))}
+        {order &&
+          order.order_details.map((item: any) => (
+            <div key={item.id} className="order-item">
+              <span>
+                {item.name} x {item.quantity}
+              </span>
+              <span className="item-price">
+                {item.price.toLocaleString()} VND
+              </span>
+            </div>
+          ))}
       </div>
 
       {/* Thông tin giao hàng */}
@@ -68,11 +136,18 @@ const OrderDetail = () => {
         <h4>Thông tin giao hàng</h4>
         <p>
           <strong>Địa chỉ: </strong>
-          {order.shippingAddress}
+          {order.address.address_line}
         </p>
         <p>
           <strong>Thời gian giao dự kiến: </strong>
-          {order.estimatedDelivery}
+          {order.created_at.toLocaleString("vi-VN", {
+            weekday: "long", // Thứ (Thứ Hai)
+            year: "numeric", // Năm (2024)
+            month: "long", // Tháng (Tháng 11)
+            day: "numeric", // Ngày (17)
+            hour: "2-digit", // Giờ (10)
+            minute: "2-digit", // Phút (00)
+          })}
         </p>
       </div>
 
@@ -81,11 +156,11 @@ const OrderDetail = () => {
         <h4>Thanh toán</h4>
         <p>
           <strong>Tổng tiền: </strong>
-          {order.totalAmount.toLocaleString()} VND
+          {order.total_amount.toLocaleString()} VND
         </p>
         <p>
           <strong>Phương thức thanh toán: </strong>
-          {order.paymentMethod}
+          {order.payment_method}
         </p>
       </div>
 

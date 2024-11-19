@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Spin, message } from "antd";
 import { useNavigate } from "react-router-dom";
+type RegisterResponse = {
+  status: string;
+  errors?: {
+    [key: string]: string[]; // Mỗi lỗi có một mảng thông báo lỗi
+  };
+};
 
 const Register: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -30,7 +36,16 @@ const Register: React.FC = () => {
         },
         body: JSON.stringify({ username, email, password_hash, phone }),
       });
-
+      const data: RegisterResponse = await response.json();
+      if (data.status === "error") {
+        if (data.errors) {
+          // Duyệt qua các lỗi và hiển thị chúng
+          const errorMessages = Object.entries(data.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+            .join("\n");
+          message.error(`Lỗi đăng ký:\n${errorMessages}`);
+        }
+      }
       if (response.ok) {
         const data = await response.json();
         message.success(
@@ -43,7 +58,7 @@ const Register: React.FC = () => {
       }
     } catch (error) {
       console.error("Lỗi khi gửi yêu cầu:", error);
-      setError("Đã xảy ra lỗi khi kết nối với server.");
+      // setError("Đã xảy ra lỗi khi kết nối với server.");
     } finally {
       setLoading(false); // Kết thúc loading
     }

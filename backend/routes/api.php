@@ -65,8 +65,11 @@ Route::apiResource('reviews', ReviewController::class);
 
 
 Route::middleware('auth:api')->group(function () {
-    Route::get('/get-adrress-user', [UserController::class,'allAdrressesUser']);
-    Route::put('/update-address-user', [UserController::class,'updateDefaultAdressesUser']);
+    Route::get('/get-adrress-user', [UserController::class,'allAddressesUser']);
+    Route::put('/update-address-user', [UserController::class,'updateDefaultAddressesUser']);
+    Route::delete('/delete-address-user/{id}', [UserController::class,'deleteAddress']);
+    Route::post('/post-address-user', [UserController::class,'addAddress']);
+    Route::get('/show-user', [UserController::class,'showUser']);
 
 
 });
