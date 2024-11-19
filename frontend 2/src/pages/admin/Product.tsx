@@ -1,7 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space, Upload } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, UploadOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+  Switch,
+  Select,
+  Space,
+  Upload,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
+import axios from "axios";
 
 interface Product {
   id: number;
@@ -12,7 +29,7 @@ interface Product {
   stock: number;
   price: number;
   is_active: boolean;
-  image_url?: string;
+  image: { image_url: string };
   size_id?: number;
   color_id?: number;
   created_at: string;
@@ -42,46 +59,49 @@ const Products: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [searchText, setSearchText] = useState<string>('');
+  const [searchText, setSearchText] = useState<string>("");
   const [fileList, setFileList] = useState<any[]>([]);
   const [imageFile, setImageFile] = useState<any | null>(null); // Define the state for the selected file
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/categories');
+      const response = await axios.get("http://127.0.0.1:8000/api/categories");
       setCategories(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load categories');
+      message.error("Failed to load categories");
     }
   };
 
   const fetchSizes = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/sizes');
+      const response = await axios.get("http://127.0.0.1:8000/api/sizes");
       setSizes(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load sizes');
+      message.error("Failed to load sizes");
     }
   };
 
   const fetchColors = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/colors');
+      const response = await axios.get("http://127.0.0.1:8000/api/colors");
       setColors(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load colors');
+      message.error("Failed to load colors");
     }
   };
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/products');
+      const response = await axios.get("http://127.0.0.1:8000/api/products");
       setProducts(response.data.data || []);
       setFilteredProducts(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load products');
+      message.error("Failed to load products");
     }
   };
+  useEffect(() => {
+    console.log(products);
+  }, [products]);
 
   useEffect(() => {
     fetchCategories();
@@ -94,10 +114,11 @@ const Products: React.FC = () => {
     const value = e.target.value;
     setSearchText(value);
 
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(value.toLowerCase()) ||
-      product.sku.toLowerCase().includes(value.toLowerCase()) ||
-      product.description.toLowerCase().includes(value.toLowerCase())
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(value.toLowerCase()) ||
+        product.sku.toLowerCase().includes(value.toLowerCase()) ||
+        product.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredProducts(filtered);
   };
@@ -117,10 +138,10 @@ const Products: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-      message.success('Product deleted successfully');
+      message.success("Product deleted successfully");
       fetchProducts();
     } catch (error) {
-      message.error('Failed to delete product');
+      message.error("Failed to delete product");
     }
   };
 
@@ -132,78 +153,94 @@ const Products: React.FC = () => {
       }
 
       if (imageFile) {
-        formData.append('image', imageFile);
+        formData.append("image", imageFile);
       }
 
       if (currentProduct) {
-        await axios.put(`http://127.0.0.1:8000/api/products/${currentProduct.id}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Product updated successfully');
+        await axios.put(
+          `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        message.success("Product updated successfully");
       } else {
-        await axios.post('http://127.0.0.1:8000/api/products', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        await axios.post("http://127.0.0.1:8000/api/products", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        message.success('Product created successfully');
+        message.success("Product created successfully");
       }
       setIsModalVisible(false);
       fetchProducts();
     } catch (error) {
-      message.error('Failed to save product');
+      message.error("Failed to save product");
     }
   };
 
   const columns = [
-    { title: 'STT', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'SKU', dataIndex: 'sku', key: 'sku' },
-    { title: 'Description', dataIndex: 'description', key: 'description' },
+    { title: "STT", dataIndex: "id", key: "id" },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "SKU", dataIndex: "sku", key: "sku" },
+    { title: "Description", dataIndex: "description", key: "description" },
     {
-      title: 'Category',
-      dataIndex: 'category_id',
-      key: 'category_id',
+      title: "Category",
+      dataIndex: "category_id",
+      key: "category_id",
       render: (categoryId: number) => {
         const category = categories.find((cat) => cat.id === categoryId);
-        return category ? category.name : 'N/A';
+        return category ? category.name : "N/A";
       },
     },
-    { title: 'Stock', dataIndex: 'stock', key: 'stock' },
-    { title: 'Price', dataIndex: 'price', key: 'price' },
+    { title: "Stock", dataIndex: "stock", key: "stock" },
+    { title: "Price", dataIndex: "price", key: "price" },
     {
-      title: 'Size',
-      dataIndex: 'size_id',
-      key: 'size_id',
+      title: "Size",
+      dataIndex: "size_id",
+      key: "size_id",
       render: (sizeId: number) => {
         const size = sizes.find((s) => s.id === sizeId);
-        return size ? size.size_name : 'N/A';
+        return size ? size.size_name : "N/A";
       },
     },
     {
-      title: 'Color',
-      dataIndex: 'color_id',
-      key: 'color_id',
+      title: "Color",
+      dataIndex: "color_id",
+      key: "color_id",
       render: (colorId: number) => {
         const color = colors.find((c) => c.id === colorId);
-        return color ? color.color_name : 'N/A';
+        return color ? color.color_name : "N/A";
       },
     },
-    { title: 'Active', dataIndex: 'is_active', key: 'is_active', render: (active: boolean) => (active ? 'Yes' : 'No') },
     {
-      title: 'Hình ảnh', dataIndex: 'image_url', key: 'image', render: (image: string) => (
+      title: "Active",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (active: boolean) => (active ? "Yes" : "No"),
+    },
+    {
+      title: "Hình ảnh",
+      dataIndex: "image",
+      key: "image",
+      render: (image: { image_url: string }) => (
         <img
-          src={image ? 'http://127.0.0.1:8000/storage/${image}' : 'http://127.0.0.1:8000/storage/${image}'}
-          alt="Product Image"
-          style={{ width: '100px', height: 'auto' }}
+          style={{ width: "70px", height: "60px" }}
+          src={`http://127.0.0.1:8000/storage/${image.image_url}`}
+          alt={`Product`}
         />
       ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (record: Product) => (
         <>
           <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
-          <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
+          <Button
+            onClick={() => handleDelete(record.id)}
+            icon={<DeleteOutlined />}
+            danger
+          />
         </>
       ),
     },
@@ -218,31 +255,57 @@ const Products: React.FC = () => {
           placeholder="Search by name, SKU, or description"
           prefix={<SearchOutlined />}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Add Product</Button>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          Add Product
+        </Button>
       </Space>
 
       <Table columns={columns} dataSource={filteredProducts} rowKey="id" />
 
       <Modal
         open={isModalVisible}
-        title={currentProduct ? 'Edit Product' : 'Add Product'}
+        title={currentProduct ? "Edit Product" : "Add Product"}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
         <Form
-          initialValues={currentProduct || { name: '', sku: '', description: '', category_id: '', stock: 0, price: 0, size_id: '', color_id: '', is_active: true }}
+          initialValues={
+            currentProduct || {
+              name: "",
+              sku: "",
+              description: "",
+              category_id: "",
+              stock: 0,
+              price: 0,
+              size_id: "",
+              color_id: "",
+              is_active: true,
+            }
+          }
           onFinish={handleSubmit}
         >
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please input product name!' }]}>
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please input product name!" }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item label="SKU" name="sku" rules={[{ required: true, message: 'Please input SKU!' }]}>
+          <Form.Item
+            label="SKU"
+            name="sku"
+            rules={[{ required: true, message: "Please input SKU!" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="Description" name="description">
             <Input.TextArea />
           </Form.Item>
-          <Form.Item label="Category" name="category_id" rules={[{ required: true, message: 'Please select category!' }]}>
+          <Form.Item
+            label="Category"
+            name="category_id"
+            rules={[{ required: true, message: "Please select category!" }]}
+          >
             <Select>
               {categories.map((category) => (
                 <Select.Option key={category.id} value={category.id}>
@@ -282,16 +345,20 @@ const Products: React.FC = () => {
             <Upload
               fileList={fileList}
               onChange={({ fileList: newFileList }) => setFileList(newFileList)}
-              beforeUpload={(file) => { setImageFile(file); return false; }} // Update the imageFile state
+              beforeUpload={(file) => {
+                setImageFile(file);
+                return false;
+              }} // Update the imageFile state
               showUploadList={false}
             >
               <Button icon={<UploadOutlined />}>Select File</Button>
             </Upload>
-            {imageFile && <div>Selected Image: {imageFile.name}</div>}  {/* Display file name */}
+            {imageFile && <div>Selected Image: {imageFile.name}</div>}{" "}
+            {/* Display file name */}
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {currentProduct ? 'Save Changes' : 'Create Product'}
+              {currentProduct ? "Save Changes" : "Create Product"}
             </Button>
           </Form.Item>
         </Form>

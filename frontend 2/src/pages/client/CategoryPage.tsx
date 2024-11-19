@@ -23,6 +23,7 @@ const CategoryPage = (props: Props) => {
         // Kiểm tra nếu có dữ liệu và gán vào state categories
         if (result && result.data && Array.isArray(result.data)) {
           setCategories(result.data);
+          console.log(result.data);
         } else {
           console.error("Invalid data format:", result);
         }

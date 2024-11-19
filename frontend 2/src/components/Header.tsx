@@ -143,11 +143,17 @@ const Header: React.FC<Props> = ({ quantity }) => {
                           className="flex items-center justify-between px-4 hover:bg-gray-200"
                           style={{ textAlign: "left" }}
                         >
-                          <span>{category.name}</span>
-                          <i
-                            className="fa-solid fa-chevron-right"
-                            style={{ justifyContent: "end" }}
-                          ></i>
+                          <div style={{ display: "flex" }}>
+                            <div style={{ width: "90%" }}>
+                              <span>{category.name}</span>
+                            </div>
+                            <div style={{ width: "10%" }}>
+                              <i
+                                className="fa-solid fa-chevron-right"
+                                style={{ justifyContent: "end" }}
+                              ></i>
+                            </div>
+                          </div>
                         </Link>
                       </li>
                     ))}
@@ -236,9 +242,14 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 </div>
                 <div
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-                  data-notify={quantityCart}
+                  data-notify={10}
                 >
-                  <i className="fa-solid fa-heart"></i>
+                  <Link
+                    to="/favorite"
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-heart"></i>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -319,7 +330,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
       <div className="modal-search-header flex-c-m trans-04 js-hide-modal-search">
         <div className="container-search-header">
           <button className="flex-c-m btn-hide-modal-search trans-04 js-hide-modal-search">
-            <img src="images/icons/icon-close2.png" alt="CLOSE" />
+            {/* <img src="images/icons/icon-close2.png" alt="CLOSE" /> */}
           </button>
           <form className="wrap-search-header flex-w p-l-15">
             <button className="flex-c-m trans-04">

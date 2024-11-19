@@ -16,7 +16,7 @@ const Blogs = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/blogs");
+        const response = await fetch(`http://127.0.0.1:8000/api/blogs`);
 
         // Kiểm tra nếu phản hồi từ server là thành công
         if (!response.ok) {
@@ -54,7 +54,8 @@ const Blogs = () => {
                 <div className="hov-img0">
                   <a href="blog-detail.html">
                     <img
-                      src={`http://127.0.0.1:8000/storage/${blog.image.image_url}`}
+                      style={{ width: "520px", height: "300px" }}
+                      src={`http://127.0.0.1:8000/storage/${blog.image}`}
                       alt={`Blog: ${blog.image}`}
                     />
                   </a>
