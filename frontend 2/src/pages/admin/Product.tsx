@@ -59,16 +59,18 @@ const Products: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+
   const [searchText, setSearchText] = useState<string>("");
+
   const [fileList, setFileList] = useState<any[]>([]);
-  const [imageFile, setImageFile] = useState<any | null>(null); // Define the state for the selected file
+  const [imageFile, setImageFile] = useState<any | null>(null);
 
   const fetchCategories = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/categories");
       setCategories(response.data.data || []);
     } catch (error) {
-      message.error("Failed to load categories");
+      message.error("Không thể tải danh mục");
     }
   };
 
@@ -77,7 +79,7 @@ const Products: React.FC = () => {
       const response = await axios.get("http://127.0.0.1:8000/api/sizes");
       setSizes(response.data.data || []);
     } catch (error) {
-      message.error("Failed to load sizes");
+      message.error("Không thể tải kích thước");
     }
   };
 
@@ -86,7 +88,7 @@ const Products: React.FC = () => {
       const response = await axios.get("http://127.0.0.1:8000/api/colors");
       setColors(response.data.data || []);
     } catch (error) {
-      message.error("Failed to load colors");
+      message.error("Không thể tải màu sắc");
     }
   };
 
@@ -96,7 +98,7 @@ const Products: React.FC = () => {
       setProducts(response.data.data || []);
       setFilteredProducts(response.data.data || []);
     } catch (error) {
-      message.error("Failed to load products");
+      message.error("Không thể tải sản phẩm");
     }
   };
   useEffect(() => {
@@ -138,10 +140,11 @@ const Products: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-      message.success("Product deleted successfully");
+
+      message.success("Sản phẩm đã được xóa");
       fetchProducts();
     } catch (error) {
-      message.error("Failed to delete product");
+      message.error("Không thể xóa sản phẩm");
     }
   };
 
@@ -164,54 +167,66 @@ const Products: React.FC = () => {
             headers: { "Content-Type": "multipart/form-data" },
           }
         );
-        message.success("Product updated successfully");
+        message.success("Sản phẩm đã được cập nhật");
       } else {
         await axios.post("http://127.0.0.1:8000/api/products", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        message.success("Product created successfully");
+
+        message.success("Sản phẩm đã được tạo");
       }
       setIsModalVisible(false);
       fetchProducts();
     } catch (error) {
-      message.error("Failed to save product");
+      message.error("Không thể lưu sản phẩm");
     }
   };
 
   const columns = [
     { title: "STT", dataIndex: "id", key: "id" },
-    { title: "Name", dataIndex: "name", key: "name" },
-    { title: "SKU", dataIndex: "sku", key: "sku" },
-    { title: "Description", dataIndex: "description", key: "description" },
+    { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
+    { title: "Mã sản phẩm ", dataIndex: "sku", key: "sku" },
+    { title: "Mô tả", dataIndex: "description", key: "description" },
     {
-      title: "Category",
+      title: "Danh mục",
       dataIndex: "category_id",
       key: "category_id",
+
       render: (categoryId: number) => {
         const category = categories.find((cat) => cat.id === categoryId);
         return category ? category.name : "N/A";
       },
     },
-    { title: "Stock", dataIndex: "stock", key: "stock" },
-    { title: "Price", dataIndex: "price", key: "price" },
+    { title: "Số lượng", dataIndex: "stock", key: "stock" },
+    { title: "Giá", dataIndex: "price", key: "price" },
     {
-      title: "Size",
+      title: "Kích thước",
       dataIndex: "size_id",
       key: "size_id",
+
       render: (sizeId: number) => {
         const size = sizes.find((s) => s.id === sizeId);
         return size ? size.size_name : "N/A";
       },
     },
     {
-      title: "Color",
+      title: "Màu sắc",
       dataIndex: "color_id",
       key: "color_id",
+
       render: (colorId: number) => {
         const color = colors.find((c) => c.id === colorId);
         return color ? color.color_name : "N/A";
       },
     },
+
+    {
+      title: "Kích hoạt",
+      dataIndex: "is_active",
+      key: "is_active",
+      render: (active: boolean) => (active ? "Có" : "Không"),
+    },
+
     {
       title: "Active",
       dataIndex: "is_active",
@@ -224,15 +239,20 @@ const Products: React.FC = () => {
       key: "image",
       render: (image: { image_url: string }) => (
         <img
-          style={{ width: "70px", height: "60px" }}
-          src={`http://127.0.0.1:8000/storage/${image.image_url}`}
-          alt={`Product`}
+          src={
+            image
+              ? `http://127.0.0.1:8000/storage/${image}`
+              : `http://127.0.0.1:8000/storage/${image}`
+          }
+          alt="Ảnh sản phẩm"
+          style={{ width: "100px", height: "auto" }}
         />
       ),
     },
     {
-      title: "Actions",
+      title: "Thao tác",
       key: "actions",
+
       render: (record: Product) => (
         <>
           <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
@@ -252,11 +272,12 @@ const Products: React.FC = () => {
         <Input
           value={searchText}
           onChange={handleSearchChange}
-          placeholder="Search by name, SKU, or description"
+          placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
           prefix={<SearchOutlined />}
         />
+
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Add Product
+          Thêm sản phẩm
         </Button>
       </Space>
 
@@ -264,7 +285,7 @@ const Products: React.FC = () => {
 
       <Modal
         open={isModalVisible}
-        title={currentProduct ? "Edit Product" : "Add Product"}
+        title={currentProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
@@ -285,26 +306,27 @@ const Products: React.FC = () => {
           onFinish={handleSubmit}
         >
           <Form.Item
-            label="Name"
+            label="Tên sản phẩm"
             name="name"
-            rules={[{ required: true, message: "Please input product name!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="SKU"
+            label="Mã sản phẩm "
             name="sku"
-            rules={[{ required: true, message: "Please input SKU!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập SKU!" }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item label="Description" name="description">
+          <Form.Item label="Mô tả" name="description">
             <Input.TextArea />
           </Form.Item>
+
           <Form.Item
-            label="Category"
+            label="Danh mục"
             name="category_id"
-            rules={[{ required: true, message: "Please select category!" }]}
+            rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
           >
             <Select>
               {categories.map((category) => (
@@ -314,7 +336,7 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Size" name="size_id">
+          <Form.Item label="Kích thước" name="size_id">
             <Select>
               {sizes.map((size) => (
                 <Select.Option key={size.id} value={size.id}>
@@ -323,7 +345,7 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Color" name="color_id">
+          <Form.Item label="Màu sắc" name="color_id">
             <Select>
               {colors.map((color) => (
                 <Select.Option key={color.id} value={color.id}>
@@ -332,33 +354,38 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item label="Stock" name="stock">
+          <Form.Item
+            label="Số lượng"
+            name="stock"
+            rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item label="Price" name="price">
+          <Form.Item
+            label="Giá"
+            name="price"
+            rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item label="Active" name="is_active" valuePropName="checked">
+          <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Form.Item label="Image" name="image">
+          <Form.Item label="Hình ảnh" name="image_url">
             <Upload
-              fileList={fileList}
-              onChange={({ fileList: newFileList }) => setFileList(newFileList)}
+              listType="picture"
               beforeUpload={(file) => {
                 setImageFile(file);
                 return false;
-              }} // Update the imageFile state
-              showUploadList={false}
+              }}
+              onRemove={() => setImageFile(null)}
             >
-              <Button icon={<UploadOutlined />}>Select File</Button>
+              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
             </Upload>
-            {imageFile && <div>Selected Image: {imageFile.name}</div>}{" "}
-            {/* Display file name */}
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {currentProduct ? "Save Changes" : "Create Product"}
+              Lưu
             </Button>
           </Form.Item>
         </Form>

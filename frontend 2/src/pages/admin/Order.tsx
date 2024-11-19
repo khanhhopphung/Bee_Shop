@@ -156,9 +156,20 @@ const Orders: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập!");
+      return;
+    }
+
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/orders/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/api/orders/${id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+        },
+      });
       message.success("Order deleted successfully");
+
       fetchOrders(); // Refresh the list
     } catch (error) {
       message.error("Failed to delete order");
@@ -166,13 +177,25 @@ const Orders: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập!");
+      return;
+    }
+
     try {
       if (currentOrder) {
         await axios.put(
           `http://127.0.0.1:8000/api/orders/${currentOrder.id}`,
-          values
+          values,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+            },
+          }
         );
         message.success("Order updated successfully");
+
         fetchOrders(); // Refresh orders after updating
       }
       setIsModalVisible(false);

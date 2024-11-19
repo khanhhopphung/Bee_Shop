@@ -32,7 +32,7 @@ const UserPage: React.FC = () => {
       const response = await axios.get("http://127.0.0.1:8000/api/users");
       setUsers(response.data);
     } catch (error) {
-      message.error("Failed to fetch users");
+      message.error("Lấy danh sách người dùng thất bại");
     } finally {
       setLoading(false);
     }
@@ -46,10 +46,10 @@ const UserPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/users/${id}`);
-      message.success("User deleted successfully");
+      message.success("Xóa người dùng thành công");
       fetchUsers(); // Refetch users after delete
     } catch (error) {
-      message.error("Failed to delete user");
+      message.error("Xóa người dùng thất bại");
     }
   };
 
@@ -60,10 +60,10 @@ const UserPage: React.FC = () => {
         ...user,
         is_active: !user.is_active,
       });
-      message.success("User status updated successfully");
+      message.success("Cập nhật trạng thái người dùng thành công");
       fetchUsers();
     } catch (error) {
-      message.error("Failed to update user status");
+      message.error("Cập nhật trạng thái người dùng thất bại");
     }
   };
 
@@ -87,18 +87,18 @@ const UserPage: React.FC = () => {
           `http://127.0.0.1:8000/api/users/${currentUser.id}`,
           data
         );
-        message.success("User updated successfully");
+        message.success("Cập nhật người dùng thành công");
       } else {
         // Create new user
         await axios.post("http://127.0.0.1:8000/api/register", data);
-        message.success("User created successfully");
+        message.success("Tạo người dùng thành công");
       }
 
       setIsModalVisible(false);
       fetchUsers(); // Refetch users after submit
       form.resetFields(); // Reset form fields
     } catch (error) {
-      message.error("Failed to save user");
+      message.error("Lưu người dùng thất bại");
     }
   };  // Show modal for add/edit
   const handleAdd = () => {
@@ -126,7 +126,7 @@ const UserPage: React.FC = () => {
       key: "id",
     },
     {
-      title: "Username",
+      title: "Tên người dùng",
       dataIndex: "username",
       key: "username",
     },
@@ -136,32 +136,32 @@ const UserPage: React.FC = () => {
       key: "email",
     },
     {
-      title: "Phone",
+      title: "Số điện thoại",
       dataIndex: "phone",
       key: "phone",
     },
     {
-      title: "Role ID",
+      title: "Mã vai trò",
       dataIndex: "role_id",
       key: "role_id",
     },
     {
-      title: "Tier ID",
+      title: "Mã cấp bậc",
       dataIndex: "tier_id",
       key: "tier_id",
     },
     {
-      title: "Points Total",
+      title: "Tổng điểm",
       dataIndex: "points_total",
       key: "points_total",
     },
     {
-      title: "Total Spent",
+      title: "Tổng chi tiêu",
       dataIndex: "total_spent",
       key: "total_spent",
     },
     {
-      title: "Active",
+      title: "Trạng thái",
       dataIndex: "is_active",
       key: "is_active",
       render: (is_active: boolean, user: User) => (
@@ -172,7 +172,7 @@ const UserPage: React.FC = () => {
       ),
     },
     {
-      title: "Actions",
+      title: "Hành động",
       key: "actions",
       render: (user: User) => (
         <>
@@ -194,7 +194,7 @@ const UserPage: React.FC = () => {
   return (
     <div>
       <Input.Search
-        placeholder="Search users by username"
+        placeholder="Tìm kiếm người dùng theo tên"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         style={{ marginBottom: 16, width: 300 }}
@@ -205,7 +205,7 @@ const UserPage: React.FC = () => {
         onClick={handleAdd}
         style={{ marginBottom: 16 }}
       >
-        Add User
+        Thêm người dùng
       </Button>
       <Table
         columns={columns}
@@ -215,7 +215,7 @@ const UserPage: React.FC = () => {
       />
       <Modal
         open={isModalVisible}
-        title={currentUser ? "Edit User" : "Add User"}
+        title={currentUser ? "Chỉnh sửa người dùng" : "Thêm người dùng"}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
@@ -225,54 +225,54 @@ const UserPage: React.FC = () => {
         <Form form={form} onFinish={handleSubmit}>
           <Form.Item
             name="username"
-            label="Username"
-            rules={[{ required: true, message: "Please input username" }]}
+            label="Tên người dùng"
+            rules={[{ required: true, message: "Vui lòng nhập tên người dùng" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="email" label="Email"
-            rules={[{ required: true, message: "Please input email" }]}
+            rules={[{ required: true, message: "Vui lòng nhập email" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="phone"
-            label="Phone"
-            rules={[{ required: true, message: "Please input phone" }]}
+            label="Số điện thoại"
+            rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="role_id"
-            label="Role ID"
-            rules={[{ required: true, message: "Please input role ID" }]}
+            label="Mã vai trò"
+            rules={[{ required: true, message: "Vui lòng nhập mã vai trò" }]}
           >
             <Input type="number" />
           </Form.Item>
           <Form.Item
             name="tier_id"
-            label="Tier ID"
-            rules={[{ required: true, message: "Please input tier ID" }]}
+            label="Mã cấp bậc"
+            rules={[{ required: true, message: "Vui lòng nhập mã cấp bậc" }]}
           >
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="points_total" label="Points Total">
+          <Form.Item name="points_total" label="Tổng điểm">
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="total_spent" label="Total Spent">
+          <Form.Item name="total_spent" label="Tổng chi tiêu">
             <Input type="number" />
           </Form.Item>
           <Form.Item
             name="is_active"
-            label="Active"
+            label="Trạng thái"
             valuePropName="checked"
             initialValue={true}
           >
             <Switch />
           </Form.Item>
           <Button type="primary" htmlType="submit">
-            Submit
+            Lưu
           </Button>
         </Form>
       </Modal>
