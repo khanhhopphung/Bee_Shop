@@ -4,9 +4,10 @@ import { AppDispatch } from "../store/store";
 import { RootState } from "../store/store";
 import { addToFavorites, removeFromFavorites } from "../store/favoriteSlice";
 import { useDispatch, useSelector } from "react-redux";
+import Heart from "./Heart";
 
 type Props = {
-  id: number | string;
+  id: number;
   name: string;
   price: string;
   image: { image_url: string };
@@ -56,25 +57,9 @@ const ProductItem = (props: Props) => {
 
             <span className="stext-105 cl3">{price.toLocaleString()}₫</span>
           </div>
+
           <div className="block2-txt-child2 flex-r p-t-3">
-            <a
-              href="#"
-              className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
-              onClick={(e) => {
-                e.preventDefault(); // Ngăn tải lại trang
-                handleFavoriteToggle();
-              }}
-            >
-              <img
-                className="icon-heart1 dis-block trans-04"
-                src={
-                  isFavorite
-                    ? "images/icons/icon-heart-02.png"
-                    : "images/icons/icon-heart-01.png"
-                }
-                alt="ICON"
-              />
-            </a>
+            <Heart product_id={id} />
           </div>
         </div>
       </div>
