@@ -36,11 +36,12 @@ import ProductVariants from "./pages/admin/ProductVariant";
 
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
-import FavoriteList from "./pages/client/FavoriteList";
+import FavoriteList from "./pages/client/WishList";
 import Comment from "./components/Comment";
 import OrderList from "./pages/client/OrderList";
 import Voucher from "./pages/client/Voucher";
 import User from "./pages/admin/User";
+import WishList from "./pages/client/WishList";
 
 interface CartItem {
   product_id: any;
@@ -231,7 +232,7 @@ const App: React.FC = () => {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/update-password" element={<UpdatePass />} />
           <Route path="/adrress" element={<Adrress />} />
-          <Route path="/favorite" element={<FavoriteList />} />
+          <Route path="/wishlist" element={<WishList />} />
           <Route path="/comment" element={<Comment />} />
           <Route path="/order-list" element={<OrderList />} />
           <Route path="/voucher" element={<Voucher />} />

@@ -83,7 +83,7 @@ const AccountDropdown: React.FC<Props> = ({ userName, onLogout }) => {
               >
                 Lịch sử đơn hàng
               </div>
-              <Link to={`/favorite`}>
+              <Link to={`/wishlist`}>
                 <div
                   className="dropdown-item"
                   style={{

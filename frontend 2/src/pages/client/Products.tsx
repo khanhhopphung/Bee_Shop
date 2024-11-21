@@ -7,15 +7,26 @@ import { RootState } from "../../store/store";
 import { setSearchRedux } from "../../store/searchSlice";
 import { AppDispatch } from "../../store/store";
 import { addToFavorites, removeFromFavorites } from "../../store/favoriteSlice";
-
+// import Heart from "../../components/Heart";
+interface Product {
+  id: number;
+  name: string;
+  price: string;
+  image: { image_url: string };
+  category_id: number;
+  category: string;
+}
 const Products: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All Products");
   const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const key = useSelector((state: RootState) => state.Search.key);
+  const [list, setList] = useState([]);
+  const [currentPage, setCurrentPage] = useState<number>(1); // Trạng thái cho trang hiện tại
+  const productsPerPage = 12;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -31,8 +42,7 @@ const Products: React.FC = () => {
 
         // Kiểm tra nếu có dữ liệu và nó là một mảng
         if (result && result.data && Array.isArray(result.data)) {
-          console.log(result.data.slice(0, 8)); // Log 8 sản phẩm đầu tiên
-          setProducts(result.data.slice(0, 8)); // Lưu 8 sản phẩm vào state
+          setProducts(result.data);
         } else {
           console.error("Data is not valid:", result);
         }
@@ -59,6 +69,17 @@ const Products: React.FC = () => {
   const toggleVisibility = () => {
     setIsVisible(!isVisible);
   };
+
+  // Cập nhật trang khi người dùng thay đổi
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Tính toán các sản phẩm hiển thị trong trang hiện tại
+  const currentPageProducts = products.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
   // Hàm lọc sản phẩm
   // const filteredProducts = products
   //   .filter(
@@ -322,7 +343,7 @@ const Products: React.FC = () => {
 
         {/* Danh sách sản phẩm */}
         <div className="row isotope-grid">
-          {products
+          {currentPageProducts
             .filter(
               (product) =>
                 selectedFilter === "All Products" ||
@@ -332,14 +353,18 @@ const Products: React.FC = () => {
               product.name.toLowerCase().includes(key.toLowerCase())
             )
             .map((product) => (
-              // <>{console.log(product)}</>
               <ProductItem key={product.id} {...product} />
             ))}
         </div>
 
-        {/* Nút tải thêm sản phẩm */}
+        {/* Phân trang */}
         <div className="flex-c-m flex-w w-full p-t-45">
-          <Pagination defaultCurrent={6} total={100} />
+          <Pagination
+            current={currentPage}
+            total={products.length}
+            pageSize={productsPerPage}
+            onChange={handlePageChange} // Cập nhật trang khi người dùng chọn
+          />
         </div>
       </div>
     </div>
