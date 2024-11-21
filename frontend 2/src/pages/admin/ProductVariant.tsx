@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Select } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Select, Switch } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
@@ -11,28 +11,54 @@ interface ProductVariant {
   price: number;
   stock: number;
   is_active: boolean;
+  image_url: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+}
+
+interface Size {
+  id: number;
+  size_name: string;
+}
+
+interface Color {
+  id: number;
+  color_name: string;
 }
 
 const ProductVariants: React.FC = () => {
-  const [productVariants, setProductVariants] = useState<ProductVariant[]>([]);
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentVariant, setCurrentVariant] = useState<ProductVariant | null>(null);
   const [loading, setLoading] = useState(false);
-  const [sizes, setSizes] = useState<any[]>([]);
-  const [colors, setColors] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>(''); // Thêm state searchTerm
-  const [form] = Form.useForm();
+  const [image, setImage] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Fetch product variants, sizes, and colors from API
-  const fetchProductVariants = async () => {
+  // Lấy dữ liệu từ API
+  const fetchVariants = async () => {
     setLoading(true);
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/product-variants');
-      setProductVariants(response.data.data || []);
+      setVariants(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load product variants');
+      message.error('Không thể tải danh sách biến thể sản phẩm');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/api/products');
+      setProducts(response.data.data || []);
+    } catch (error) {
+      message.error('Không thể tải danh sách sản phẩm');
     }
   };
 
@@ -41,7 +67,7 @@ const ProductVariants: React.FC = () => {
       const response = await axios.get('http://127.0.0.1:8000/api/sizes');
       setSizes(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load sizes');
+      message.error('Không thể tải danh sách kích thước');
     }
   };
 
@@ -50,108 +76,112 @@ const ProductVariants: React.FC = () => {
       const response = await axios.get('http://127.0.0.1:8000/api/colors');
       setColors(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load colors');
+      message.error('Không thể tải danh sách màu sắc');
     }
   };
 
   useEffect(() => {
-    fetchProductVariants();
+    fetchVariants();
+    fetchProducts();
     fetchSizes();
     fetchColors();
   }, []);
 
-  // Lọc danh sách productVariants dựa trên từ khóa tìm kiếm
-  const filteredVariants = productVariants.filter((variant) => {
-    const size = sizes.find((s) => s.id === variant.size_id)?.size_name || '';
-    const color = colors.find((c) => c.id === variant.color_id)?.color_name || '';
-    
-    return (
-      size.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      color.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      variant.price.toString().includes(searchTerm) ||
-      variant.stock.toString().includes(searchTerm)
-    );
-  });
-
   const handleAdd = () => {
     setCurrentVariant(null);
-    form.resetFields();
     setIsModalVisible(true);
+    setImage(null);
   };
 
   const handleEdit = (variant: ProductVariant) => {
     setCurrentVariant(variant);
-    form.setFieldsValue(variant);
     setIsModalVisible(true);
+    setImage(null);
   };
 
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/product-variants/${id}`);
-      message.success('Product variant deleted successfully');
-      fetchProductVariants();
+      message.success('Xóa biến thể sản phẩm thành công');
+      fetchVariants();
     } catch (error) {
-      message.error('Failed to delete product variant');
+      message.error('Không thể xóa biến thể sản phẩm');
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImage(file);
     }
   };
 
   const handleSubmit = async (values: any) => {
+    const formData = new FormData();
+    formData.append('product_id', values.product_id);
+    formData.append('size_id', values.size_id);
+    formData.append('color_id', values.color_id);
+    formData.append('price', values.price);
+    formData.append('stock', values.stock);
+    formData.append('is_active', values.is_active ? '1' : '0');
+    if (image) {
+      formData.append('image', image);
+    }
+
     try {
-      const data = {
-        product_id: currentVariant ? currentVariant.product_id : 1,
-        ...values,
-      };
-
       if (currentVariant) {
-        await axios.put(`http://127.0.0.1:8000/api/product-variants/${currentVariant.id}`, data);
-        message.success('Product variant updated successfully');
+        await axios.put(`http://127.0.0.1:8000/api/product-variants/${currentVariant.id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        message.success('Cập nhật biến thể sản phẩm thành công');
       } else {
-        await axios.post('http://127.0.0.1:8000/api/product-variants', data);
-        message.success('Product variant created successfully');
+        await axios.post('http://127.0.0.1:8000/api/product-variants', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        message.success('Thêm biến thể sản phẩm thành công');
       }
-
       setIsModalVisible(false);
-      fetchProductVariants();
+      fetchVariants();
     } catch (error) {
-      message.error('Failed to save product variant');
+      message.error('Không thể lưu biến thể sản phẩm');
     }
   };
 
-  // Define table columns with Vietnamese headers
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const filteredVariants = variants.filter(variant =>
+    products.find(p => p.id === variant.product_id)?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sizes.find(s => s.id === variant.size_id)?.size_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    colors.find(c => c.id === variant.color_id)?.color_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'STT',
-      key: 'index',
+      key: 'stt',
       render: (_: any, __: any, index: number) => index + 1,
     },
-    {
-      title: 'Kích Cỡ',
-      dataIndex: 'size_id',
-      key: 'size_id',
-      render: (size_id: number) => {
-        const size = sizes.find((s) => s.id === size_id);
-        return size ? size.size_name : 'Chưa xác định';
-      },
-    },
-    {
-      title: 'Màu Sắc',
-      dataIndex: 'color_id',
-      key: 'color_id',
-      render: (color_id: number) => {
-        const color = colors.find((c) => c.id === color_id);
-        return color ? color.color_name : 'Chưa xác định';
-      },
-    },
+    { title: 'Sản phẩm', dataIndex: 'product_id', key: 'product_id', render: (id: number) => products.find(p => p.id === id)?.name || 'N/A' },
+    { title: 'Kích thước', dataIndex: 'size_id', key: 'size_id', render: (id: number) => sizes.find(s => s.id === id)?.size_name || 'N/A' },
+    { title: 'Màu sắc', dataIndex: 'color_id', key: 'color_id', render: (id: number) => colors.find(c => c.id === id)?.color_name || 'N/A' },
     { title: 'Giá', dataIndex: 'price', key: 'price' },
-    { title: 'Số Lượng', dataIndex: 'stock', key: 'stock' },
+    { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
+    { title: 'Hoạt động', dataIndex: 'is_active', key: 'is_active', render: (is_active: boolean) => (is_active ? 'Có' : 'Không') },
     {
-      title: 'Hoạt Động',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (is_active: boolean) => (is_active ? 'Có' : 'Không'),
+      title: 'Hình ảnh',
+      key: 'image',
+      render: (record: ProductVariant) => (
+        <img
+          src={record.image_url ? `http://127.0.0.1:8000/storage/${record.image_url}` : ''}
+          alt="Hình sản phẩm"
+          style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+        />
+      )
     },
     {
-      title: 'Hành Động',
+      title: 'Hành động',
       key: 'actions',
       render: (record: ProductVariant) => (
         <>
@@ -164,72 +194,48 @@ const ProductVariants: React.FC = () => {
 
   return (
     <div>
-      {/* Ô tìm kiếm */}
       <Input.Search
-        placeholder="Tìm kiếm theo kích cỡ, màu, giá hoặc số lượng"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        onSearch={(value) => setSearchTerm(value)}
-        style={{ width: 300, marginBottom: 16 }}
+        placeholder="Tìm kiếm sản phẩm, kích thước, hoặc màu sắc"
+        onSearch={handleSearch}
+        style={{ marginBottom: 16, maxWidth: 300 }}
       />
-
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAdd}
-        style={{ marginBottom: 16 }}
-      >
-        Thêm Mới
+      <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} style={{ marginBottom: 16 }}>
+        Thêm biến thể sản phẩm
       </Button>
-      <Table
-        columns={columns}
-        dataSource={filteredVariants}
-        rowKey="id"
-        loading={loading}
-      />
-
-      <Modal
-        open={isModalVisible}
-        title={currentVariant ? 'Chỉnh Sửa Biến Thể Sản Phẩm' : 'Thêm Biến Thể Sản Phẩm'}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
-        <Form form={form} onFinish={handleSubmit}>
-          <Form.Item
-            name="size_id"
-            label="Kích Cỡ"
-            rules={[{ required: true, message: 'Vui lòng chọn kích cỡ' }]}
-          >
-            <Select>
-              {sizes.map((size) => (
-                <Select.Option key={size.id} value={size.id}>
-                  {size.size_name}
-                </Select.Option>
-              ))}
-            </Select>
+      <Table columns={columns} dataSource={filteredVariants} rowKey="id" loading={loading} />
+      <Modal open={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
+        <Form initialValues={currentVariant || {}} onFinish={handleSubmit}>
+          <Form.Item name="product_id" label="Sản phẩm" rules={[{ required: true }]}>
+            <Select>{products.map(p => <Select.Option key={p.id} value={p.id}>{p.name}</Select.Option>)}</Select>
           </Form.Item>
-          <Form.Item
-            name="color_id"
-            label="Màu Sắc"
-            rules={[{ required: true, message: 'Vui lòng chọn màu sắc' }]}
-          >
-            <Select>
-              {colors.map((color) => (
-                <Select.Option key={color.id} value={color.id}>
-                  {color.color_name}
-                </Select.Option>
-              ))}
-            </Select>
+          <Form.Item name="size_id" label="Kích thước" rules={[{ required: true }]}>
+            <Select>{sizes.map(s => <Select.Option key={s.id} value={s.id}>{s.size_name}</Select.Option>)}</Select>
+          </Form.Item>
+          <Form.Item name="color_id" label="Màu sắc" rules={[{ required: true }]}>
+            <Select>{colors.map(c => <Select.Option key={c.id} value={c.id}>{c.color_name}</Select.Option>)}</Select>
           </Form.Item>
           <Form.Item name="price" label="Giá" rules={[{ required: true }]}>
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="stock" label="Số Lượng" rules={[{ required: true }]}>
+          <Form.Item name="stock" label="Tồn kho" rules={[{ required: true }]}>
             <Input type="number" />
           </Form.Item>
-          <Button type="primary" htmlType="submit">
-            Gửi
-          </Button>
+          <Form.Item name="is_active" label="Hoạt động" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item label="Hình ảnh">
+            {currentVariant && currentVariant.image_url ? (
+              <img
+                src={`http://127.0.0.1:8000/storage/${currentVariant.image_url}`}
+                alt="Hình hiện tại"
+                style={{ width: '100px', height: '100px', objectFit: 'cover', marginBottom: '10px' }}
+              />
+            ) : (
+              <p>Chưa có hình ảnh</p>
+            )}
+            <input type="file" onChange={handleImageUpload} />
+          </Form.Item>
+          <Button type="primary" htmlType="submit">Lưu</Button>
         </Form>
       </Modal>
     </div>
