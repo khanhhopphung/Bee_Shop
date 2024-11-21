@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Link } from "react-router-dom";
 import Heart from "../../components/Heart";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 type Blog = {
   id: number;
   title: string;
@@ -232,7 +233,7 @@ const Home: React.FC = () => {
                       {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
 
                       <div className="flex-w flex-sb-m p-l-15 p-r-15">
-                        {/* Sản phẩm 2 */}
+                        {/* Sản phẩm  */}
                         {products.map((product) => (
                           <div
                             key={product.id}
@@ -286,6 +287,14 @@ const Home: React.FC = () => {
                 </div>
                 {/* Các tab khác */}
               </div>
+              <div className="flex-c-m flex-w w-full p-t-45">
+                <a
+                  href="/products"
+                  className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
+                >
+                  Xem tất cả
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -330,57 +339,6 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               ))}
-
-              {/* Bài blog 2 */}
-              {/* <div className="col-sm-6 col-md-4 p-b-40">
-                <div className="blog-item">
-                  <div className="hov-img0">
-                    <a href="/">
-                      <img src="images/blog-02.jpg" alt="IMG-BLOG" />
-                    </a>
-                  </div>
-                  <div className="p-t-15">
-                    <h4 className="p-b-5">
-                      <a href="/" className="mtext-101 cl2 hov-cl1 trans-04">
-                        The Great Big List of Men’s Gifts for the Holidays
-                      </a>
-                    </h4>
-                    <span className="stext-108 cl6 p-t-10">
-                      By Admin on February 12, 2018
-                    </span>
-                    <p className="stext-108 cl6 p-t-10">
-                      Duis ut velit gravida nibh bibendum commodo. Suspendisse
-                      pellentesque mattis augue id euismod. Interdum et
-                      malesuada fames.
-                    </p>
-                  </div>
-                </div>
-              </div> */}
-
-              {/* Bài blog 3 */}
-              {/* <div className="col-sm-6 col-md-4 p-b-40">
-                <div className="blog-item">
-                  <div className="hov-img0">
-                    <a href="/">
-                      <img src="images/blog-03.jpg" alt="IMG-BLOG" />
-                    </a>
-                  </div>
-                  <div className="p-t-15">
-                    <h4 className="p-b-5">
-                      <a href="/" className="mtext-101 cl2 hov-cl1 trans-04">
-                        5 Winter-to-Spring Fashion Trends to Try Now
-                      </a>
-                    </h4>
-                    <span className="stext-108 cl6 p-t-10">
-                      By Admin on March 05, 2018
-                    </span>
-                    <p className="stext-108 cl6 p-t-10">
-                      Proin nec vehicula lorem, a efficitur ex. Nam vehicula
-                      nulla vel erat efficitur, sit amet maximus felis varius.
-                    </p>
-                  </div>
-                </div>
-              </div> */}
             </div>
           </div>
         </section>

@@ -18,11 +18,15 @@ class Review extends Model
     ];
 
     // Thiết lập mối quan hệ với User
+    // public function user()
+    // {
+    //     return $this->belongsTo(User::class);
+    // }
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
-
+    
     // Thiết lập mối quan hệ với Product
     public function product()
     {
