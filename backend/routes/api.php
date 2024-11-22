@@ -61,8 +61,7 @@ Route::apiResource('colors', ColorController::class);
 Route::apiResource('sizes', SizeController::class);
 Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
-
-
+Route::get('get-reviews-by-product/{productId}', [ReviewController::class,'getAllReviewByProduct']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/get-adrress-user', [UserController::class,'allAddressesUser']);
@@ -70,6 +69,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/delete-address-user/{id}', [UserController::class,'deleteAddress']);
     Route::post('/post-address-user', [UserController::class,'addAddress']);
     Route::get('/show-user', [UserController::class,'showUser']);
+    Route::post('/check', [PromotionController::class,'check']);
+
 
 
 });

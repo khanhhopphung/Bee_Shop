@@ -1,76 +1,70 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addToFavorites } from "../store/favoriteSlice";
+import {
+  addToFavorites,
+  removeFromFavorites,
+  setquantityFavorites,
+} from "../store/favoriteSlice";
 import { RootState } from "../store/store";
+import { message } from "antd";
 
 interface Props {
-  product_id: string;
+  product_id: number;
 }
 
 const Heart: React.FC<Props> = ({ product_id }) => {
+  if (!localStorage.getItem("favorites")) {
+    localStorage.setItem("favorites", JSON.stringify([]));
+  }
+
   const dispatch = useDispatch();
   const ids = useSelector((state: RootState) => state.favorites.items);
   const token = localStorage.getItem("access_token");
+  const isFavorite = ids.includes(product_id);
+  console.log(ids.length);
 
-  // Local state để kiểm soát trạng thái yêu thích
-  const [isFavorite, setIsFavorite] = useState(false);
+  const toggleHeart = async (id: number) => {
+    let updatedFavorites = [...ids];
 
-  // Kiểm tra trạng thái yêu thích khi component được render lần đầu
-  useEffect(() => {
-    const storedFavorites = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    );
-    setIsFavorite(storedFavorites.includes(product_id));
-  }, [product_id]);
+    if (isFavorite) {
+      // Xóa yêu thích
+      updatedFavorites = updatedFavorites.filter((favId) => favId !== id);
 
-  const toggleHeart = (id: string) => {
-    const updatedFavorites = [...ids]; // Bắt đầu từ danh sách hiện tại
-    const addFavorite = async (id: number) => {
-      const res = await fetch("http://127.0.0.1:8000/api/wishlist", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        method: "POST",
-        body: JSON.stringify({ id }),
-      });
-    };
-
-    const removeFavorite = async (id: number) => {
-      const res = await fetch("http://127.0.0.1:8000/api/wishlist", {
+      // Gửi request xóa
+      await fetch(`http://127.0.0.1:8000/api/wishlist/${id}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         method: "DELETE",
-        body: JSON.stringify({ id }),
       });
-    };
-
-    if (isFavorite) {
-      // Nếu đã yêu thích, xóa khỏi danh sách
-      const index = updatedFavorites.indexOf(id);
-      if (index > -1) updatedFavorites.splice(index, 1);
-      console.log("xóa");
-      // addFavorite(Number(id));
+      dispatch(removeFromFavorites(id));
+      dispatch(setquantityFavorites(ids.length));
+      message.success("Đã xóa sản phẩm khỏi danh sách yêu thích!");
     } else {
-      // Nếu chưa yêu thích, thêm vào danh sách
+      // Thêm yêu thích
       updatedFavorites.push(id);
-      // removeFavorite(Number(id));
-      console.log("thêm");
+
+      // Gửi request thêm
+      await fetch("http://127.0.0.1:8000/api/wishlist", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        method: "POST",
+        body: JSON.stringify({ product_id: id }),
+      });
+      // dispatch(addToFavorites([...ids, id]));
+      dispatch(setquantityFavorites(ids.length));
+
+      message.success("Đã thêm sản phẩm vào danh sách yêu thích!");
     }
 
-    // Cập nhật Redux state và localStorage
-    dispatch(addToFavorites(id));
+    // Cập nhật Redux và localStorage
+    dispatch(addToFavorites(updatedFavorites));
+
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-
-    // Cập nhật trạng thái local
-    setIsFavorite(!isFavorite);
   };
-
-  useEffect(() => {
-    console.log("Danh sách yêu thích:", ids);
-  }, [ids]);
 
   return (
     <div>
@@ -81,18 +75,18 @@ const Heart: React.FC<Props> = ({ product_id }) => {
             isFavorite ? "js-addedwish-b2" : ""
           }`}
           onClick={(e) => {
-            e.preventDefault(); // Ngăn việc reload trang
+            e.preventDefault();
             toggleHeart(product_id);
           }}
         >
           <img
             className="icon-heart1 dis-block trans-04"
-            src="images/icons/icon-heart-01.png"
+            src="/images/icons/icon-heart-01.png"
             alt="ICON"
           />
           <img
             className="icon-heart2 dis-block trans-04 ab-t-l"
-            src="images/icons/icon-heart-02.png"
+            src="/images/icons/icon-heart-02.png"
             alt="ICON"
           />
         </a>

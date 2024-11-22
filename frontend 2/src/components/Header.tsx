@@ -21,6 +21,11 @@ const Header: React.FC<Props> = ({ quantity }) => {
   const quantityCart = useSelector(
     (state: RootState) => state.quantity.quantity
   );
+  const quantityFavorites = useSelector(
+    (state: RootState) => state.favorites.quantity
+  );
+  const ids = useSelector((state: RootState) => state.favorites.items);
+
   const [categories, setCategories] = useState<Category[]>([]);
 
   // console.log(useSelector((state: RootState) => state.quantity));
@@ -199,7 +204,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
                   <Link to="/contact">Liên hệ</Link>
                 </li>
                 <li>
-                  <Link to="/blog">Bài viết</Link>
+                  <Link to="/blogs">Bài viết</Link>
                 </li>
               </ul>
             </div>
@@ -242,10 +247,11 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 </div>
                 <div
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
-                  data-notify={10}
+                  data-notify={ids.length}
+                  style={{ color: "red" }}
                 >
                   <Link
-                    to="/favorite"
+                    to="/wishlist"
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
                     <i className="fa-solid fa-heart"></i>
@@ -316,7 +322,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
             </a>
           </li>
           <li>
-            <a href="blog.html">Bài viết</a>
+            <a href="/blogs">Bài viết</a>
           </li>
           <li>
             <a href="about.html">About</a>

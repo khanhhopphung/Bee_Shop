@@ -4,6 +4,7 @@ import { Button, Form, Input, List, Modal, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import AddAddress from "../../components/AddAddress";
+import axios from "axios";
 interface Cart {
   id: number;
   cart_id: number;
@@ -34,7 +35,7 @@ interface Cart {
     product_id: number;
     size_id: number;
     color_id: number;
-    price: number | string;
+    price: number;
     stock: number;
     size: {
       id: number;
@@ -59,7 +60,7 @@ interface Address {
 }
 interface Order {
   total_amount: number;
-  promotion_id: number | string | null;
+  promotion_id: number | undefined;
   address_id: number;
   payment_method: string;
   shipping_cost: number;
@@ -68,7 +69,7 @@ interface Order {
 
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
-
+  const [isFirstPage, setIsFirstPage] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const cartDetailIdsRedux = useSelector(
     (state: RootState) => state.CartDetail.ids
@@ -85,7 +86,9 @@ const PaymentPage: React.FC = () => {
   const [loading, setLoading] = useState(false); // Thêm trạng thái loading
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [code, setCode] = useState("");
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [idVoucher, setIdVoucher] = useState<number>();
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
@@ -100,11 +103,9 @@ const PaymentPage: React.FC = () => {
   }, [address]);
 
   const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const total = carts.reduce((sum, cart) => {
-    return sum + cart.product.price * cart.quantity;
-  }, 0);
 
   const checkPrime = (e: any, id: number | string) => {
+    console.log("run");
     if (e.target.checked) {
       id = Number(id);
       setAddressId(id);
@@ -148,11 +149,21 @@ const PaymentPage: React.FC = () => {
       message.error("Đã có lỗi khi tải mã giảm giá");
     }
   };
-
-  // Sử dụng useEffect để gọi API khi component mount
   useEffect(() => {
     fetchDiscountCodes();
   }, []);
+  // Sử dụng useEffect để gọi API khi component mount
+  useEffect(() => {
+    fetchDiscountCodes();
+    setIsFirstPage(false);
+  }, []);
+  useEffect(() => {
+    setTotalAmount(
+      carts.reduce((sum, cart) => {
+        return sum + cart.product_variant.price * cart.quantity;
+      }, 0)
+    );
+  }, [carts]);
   // call api update địa chỉ
   const updateAddress = async () => {
     // try {
@@ -173,11 +184,32 @@ const PaymentPage: React.FC = () => {
     }
   };
   useEffect(() => {
-    console.log(addressId);
-
-    updateAddress();
+    if (isFirstPage == false) {
+      console.log("running first page");
+      updateAddress();
+    }
+    console.log("dont running first page");
   }, [addressId]);
   // call api chi tiết giỏ hàng
+
+  // call api địa chỉ người dùng
+  const get = async () => {
+    // try {
+    const response = await fetch(`http://127.0.0.1:8000/api/get-adrress-user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setAddress(data.data);
+    }
+    // } catch (error) {
+    //   message.error("Đã có lỗi xảy ");
+    // }
+  };
   useEffect(() => {
     const get = async (ids: number[]) => {
       // try {
@@ -199,27 +231,8 @@ const PaymentPage: React.FC = () => {
     };
     get(savedCartDetailOrder);
   }, []);
-  // call api địa chỉ người dùng
-  const get = async () => {
-    // try {
-    const response = await fetch(`http://127.0.0.1:8000/api/get-adrress-user`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setAddress(data.data);
-    }
-    // } catch (error) {
-    //   message.error("Đã có lỗi xảy ");
-    // }
-  };
-  useEffect(() => {
-    console.log("run1");
 
+  useEffect(() => {
     get();
   }, [addressId]);
   // Hàm mở modal
@@ -241,8 +254,8 @@ const PaymentPage: React.FC = () => {
       return;
     }
     const orderData: Order = {
-      total_amount: total,
-      promotion_id: null,
+      total_amount: totalAmount,
+      promotion_id: idVoucher,
       address_id: defaultAddress.id,
       payment_method: paymentMethod,
       shipping_cost: 30000,
@@ -265,7 +278,7 @@ const PaymentPage: React.FC = () => {
         const data = await response.json();
         setOrderdata(data);
         message.success("Đặt hàng thành công!");
-        console.log(data);
+
         navigate(`/ordersuccess/${data.order.id}`);
       } else {
         message.error("Đặt hàng thất bại, vui lòng thử lại.");
@@ -278,6 +291,62 @@ const PaymentPage: React.FC = () => {
   const submit = async () => {
     get();
   };
+
+  const checkVoucher = async () => {
+    if (code.trim() === "") {
+      message.error("Vui lòng nhập mã giảm giá");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code: code }),
+      });
+      const data = await response.json();
+      console.log(data.status);
+
+      if (data.status == false) {
+        // Xử lý khi phản hồi từ server không thành công
+        console.log(data.message);
+        message.error(data.message || "Đã xảy ra lỗi khi kiểm tra mã giảm giá");
+        return;
+      }
+
+      const voucher = data.data;
+      console.log(voucher);
+
+      // Kiểm tra điều kiện sử dụng mã giảm giá
+      if (voucher.min_purchase_amount > totalAmount) {
+        message.error("Tổng giá trị đơn hàng không đủ để áp dụng mã giảm giá");
+        return;
+      }
+
+      if (voucher.discount_type === "percentage") {
+        setIdVoucher(voucher.id);
+        // Áp dụng giảm giá phần trăm
+        setTotalAmount((prev) => prev - (prev * voucher.discount_value) / 100);
+      } else if (voucher.discount_type === "fixed_amount") {
+        setIdVoucher(voucher.id);
+
+        // Áp dụng giảm giá số tiền cố định
+        setTotalAmount((prev) => prev - voucher.discount_value);
+      } else {
+        message.error("Loại mã giảm giá không hợp lệ");
+        return;
+      }
+
+      message.success("Mã giảm giá được áp dụng thành công!");
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra mã giảm giá:", error);
+      message.error("Không thể kiểm tra mã giảm giá. Vui lòng thử lại sau");
+    }
+  };
+
   return (
     <form className="bg0 p-t-75 p-b-85">
       <div className="container">
@@ -334,14 +403,18 @@ const PaymentPage: React.FC = () => {
                             )}
                           </td>
                           <td className="column-3">
-                            {cart.product.price.toLocaleString()}₫
+                            {cart.product_variant.price
+                              ? Number(
+                                  cart.product_variant.price
+                                ).toLocaleString() + "₫"
+                              : "Không xác định"}
                           </td>
                           <td className="column-4">
                             <p>{cart.quantity}</p>
                           </td>
                           <td className="column-5">
                             {(
-                              cart.product.price * cart.quantity
+                              cart.product_variant.price * cart.quantity
                             ).toLocaleString()}
                             ₫
                           </td>
@@ -396,9 +469,13 @@ const PaymentPage: React.FC = () => {
                     type="text"
                     name="coupon"
                     placeholder="Mã giảm giá"
+                    onChange={(e) => setCode(e.target.value)}
                   />
 
-                  <div className="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5">
+                  <div
+                    className="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5"
+                    onClick={checkVoucher}
+                  >
                     Áp dụng
                   </div>
                 </div>
@@ -635,7 +712,7 @@ const PaymentPage: React.FC = () => {
                       color: "red",
                     }}
                   >
-                    {total.toLocaleString()}₫
+                    {totalAmount.toLocaleString()}₫
                   </span>
                 </div>
               </div>

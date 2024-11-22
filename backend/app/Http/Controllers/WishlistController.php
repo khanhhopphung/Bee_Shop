@@ -40,7 +40,7 @@ class WishlistController extends Controller
     // Lấy danh sách yêu thích của người dùng
     public function index()
     {
-        $wishlists = Wishlist::with('product')->where('user_id', auth()->id())->get();
+        $wishlists = Wishlist::with('product.image')->where('user_id', auth()->id())->get();
 
         return response()->json($wishlists);
     }

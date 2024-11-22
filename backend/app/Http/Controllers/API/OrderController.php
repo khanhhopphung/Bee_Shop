@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\User;
+
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Cart;
@@ -14,6 +16,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Http\Controllers\BaseController;
+use App\Models\Product;
+use App\Models\ProductVariant;
 
 class OrderController extends Controller
 {
@@ -198,5 +203,40 @@ class OrderController extends Controller
             "message"=> "update thanh cong"
         ]);
     }
+
+    public function getAllOrderByUser(){
+        try {
+            $user = auth::user();
+            $orders = $user->orders()->get();
+            foreach ($orders as $order){
+                $orderDetails = $order->orderDetails;
+                $order['order_details'] = $orderDetails;
+                foreach ($orderDetails as $orderDetail){
+                    $orderDetail['name'] = Product::find($orderDetail['product_id'])['name'];
+                    $orderDetail['color_name'] = ProductVariant::find($orderDetail['variant_id'])->color()->first()['color_name'];
+                    $orderDetail['size_name'] = ProductVariant::find($orderDetail['variant_id'])->size()->first()['size_name'];
+                    $orderDetail['price_variant'] = ProductVariant::find($orderDetail['variant_id'])['price'];
+                    // $orderDetail['variant'] = ProductVariant::find($orderDetail['variant_id'])->with('size','color')->get();
+
+                }
+            }
+
+            return BaseController::success($orders);
+
+        } 
+        catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Could not create order. Please try again later.',
+                'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trường sản xuất
+                'line'=>$e->getLine(),
+                'file'=>$e->getFile(),
+            ], 500);
+        }
+        
+
+    }
    
+    
+    
+
 }
