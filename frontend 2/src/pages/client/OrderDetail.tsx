@@ -7,35 +7,23 @@ import {
   StarOutlined,
   TruckOutlined,
 } from "@ant-design/icons";
-import { Steps } from "antd";
+import { Steps, Button, Card, Typography, Space, Divider } from "antd";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 interface Order {
   id: number;
   user_id: number;
-  order_date: Date;
-  total_amount: number;
-  promotion_id: null;
+  order_date: string;
+  total_amount: string;
+  promotion_id: null | number;
   status: string;
   address_id: number;
   payment_method: string;
-  shipping_cost: number;
-  created_at: Date;
-  updated_at: Date;
+  shipping_cost: string;
   order_code: string;
-  order_details: [
-    {
-      id: number;
-      order_id: number;
-      product_id: number;
-      variant_id: number;
-      quantity: number;
-      price: number;
-      created_at: number;
-      updated_at: number;
-    }
-  ];
+  name: string;
+  phone: string;
   address: {
     id: number;
     user_id: number;
@@ -44,37 +32,32 @@ interface Order {
     address_line: string;
     city: string;
     state: string;
-    is_default: number;
-    created_at: null;
-    updated_at: number;
   };
+  order_details: {
+    id: number;
+    order_id: number;
+    product_id: number;
+    variant_id: number;
+    quantity: number;
+    price: string;
+  }[];
 }
 
 const OrderDetail = () => {
-  const { id } = useParams<{ id: string }>();
   const { Step } = Steps;
-  const token = localStorage.getItem("access_token");
-
+  const { Title, Text } = Typography;
+  const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      if (!id) {
-        console.error("Không có orderId trong URL");
-        return;
-      }
       try {
         const response = await fetch(`http://127.0.0.1:8000/api/orders/${id}`, {
-          method: "GET",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
         });
-        if (!response.ok) {
-          throw new Error("Lỗi khi lấy thông tin đơn hàng");
-        }
         const data = await response.json();
         setOrder(data.order);
       } catch (error) {
@@ -84,94 +67,119 @@ const OrderDetail = () => {
       }
     };
 
-    // Gọi API khi có orderId
-    if (id) {
-      fetchOrderDetails();
-    }
-  }, [id]); // Phụ thuộc vào orderId để thực hiện lại khi nó thay đổi
+    if (id) fetchOrderDetails();
+  }, [id]);
 
   if (loading) return <div>Đang tải dữ liệu...</div>;
   if (!order) return <div>Không tìm thấy đơn hàng.</div>;
 
   return (
-    <div className="order-detail-container">
-      <h2>Chi tiết đơn hàng</h2>
-      <div className="order-id">
-        <strong>Mã đơn hàng: </strong>
-        {order.order_code}
-      </div>
+    <div style={{ padding: "20px", maxWidth: "1200px", margin: "auto" }}>
+      <Title level={2} style={{ marginBottom: "20px" }}>
+        Chi tiết đơn hàng
+      </Title>
+
+      {/* Mã đơn hàng */}
+      <Card style={{ marginBottom: "20px" }}>
+        <Text>
+          <strong>Mã đơn hàng:</strong> {order.order_code}
+        </Text>
+      </Card>
 
       {/* Thanh tiến trình */}
-      <div className="progress-container">
-        <Steps current={1}>
-          <Step icon={<CheckCircleOutlined />} title="Đơn hàng đã đặt" />
-          <Step
-            icon={<DollarOutlined />}
-            title="Đã xác nhận thông tin thanh toán"
-          />
-          <Step icon={<TruckOutlined />} title="Đã giao cho ĐVVC" />
-          <Step icon={<GiftOutlined />} title="Chờ giao hàng" />
-          <Step icon={<StarOutlined />} title="Đánh Giá" />
-        </Steps>
-      </div>
+      <Steps
+        current={getStatusIndex(order.status)}
+        style={{ marginBottom: "40px" }}
+      >
+        <Step title="Đã đặt hàng" icon={<CheckCircleOutlined />} />
+        <Step title="Đã xác nhận" icon={<DollarOutlined />} />
+        <Step title="Đang giao hàng" icon={<TruckOutlined />} />
+        <Step title="Hoàn tất" icon={<GiftOutlined />} />
+        <Step title="Đánh giá" icon={<StarOutlined />} />
+      </Steps>
 
-      {/* Thông tin đơn hàng */}
-      <div className="order-items">
-        <h4>Chi tiết sản phẩm</h4>
-        {order &&
-          order.order_details.map((item: any) => (
-            <div key={item.id} className="order-item">
-              <span>
-                {item.name} x {item.quantity}
-              </span>
-              <span className="item-price">
-                {item.price.toLocaleString()} VND
-              </span>
-            </div>
-          ))}
+      {/* Thông tin chi tiết sản phẩm */}
+      <Title level={4}>Sản phẩm</Title>
+      <div>
+        {order.order_details.map((item) => (
+          <Card key={item.id} style={{ marginBottom: "20px" }}>
+            <Space align="center">
+              <img
+                // src={item.image?.image_url || "default-image-url.png"}
+                // alt={item.name}
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  objectFit: "cover",
+                  borderRadius: "8px",
+                }}
+              />
+              <div style={{ flex: 1 }}>
+                <Text>
+                  <strong>{item.product_id}</strong>
+                </Text>
+                <div>Số lượng: {item.quantity}</div>
+              </div>
+              <Text strong>
+                {(Number(item.price) || 0).toLocaleString()} VND VND
+              </Text>
+            </Space>
+          </Card>
+        ))}
       </div>
 
       {/* Thông tin giao hàng */}
-      <div className="shipping-info">
-        <h4>Thông tin giao hàng</h4>
+      <Title level={4}>Thông tin giao hàng</Title>
+      <Card style={{ marginBottom: "20px" }}>
         <p>
-          <strong>Địa chỉ: </strong>
-          {order.address.address_line}
+          <strong>Người nhận:</strong> {order.name}
         </p>
         <p>
-          <strong>Thời gian giao dự kiến: </strong>
-          {order.created_at.toLocaleString("vi-VN", {
-            weekday: "long", // Thứ (Thứ Hai)
-            year: "numeric", // Năm (2024)
-            month: "long", // Tháng (Tháng 11)
-            day: "numeric", // Ngày (17)
-            hour: "2-digit", // Giờ (10)
-            minute: "2-digit", // Phút (00)
-          })}
+          <strong>Số điện thoại:</strong> {order.phone}
         </p>
-      </div>
+        <p>
+          <strong>Địa chỉ:</strong> {`${order.address}`}
+        </p>
+      </Card>
 
       {/* Thông tin thanh toán */}
-      <div className="payment-info">
-        <h4>Thanh toán</h4>
+      <Title level={4}>Thanh toán</Title>
+      <Card>
         <p>
-          <strong>Tổng tiền: </strong>
-          {order.total_amount.toLocaleString()} VND
+          <strong>Tổng tiền:</strong>{" "}
+          {(Number(order.total_amount) || 0).toLocaleString()} VND
         </p>
         <p>
-          <strong>Phương thức thanh toán: </strong>
-          {order.payment_method}
+          <strong>Phương thức:</strong> {order.payment_method}
         </p>
-      </div>
+      </Card>
 
-      {/* Chức năng liên hệ hỗ trợ */}
-      <div className="contact-support">
-        <button className="support-btn" onClick={() => alert("Liên hệ hỗ trợ")}>
+      {/* Chức năng hỗ trợ */}
+      <Divider />
+      <div style={{ textAlign: "center", marginTop: "20px" }}>
+        <Button type="primary" onClick={() => alert("Liên hệ hỗ trợ")}>
           Liên hệ hỗ trợ
-        </button>
+        </Button>
       </div>
     </div>
   );
+};
+
+const getStatusIndex = (status: string) => {
+  switch (status) {
+    case "pending":
+      return 0;
+    case "confirmed":
+      return 1;
+    case "shipping":
+      return 2;
+    case "delivered":
+      return 3;
+    case "completed":
+      return 4;
+    default:
+      return 0;
+  }
 };
 
 export default OrderDetail;

@@ -120,4 +120,38 @@ class PromotionController extends BaseController
             ], 500);
         }
     }
+
+    public function check(Request $request){
+        try {
+            // kiểm tra người dùng 
+            $user = auth()->user();
+            $promotion = Promotion::where('code', $request->code)->first();
+            if($promotion && $promotion->is_active){
+                if($user->tier_id == $promotion->tier_id){
+                    return response()->json([
+                        "status" => true,
+                        "message" => "Mã khuyến mãi h��p lệ",
+                        "data" => $promotion
+                    ], 200);
+                } else {
+                    return response()->json([
+                        "status" => false,
+                        "message" => "Voucher này không dành cho bạn !",
+                    ], 200);
+                }
+                
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Mã khuyến mãi không h��p lệ hoặc đã bị xóa",
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra l��i: ". $e->getMessage()
+            ], 500);
+        }
+
+    }
 }
