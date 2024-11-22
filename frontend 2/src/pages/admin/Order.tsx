@@ -9,7 +9,6 @@ import {
   Select,
   InputNumber,
   Switch,
-  DatePicker,
 } from "antd";
 import {
   DeleteOutlined,
@@ -20,12 +19,11 @@ import {
 import axios from "axios";
 import moment from "moment";
 
-import axiosInstance from "../axiosConfig";
-
 // Define the types for Order, User, Address, and Promotion
 interface Order {
   id: number;
   user_id: number;
+  order_code: string;
   order_date: string;
   total_amount: number;
   shipping_cost: number;
@@ -55,6 +53,7 @@ interface Address {
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -67,6 +66,7 @@ const Orders: React.FC = () => {
   const [form] = Form.useForm();
 
   const fetchOrders = async () => {
+    
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
@@ -136,6 +136,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const lowerKeyword = searchKeyword.toLowerCase();
+    
     const filtered = orders.filter((order) => {
       const userName =
         users.find((user) => user.id === order.user_id)?.username || "";
@@ -149,6 +150,14 @@ const Orders: React.FC = () => {
     });
     setFilteredOrders(filtered);
   }, [searchKeyword, orders, users, addresses]);
+  useEffect(() => {
+    if (statusFilter === "all" || !statusFilter) {
+      setFilteredOrders(orders); // Hiển thị tất cả đơn hàng
+    } else {
+      const filtered = orders.filter((order) => order.status === statusFilter);
+      setFilteredOrders(filtered);
+    }
+  }, [statusFilter, orders]);
 
   const handleEdit = (order: Order) => {
     setCurrentOrder(order);
@@ -194,13 +203,13 @@ const Orders: React.FC = () => {
             },
           }
         );
-        message.success("Order updated successfully");
+        message.success("sửa thành công");
 
         fetchOrders(); // Refresh orders after updating
       }
       setIsModalVisible(false);
     } catch (error) {
-      message.error("Failed to update order");
+      message.error("sửa thất bại");
     }
   };
 
@@ -240,29 +249,44 @@ const Orders: React.FC = () => {
   };
 
   const columns = [
-    { title: "Stt", dataIndex: "id", key: "id" },
+    
+   
     {
-      title: "User Name",
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: any, record: Order, index: number) => index + 1,
+    },
+    {
+      title: "Mã đơn hàng",
+      dataIndex: "order_code",
+      key: "order_code",
+      render: (orderCode: string) => orderCode || "N/A", // Hiển thị "N/A" nếu không có mã
+    },
+
+    
+  {
+      title: "Tên người đặt",
       dataIndex: "user_id",
       key: "user_id",
       render: (userId: number) =>
         users.find((user) => user.id === userId)?.username || "Unknown",
     },
-    { title: "Order Date", dataIndex: "order_date", key: "order_date" },
-    { title: "Total Amount", dataIndex: "total_amount", key: "total_amount" },
-    { title: "Status", dataIndex: "status", key: "status" },
+    { title: "ngày đặt hàng", dataIndex: "order_date", key: "order_date" },
+    { title: "tổng đơn hàng", dataIndex: "total_amount", key: "total_amount" },
+    { title: "trạng thái ", dataIndex: "status", key: "status" },
     {
-      title: "Shipping Cost",
+      title: "phí vận chuyển",
       dataIndex: "shipping_cost",
       key: "shipping_cost",
     },
     {
-      title: "Payment Method",
+      title: "phương thức thanh toán ",
       dataIndex: "payment_method",
       key: "payment_method",
     },
     {
-      title: "Promotion Code",
+      title: "mã khuyến mãi",
       dataIndex: "promotion_id",
       key: "promotion_id",
       render: (promoId: number) => {
@@ -271,7 +295,7 @@ const Orders: React.FC = () => {
       },
     },
     {
-      title: "Address",
+      title: "địa chỉ ",
       dataIndex: "address_id",
       key: "address_id",
       render: (addressId: number) => {
@@ -280,13 +304,13 @@ const Orders: React.FC = () => {
       },
     },
     {
-      title: "Active",
+      title: "trạng thái hoạt động ",
       dataIndex: "is_active",
       key: "is_active",
       render: (isActive: boolean) => (isActive ? "Yes" : "No"),
     },
     {
-      title: "Actions",
+      title: "hành động ",
       key: "actions",
       render: (record: Order) => (
         <>
@@ -319,13 +343,27 @@ const Orders: React.FC = () => {
           justifyContent: "space-between",
         }}
       >
+        
         <Input
-          placeholder="Search orders by user, status, or address"
+          placeholder="tìm kiếm bằnguser, status, hoặc address"
           prefix={<SearchOutlined />}
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
         />
       </div>
+      <Select
+  placeholder="lọc  status"
+  value={statusFilter}
+  onChange={(value) => setStatusFilter(value)}
+  style={{ width: 200, marginBottom: 20 }}
+>
+  <Select.Option value="all"> tất cả trạng thái</Select.Option>
+  <Select.Option value="pending">đang giao</Select.Option>
+  <Select.Option value="completed">đã hoàn thành</Select.Option>
+  <Select.Option value="canceled">đã hủy</Select.Option>
+</Select>
+
+
       <Table
         columns={columns}
         dataSource={filteredOrders}
@@ -335,7 +373,7 @@ const Orders: React.FC = () => {
 
       {/* Modal for editing order */}
       <Modal
-        title="Edit Order"
+        title="Sửa đơn hàng"
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         onOk={() => currentOrder && form.submit()}
@@ -346,6 +384,7 @@ const Orders: React.FC = () => {
             currentOrder
               ? {
                   order_date: moment(currentOrder.order_date),
+                  order_code: currentOrder.order_code ,
                   total_amount: currentOrder.total_amount,
                   shipping_cost: currentOrder.shipping_cost,
                   payment_method: currentOrder.payment_method,
@@ -360,36 +399,53 @@ const Orders: React.FC = () => {
         >
           <Form.Item
             name="order_date"
-            label="Order Date"
+            label="ngày đặt hàng"
             rules={[{ required: true }]}
           >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
+            <Input />
+            </Form.Item>
+            <Form.Item
+      name="order_code"
+      label="mã đơn hàng"
+      rules={[{ required: true, message: "Please input the order code!" }]}
+>
+  <Input />
+</Form.Item>
+           
+        
           <Form.Item
             name="total_amount"
-            label="Total Amount"
+            label="tổng đơn hàng"
             rules={[{ required: true }]}
           >
             <InputNumber style={{ width: "100%" }} min={0} />
           </Form.Item>
           <Form.Item
             name="shipping_cost"
-            label="Shipping Cost"
+            label="phí vận chuyển"
             rules={[{ required: true }]}
           >
             <InputNumber style={{ width: "100%" }} min={0} />
           </Form.Item>
           <Form.Item
             name="payment_method"
-            label="Payment Method"
+            label="phương thức thanh toán"
             rules={[{ required: true }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="promotion_id" label="Promotion">
+          <Form.Item
+  name="status"
+  label="Trạng thái"
+  rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+>
+  <Select placeholder="Chọn trạng thái">
+    <Select.Option value="pending">Đang xử lý</Select.Option>
+    <Select.Option value="completed">Hoàn thành</Select.Option>
+    <Select.Option value="cancelled">Đã hủy</Select.Option>
+  </Select>
+</Form.Item>
+          <Form.Item name="promotion_id" label="khuyến mãi">
             <Select>
               {promotions.map((promo) => (
                 <Select.Option key={promo.id} value={promo.id}>
@@ -400,7 +456,7 @@ const Orders: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="address_id"
-            label="Address"
+            label="địa chỉ"
             rules={[{ required: true }]}
           >
             <Select>
@@ -411,7 +467,7 @@ const Orders: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="trạng thái hoạt động " valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

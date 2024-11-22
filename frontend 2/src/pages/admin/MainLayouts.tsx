@@ -25,7 +25,7 @@ const AdminLayout = () => {
             <Link to="/admin/users">Quản lý tài khoản</Link>
           </Menu.Item>
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
-            <Link to="/admin/orders">Quản lý giỏ hàng</Link>
+            <Link to="/admin/orders">Quản lý đơn hàng</Link>
           </Menu.Item>      
           <Menu.Item key="5" icon={<FileTextOutlined />}>
             <Link to="/admin/reviews">Quản lý bình luận</Link>
@@ -42,6 +42,9 @@ const AdminLayout = () => {
           </Menu.Item>
           <Menu.Item key="9" icon={<PieChartOutlined />}>
             <Link to="/admin/statistics">Thống kê</Link>
+          </Menu.Item>
+          <Menu.Item key="10" icon={<FileTextOutlined />}>
+            <Link to="/admin/Login">Login admin </Link>
           </Menu.Item>
   
         </Menu>
