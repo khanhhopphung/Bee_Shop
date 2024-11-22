@@ -57,6 +57,7 @@ class AuthController extends Controller
             return response()->json(['message' => $e->getMessage(), $e->getFile(), $e->getLine()], 500);
         }
     }
+
     public function verifyEmail(Request $request)
     {
 
@@ -88,7 +89,9 @@ class AuthController extends Controller
             $verification->delete();
         }
         return response()->json(['message' => 'User not found.'], 404);
-    }
+
+}
+
 
     public function login(Request $request)
     {

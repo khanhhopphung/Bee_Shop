@@ -1,15 +1,64 @@
-// src/components/Login.tsx
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
 import "../../css/portal.css";
-
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
+import { message } from "antd"; // Để thông báo lỗi hoặc thành công
 
 const LoginAdmin: React.FC = () => {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  // Khai báo state cho email, password và loading
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Xử lý sự kiện submit form
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Xử lý logic đăng nhập ở đây
+
+    if (!username || !password) {
+      message.error("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+
+    setLoading(true); // Bắt đầu loading
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      setLoading(false); // Kết thúc loading
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        message.error(errorData.message || "Thông tin đăng nhập không chính xác.");
+        return;
+      }
+
+      const data = await response.json();
+      message.success("Đăng nhập thành công!");
+
+      // Lưu thông tin vào localStorage
+      localStorage.setItem("user_name", data.user_name);
+      localStorage.setItem("role_id", data.role_id);
+
+      // Điều hướng đến trang admin nếu role_id = 2
+      if (data.role_id === "2") {
+        navigate("/admin/statistics"); // Đến trang admin
+      } else {
+        navigate("/admin/statistics"); // Đến trang client
+      }
+    } catch (error) {
+      setLoading(false); // Kết thúc loading nếu có lỗi
+      message.error("Có lỗi xảy ra. Vui lòng thử lại.");
+      console.error("Error during login:", error);
+    }
   };
 
   return (
@@ -32,7 +81,7 @@ const LoginAdmin: React.FC = () => {
                   <p>BEE STORE</p>
                 </a>
               </div>
-              <h2 className="auth-heading text-center mb-5">Đăng nhập</h2>
+              <h2 className="auth-heading text-center mb-5">Đăng nhập Admin</h2>
               <div className="auth-form-container text-start">
                 <form className="auth-form login-form" onSubmit={handleSubmit}>
                   <div className="email mb-3">
@@ -42,9 +91,11 @@ const LoginAdmin: React.FC = () => {
                     <input
                       id="signin-email"
                       name="signin-email"
-                      type="email"
+                      type="text" // Thay đổi thành 'text' vì bạn muốn nhập tên đăng nhập
                       className="form-control signin-email"
-                      placeholder="Email address"
+                      placeholder="user admin"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       required
                     />
                   </div>
@@ -57,7 +108,9 @@ const LoginAdmin: React.FC = () => {
                       name="signin-password"
                       type="password"
                       className="form-control signin-password"
-                      placeholder="Password"
+                      placeholder="Password admin"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                     />
                     <div className="extra mt-3 row justify-content-between">
@@ -88,18 +141,12 @@ const LoginAdmin: React.FC = () => {
                     <button
                       type="submit"
                       className="btn app-btn-primary w-100 theme-btn mx-auto"
+                      disabled={loading} // Disable nút khi đang loading
                     >
-                      Đăng nhập
+                      {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                     </button>
                   </div>
                 </form>
-                <div className="auth-option text-center pt-5">
-                  Bạn chưa có tài khoản ? Đăng ký{" "}
-                  <a className="text-link" href="/register">
-                    ở đây
-                  </a>
-                  .
-                </div>
               </div>
             </div>
             <footer className="app-auth-footer">

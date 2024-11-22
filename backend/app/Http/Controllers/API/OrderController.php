@@ -101,6 +101,7 @@ class OrderController extends Controller
                 'variant_id' => $CartDetail->variant_id,
                 'quantity' => $CartDetail->quantity,
                 'price' => $CartDetail->product_price,
+                'order_code' =>$CartDetail ->order_code,
             ]);
 
         CartDetail::find($CartDetail->id)->delete();
@@ -137,6 +138,7 @@ class OrderController extends Controller
             $order['order_details'] = $orderDetails;
             $address = $order->address;
             $order['address'] = $address;
+         
 
             // $order =  $order->with('orderDetails','address')->get();
       
@@ -174,6 +176,7 @@ class OrderController extends Controller
         $order->payment_method = $request->payment_method;
         $order->shipping_cost = $request->shipping_cost;
         $order->address_id = $request->address_id;
+        $order->order_code = $request->order_code;
     
         // Nếu có trường 'is_active' trong request, cập nhật nó
         if ($request->has('is_active')) {
