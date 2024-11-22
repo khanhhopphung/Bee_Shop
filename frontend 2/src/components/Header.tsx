@@ -204,7 +204,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
                   <Link to="/contact">Liên hệ</Link>
                 </li>
                 <li>
-                  <Link to="/blog">Bài viết</Link>
+                  <Link to="/blogs">Bài viết</Link>
                 </li>
               </ul>
             </div>
@@ -322,7 +322,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
             </a>
           </li>
           <li>
-            <a href="blog.html">Bài viết</a>
+            <a href="/blogs">Bài viết</a>
           </li>
           <li>
             <a href="about.html">About</a>

@@ -69,6 +69,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/delete-address-user/{id}', [UserController::class,'deleteAddress']);
     Route::post('/post-address-user', [UserController::class,'addAddress']);
     Route::get('/show-user', [UserController::class,'showUser']);
+    Route::post('/check', [PromotionController::class,'check']);
+
 
 
 });

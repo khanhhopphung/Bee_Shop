@@ -1,16 +1,69 @@
 import { EditOutlined } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Button, Rate, Input, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-
+interface Order {
+  order_date: string;
+  total_amount: number;
+  status: string;
+  payment_method: string;
+  shipping_cost: string;
+  order_code: string;
+  name: string;
+  phone: string;
+  address: string;
+  is_active: number;
+  order_details: {
+    quantity: number;
+    price: string;
+    name: string;
+    color_name: string;
+    size_name: string;
+    price_variant: string;
+  };
+}
 const OrderList = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const token = localStorage.getItem("access_token");
+
   const [review, setReview] = useState({
     rating: 0,
     comment: "",
     images: [] as string[], // Lưu ảnh đã chọn
   });
 
+  useEffect(() => {
+    const fectOrders = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/get-all-order-by-user`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setOrders(data.data);
+          console.log(data.data);
+        } else {
+          message.error("Lấy đơn hàng thất bại!");
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
+    };
+    fectOrders();
+  }, []);
+  console.log(orders);
+  useEffect(() => {
+    console.log(orders);
+  }, [orders]);
   const handleReviewSubmit = () => {
     console.log("Đánh giá đã được gửi:", review);
     setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
@@ -95,7 +148,7 @@ const OrderList = () => {
           </ul>
         </div>
 
-        <div className="account-info">
+        <div className="account-info" style={{}}>
           <div className="order-info">
             <div className="order-tabs">
               <button className="order-tab active">Tất cả</button>
@@ -106,40 +159,98 @@ const OrderList = () => {
               <button className="order-tab">Đã hủy</button>
               <button className="order-tab">Trả hàng/Hoàn tiền</button>
             </div>
+            <div
+              className="bor17 of-hidden pos-relative"
+              style={{ marginBottom: "20px" }}
+            >
+              <input
+                className="stext-103 cl2 plh4 size-116 p-l-28 p-r-55"
+                type="text"
+                name="search"
+                placeholder="Search"
+              />
+              <button className="flex-c-m size-122 ab-t-r fs-18 cl4 hov-cl1 trans-04">
+                <i className="zmdi zmdi-search"></i>
+              </button>
+            </div>
+            <div
+              style={{
+                overflow: "auto",
+                height: "60vh",
+                width: "100%",
+              }}
+            >
+              {Array.isArray(orders) &&
+                orders.map((order, index) => (
+                  <div
+                    key={index}
+                    // style={{
+                    //   overflow: "auto",
+                    //   height: "60vh",
+                    //   width: "100%",
+                    // }}
+                  >
+                    {Array.isArray(order.order_details) &&
+                      order.order_details.map((detail, detailIndex) => (
+                        <div key={detailIndex} className="order-item">
+                          {/* <>{console.log(order)}</> */}
+                          <div className="order-product">
+                            <img
+                              src="link_image_a.jpg"
+                              alt="Sản phẩm A"
+                              className="order-product-image"
+                            />
+                            <div className="order-product-info">
+                              <p className="order-product-name">
+                                {detail.name}
+                              </p>
+                              <p className="order-product-variant">
+                                Phân loại: {detail.color_name},
+                                {detail.size_name}
+                              </p>
+                              <p className="order-product-quantity">
+                                Số lượng: {detail.quantity}
+                              </p>
+                            </div>
+                            <p className="order-product-price">
+                              <p className="order-product-price">
+                                {parseFloat(
+                                  detail.price_variant
+                                ).toLocaleString()}
+                                ₫
+                              </p>
+                            </p>
+                          </div>
 
-            <div className="order-item">
-              <div className="order-product">
-                <img
-                  src="link_image_a.jpg"
-                  alt="Sản phẩm A"
-                  className="order-product-image"
-                />
-                <div className="order-product-info">
-                  <p className="order-product-name">
-                    Manga Lông Mi Mềm Mại Tự Nhiên Lông Mi Dày Lông Mi Giả
-                  </p>
-                  <p className="order-product-variant">Phân loại: Keo dán</p>
-                  <p className="order-product-quantity">x1</p>
-                </div>
-                <p className="order-product-price">₫15.000</p>
-              </div>
+                          <div className="order-item-footer">
+                            <span className="order-total-label">
+                              Thành tiền:
+                            </span>
+                            <span className="order-total-price">
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(
+                                Number(detail.price_variant) * detail.quantity
+                              )}
+                            </span>
+                          </div>
 
-              <div className="order-item-footer">
-                <span className="order-total-label">Thành tiền:</span>
-                <span className="order-total-price">₫47.000</span>
-              </div>
-
-              <div className="order-item-actions">
-                <button
-                  className="order-btn order-btn-reorder"
-                  onClick={() => setShowReviewForm(true)}
-                >
-                  Đánh giá
-                </button>
-                <button className="order-btn order-btn-detail">
-                  Xem Chi Tiết Hủy Đơn
-                </button>
-              </div>
+                          <div className="order-item-actions">
+                            <button
+                              className="order-btn order-btn-reorder"
+                              onClick={() => setShowReviewForm(true)}
+                            >
+                              Đánh giá
+                            </button>
+                            <button className="order-btn order-btn-detail">
+                              Xem Chi Tiết Hủy Đơn
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ))}
             </div>
           </div>
         </div>
