@@ -214,16 +214,7 @@ const ProductVariants: React.FC = () => {
       render: (id: number) =>
         colors.find((c) => c.id === id)?.color_name || "N/A",
     },
-    {
-      title: "Giá",
-      dataIndex: "price",
-      key: "price",
-      render: (price: number) =>
-        new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(price),
-    },
+    { title: "Giá", dataIndex: "price", key: "price" },
     { title: "Tồn kho", dataIndex: "stock", key: "stock" },
     {
       title: "Hoạt động",

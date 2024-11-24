@@ -20,7 +20,6 @@ const CategoryPage = (props: Props) => {
 
         const result = await response.json();
 
-        // Kiểm tra nếu có dữ liệu và gán vào state categories
         if (result && result.data && Array.isArray(result.data)) {
           setCategories(result.data);
           console.log(result.data);

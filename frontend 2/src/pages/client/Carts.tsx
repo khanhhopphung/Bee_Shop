@@ -47,7 +47,7 @@ interface Cart {
     product_id: number;
     size_id: number;
     color_id: number;
-    price: number | string;
+    price: number;
     stock: number;
     size: {
       id: number;
@@ -78,7 +78,6 @@ const Carts: React.FC = () => {
   };
   useEffect(() => {
     dispatch(setCartDetailIds(ids));
-    console.log("Updated ids:", ids);
     localStorage.setItem("cartDetailOrder", JSON.stringify(ids));
   }, [ids]);
 
@@ -115,7 +114,7 @@ const Carts: React.FC = () => {
         }
 
         const result = await response.json();
-        console.log(result.data.cart_details);
+        // console.log(result.data.cart_details);
         if (result && result.status && result.data) {
           // Kiểm tra xem API có trả về mảng sản phẩm không
           if (
@@ -123,7 +122,7 @@ const Carts: React.FC = () => {
             Array.isArray(result.data.cart_details)
           ) {
             setCarts(result.data.cart_details); // Set giỏ hàng với danh sách sản phẩm
-            console.log("ố lương" + carts.length);
+            // console.log("ố lương" + carts.length);
             // dispatch(setQuantityCart(carts.length));
           } else {
             console.error("Giỏ hàng không chứa mảng sản phẩm:", result);
@@ -318,7 +317,11 @@ const Carts: React.FC = () => {
                             )}
                           </td>
                           <td className="column-3 text-lg">
-                            {cart.product.price.toLocaleString()}₫
+                            {cart.product_variant.price
+                              ? Number(
+                                  cart.product_variant.price
+                                ).toLocaleString() + "₫"
+                              : "Không xác định"}
                           </td>
                           <td className="column-4">
                             <div className="wrap-num-product flex-w m-l-auto m-r-0">
@@ -364,7 +367,7 @@ const Carts: React.FC = () => {
 
                           <td className="column-5 text-lg">
                             {(
-                              cart.product.price * cart.quantity
+                              cart.product_variant.price * cart.quantity
                             ).toLocaleString()}
                             ₫
                           </td>

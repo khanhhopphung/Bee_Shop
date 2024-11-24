@@ -226,7 +226,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
         errorColor: "",
       });
 
-      await addToCart(id, sizeId, colorId, quantity);
+      await addToCart(Number(id), sizeId, colorId, quantity);
     }
   };
   return (

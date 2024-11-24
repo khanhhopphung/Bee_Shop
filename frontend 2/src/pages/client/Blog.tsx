@@ -11,6 +11,7 @@ type Blog = {
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -31,7 +32,9 @@ const Blogs = () => {
     };
     fetchBlogs();
   }, []);
-
+  const filteredBlogs = blogs.filter((blog) =>
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <div>
       {/* Title page */}
@@ -52,10 +55,10 @@ const Blogs = () => {
             {/* Blog Content */}
             <div className="col-md-8 col-lg-9 p-b-80">
               <div className="p-r-45 p-r-0-lg">
-                {blogs.map((blog) => (
+                {filteredBlogs.map((blog) => (
                   <div className="p-b-63" key={blog.id}>
                     <a
-                      href="blog-detail.html"
+                      href={`/blogs/${blog.id}`}
                       className="hov-img0 how-pos5-parent"
                     >
                       <img
@@ -66,7 +69,7 @@ const Blogs = () => {
                     <div className="p-t-32">
                       <h4 className="p-b-15">
                         <a
-                          href="blog-detail.html"
+                          href={`/blogs/${blog.id}`}
                           className="ltext-108 cl2 hov-cl1 trans-04"
                         >
                           {blog.title}
@@ -78,7 +81,7 @@ const Blogs = () => {
                           : blog.content}
                         {blog.content.length > 100 && (
                           <a
-                            href="#"
+                            href={`/blogs/${blog.id}`}
                             className="mtext-102 cl2 hov-cl1 trans-04"
                           >
                             Xem thêm
@@ -132,6 +135,8 @@ const Blogs = () => {
                     type="text"
                     name="search"
                     placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <button className="flex-c-m size-122 ab-t-r fs-18 cl4 hov-cl1 trans-04">
                     <i className="zmdi zmdi-search"></i>

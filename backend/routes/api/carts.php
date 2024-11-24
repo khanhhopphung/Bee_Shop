@@ -12,7 +12,7 @@ Route::delete('/cart-detail/{id}', [CartController::class,'deleteCart']);
 Route::delete('/carts-detail', [CartController::class,'deleteCarts']);
 Route::post('/carts-detail-order', [CartDetailController::class,'cartDetailOrder']);
 
-    Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::post('/cart-add', [CartController::class, 'addToCart']);
     Route::get('/cart', [CartController::class, 'viewCart']);
     
     Route::delete('/cart/remove/{id}', [CartController::class, 'removeFromCart']);

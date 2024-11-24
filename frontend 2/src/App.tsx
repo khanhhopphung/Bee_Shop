@@ -42,6 +42,8 @@ import OrderList from "./pages/client/OrderList";
 import Voucher from "./pages/client/Voucher";
 import User from "./pages/admin/User";
 import WishList from "./pages/client/WishList";
+import BlogDetail from "./pages/client/BlogDetail";
+import Contact from "./components/Contact";
 
 interface CartItem {
   product_id: any;
@@ -97,16 +99,16 @@ const App: React.FC = () => {
 
       if (existingProductIndex >= 0) {
         // Nếu sản phẩm đã tồn tại trong giỏ, cộng thêm số lượng
-        console.log(
-          "Current quantity:",
-          prevCart[existingProductIndex].quantity
-        );
+        // console.log(
+        //   "Current quantity:",
+        //   prevCart[existingProductIndex].quantity
+        // );
         const updatedCart = [...prevCart];
         updatedCart[existingProductIndex].quantity += quantities;
-        console.log(
-          "Updated quantity:",
-          updatedCart[existingProductIndex].quantity
-        );
+        // console.log(
+        //   "Updated quantity:",
+        //   updatedCart[existingProductIndex].quantity
+        // );
         return updatedCart;
       } else {
         // Nếu sản phẩm chưa có trong giỏ, thêm mới
@@ -122,7 +124,6 @@ const App: React.FC = () => {
       }
     });
     setIsAddingToCart(true); // Đánh dấu cần gọi API
-    message.success("Thêm vào giỏ hàng thành công!");
   };
 
   useEffect(() => {
@@ -130,7 +131,7 @@ const App: React.FC = () => {
 
     const addProductToCart = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/cart/add`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/cart-add`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -139,11 +140,15 @@ const App: React.FC = () => {
           // body: JSON.stringify(cart[cart.length - 1]),
           body: JSON.stringify(cartItem),
         });
+        // const data = await response.json();
+        console.log(response);
 
         if (!response.ok) {
           const errorData = await response.json();
           console.error("API Error:", errorData);
           return;
+        } else if (response.ok) {
+          message.success("Thêm vào giỏ hàng thành công! nnn");
         }
 
         console.log("Product added to cart:", cart[cart.length - 1]);
@@ -224,6 +229,7 @@ const App: React.FC = () => {
           />
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
+          <Route path="blogs/:id" element={<BlogDetail />} />
           <Route path="payments" element={<PaymentPage />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="404" element={<NotFound />} />
@@ -236,6 +242,7 @@ const App: React.FC = () => {
           <Route path="/comment" element={<Comment />} />
           <Route path="/order-list" element={<OrderList />} />
           <Route path="/voucher" element={<Voucher />} />
+          <Route path="contact" element={<Contact />} />
         </Route>
 
         {/* Route cho phần admin */}
@@ -243,7 +250,7 @@ const App: React.FC = () => {
         <Route path="register" element={<RegisterAdmin />} />
 
         <Route path="/admin" element={<AdminLayout />}>
-        <Route path="login" element={<LoginAdmin />} />
+          <Route path="login" element={<LoginAdmin />} />
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="blogs" element={<AdminBlogs />} />

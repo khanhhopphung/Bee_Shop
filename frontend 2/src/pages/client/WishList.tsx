@@ -93,13 +93,13 @@ const WishList: React.FC = () => {
                     {item.product.price.toLocaleString()}₫
                   </span>
                 </div>
-                <div className="block2-txt-child2 flex-r p-t-3">
+                {/* <div className="block2-txt-child2 flex-r p-t-3">
                   <img
                     className="icon-heart1 dis-block trans-04"
                     src="images/icons/icon-heart-02.png" // Update logic nếu cần
                     alt="ICON"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

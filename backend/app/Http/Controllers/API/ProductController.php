@@ -24,12 +24,87 @@ class ProductController extends BaseController
     {
         $this->model = Product::class;
     }
+
+    public function bestProduct(){
+        $bestSellingProducts = DB::table('products')
+    ->join('order_details', 'products.id', '=', 'order_details.product_id')
+    ->leftJoin('images', 'products.id', '=', 'images.product_id') // Thêm join để lấy ảnh
+    ->select(
+        'products.id',
+        'products.name',
+        'products.price',
+        DB::raw('SUM(order_details.quantity) as total_sold'),
+        'images.image_url' // Lấy cột url từ bảng images
+    )
+    ->groupBy('products.id', 'products.name', 'products.price', 'images.image_url') // Thêm 'images.url' vào groupBy
+    ->orderByDesc('total_sold')
+    ->limit(12)
+    ->get();
+
+
+        return $this->success($bestSellingProducts);
+
+    }
+
+    public function badProduct(){
+        // Lấy sản phẩm bán chậm với image_url
+        $slowSellingProducts = DB::table('products')
+            ->leftJoin('order_details', 'products.id', '=', 'order_details.product_id')
+            ->leftJoin('images', 'products.id', '=', 'images.product_id') // Thêm join với bảng images
+            ->select(
+                'products.id',
+                'products.name',
+                'products.price',
+                DB::raw('COALESCE(SUM(order_details.quantity), 0) as total_sold'),
+                'products.stock',
+                'images.image_url' // Lấy trường image_url từ bảng images
+            )
+            ->groupBy('products.id', 'products.name', 'products.price', 'products.stock', 'images.image_url') // Thêm 'images.image_url' vào groupBy
+            ->orderBy('total_sold', 'asc')
+            ->limit(10)
+            ->get();
+    
+        // Lấy sản phẩm có tồn kho cao với image_url
+        $highStockProducts = DB::table('products')
+            ->leftJoin('images', 'products.id', '=', 'images.product_id') // Thêm join với bảng images
+            ->select(
+                'products.id',
+                'products.name',
+                'products.price',
+                'products.stock',
+                'images.image_url' // Lấy trường image_url từ bảng images
+            )
+            ->where('products.stock', '>', 0)
+            ->orderBy('products.stock', 'desc')
+            ->limit(10)
+            ->get();
+    
+        // Trộn hai mảng sản phẩm lại xen kẽ
+        $combinedProducts = [];
+        $slowSellingProducts = $slowSellingProducts->toArray();
+        $highStockProducts = $highStockProducts->toArray();
+    
+        // Lấy tối đa số lượng sản phẩm của cả hai nhóm
+        $maxLength = max(count($slowSellingProducts), count($highStockProducts));
+    
+        for ($i = 0; $i < $maxLength; $i++) {
+            if (isset($slowSellingProducts[$i])) {
+                $combinedProducts[] = $slowSellingProducts[$i];
+            }
+            if (isset($highStockProducts[$i])) {
+                $combinedProducts[] = $highStockProducts[$i];
+            }
+        }
+    
+        return $this->success($combinedProducts);
+    }
+    
     public function index()
 
     {
 
 
-        $products = Product::with('image')->latest('id')->get();
+        $products = Product::with('productvariants','image')->latest('id')->get();
         return $this->success($products);
     }
 
