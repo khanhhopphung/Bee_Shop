@@ -96,7 +96,6 @@ const Blogs: React.FC = () => {
       category_id: blog.category_id,
       is_active: blog.is_active,
     });
-    // Set the image URL in the form (this will show the existing image)
     setImageFile(null); // reset file input to prevent accidental re-upload
     setIsModalVisible(true);
   };
@@ -254,11 +253,11 @@ const Blogs: React.FC = () => {
             onClick={handleAdd}
             style={{ fontSize: '16px', height: '40px' }}
           >
-            Thêm danh mục
+            Thêm bài viết
           </Button>
 
           <Input.Search
-            placeholder="Tìm kiếm danh mục theo tiêu đề..."
+            placeholder="Tìm kiếm bài viết theo tiêu đề..."
             allowClear
             enterButton={<SearchOutlined />}
             size="large"
@@ -304,7 +303,7 @@ const Blogs: React.FC = () => {
       {/* Modal */}
       <Modal
         open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentBlog ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}</span>}
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentBlog ? 'Chỉnh sửa bài viết' : 'Thêm bài viết'}</span>}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         centered
