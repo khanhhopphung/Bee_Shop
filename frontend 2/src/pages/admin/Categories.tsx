@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Switch, Typography, Space } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ColumnsType } from 'antd/es/table';
+
+const { Title } = Typography;
 
 interface Category {
   id: number;
@@ -20,14 +23,14 @@ const Categories: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
-  const [form] = Form.useForm(); // Form instance
+  const [form] = Form.useForm();
 
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/api/categories');
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       setCategories(data);
-      setFilteredCategories(data); // Set initial filtered data
+      setFilteredCategories(data);
     } catch (error) {
       message.error('Failed to load categories');
       setCategories([]);
@@ -50,13 +53,13 @@ const Categories: React.FC = () => {
 
   const handleAdd = () => {
     setCurrentCategory(null);
-    form.resetFields(); // Reset form fields for adding new data
+    form.resetFields();
     setIsModalVisible(true);
   };
 
   const handleEdit = (category: Category) => {
     setCurrentCategory(category);
-    form.setFieldsValue(category); // Set form values for editing
+    form.setFieldsValue(category);
     setIsModalVisible(true);
   };
 
@@ -94,76 +97,163 @@ const Categories: React.FC = () => {
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<Category> = [
     {
-      title: 'STT',
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       dataIndex: 'id',
       key: 'id',
-      render: (text: any, record: Category, index: number) => index + 1,
+      render: (text: any, record: Category, index: number) => (
+        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+      ),
+      align: 'center',
     },
-    { title: 'Tên danh mục', dataIndex: 'name', key: 'name' },
-    { title: 'Mã danh mục', dataIndex: 'sku', key: 'sku' },
     {
-      title: 'Trạng thái',
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên danh mục</span>,
+      dataIndex: 'name',
+      key: 'name',
+      align: 'left',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã danh mục</span>,
+      dataIndex: 'sku',
+      key: 'sku',
+      align: 'left',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
       dataIndex: 'is_active',
       key: 'is_active',
-      render: (active: boolean) => (active ? 'Yes' : 'No'),
+      render: (active: boolean) => (
+        <span
+          style={{
+            fontSize: '16px',
+            color: active ? '#3f8600' : '#cf1322',
+            fontWeight: 'bold',
+          }}
+        >
+          {active ? 'Hoạt động' : 'Ngừng hoạt động'}
+        </span>
+      ),
+      align: 'center',
     },
     {
-      title: 'Actions',
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Actions</span>,
       key: 'actions',
       render: (record: Category) => (
-        <>
-          <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} style={{ marginRight: 8 }} />
-          <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
-        </>
+        <Space>
+          <Button
+            type="primary"
+            size="large"
+            onClick={() => handleEdit(record)}
+            icon={<EditOutlined />}
+          />
+          <Button
+            type="primary"
+            danger
+            size="large"
+            onClick={() => handleDelete(record.id)}
+            icon={<DeleteOutlined />}
+          />
+        </Space>
       ),
+      align: 'center',
     },
   ];
+  
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Add Category
-        </Button>
-        
-        <Input
-          placeholder="Search by name or SKU"
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ width: 600 }}
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '16px 24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+        }}
+      >
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+           
+            onClick={handleAdd}
+            style={{ fontSize: '16px', height: '40px' }}
+          >
+            Thêm danh mục
+          </Button>
+
+          <Input.Search
+            placeholder="Tìm kiếm danh mục theo tên hoặc mã"
+            allowClear
+            enterButton={<SearchOutlined />}
+            size="large"
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+            onSearch={handleSearch}
+            style={{
+              maxWidth: '600px',
+              borderRadius: '8px',
+              height: '48px',
+            }}
+          />
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={filteredCategories}
+          rowKey="id"
+          bordered
+          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+          }}
         />
       </div>
-      <Table columns={columns} dataSource={filteredCategories} rowKey="id" />
 
       <Modal
         open={isModalVisible}
-        title={currentCategory ? 'Edit Category' : 'Add Category'}
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}</span>}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
+        centered
       >
-        <Form
-          form={form} // Bind form instance
-          initialValues={{ name: '', sku: '', is_active: false }}
-          onFinish={handleSubmit}
-        >
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
-            <Input />
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            name="name"
+            label="Tên danh mục"
+            rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
+          >
+            <Input placeholder="Nhập tên danh mục" />
           </Form.Item>
 
-          <Form.Item name="sku" label="SKU" rules={[{ required: true, message: 'Please enter an SKU' }]}>
-            <Input />
+          <Form.Item
+            name="sku"
+            label="Mã danh mục"
+            rules={[{ required: true, message: 'Vui lòng nhập mã danh mục' }]}
+          >
+            <Input placeholder="Nhập mã danh mục" />
           </Form.Item>
 
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
+          <Form.Item name="is_active" label="Trạng thái" valuePropName="checked">
             <Switch />
           </Form.Item>
 
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block size="large">
+              Lưu
+            </Button>
+          </Form.Item>
         </Form>
       </Modal>
     </div>
