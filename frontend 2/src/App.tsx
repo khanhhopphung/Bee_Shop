@@ -22,6 +22,8 @@ import { setQuantityCart } from "../src/store/quantityCartSlice";
 import Categories from "./pages/admin/Categories"; 
 import Promotions from './pages/admin/Promotions';
 import AdminBlogs from './pages/admin/Blogs';
+import Statistics from "./pages/admin/Statistics";
+
 
 
 
@@ -181,6 +183,8 @@ const App: React.FC = () => {
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="statistics" element={<Statistics />} />
+
         </Route>
       </Routes>
     </Router>

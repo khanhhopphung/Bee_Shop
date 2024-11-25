@@ -10,9 +10,7 @@ use App\Http\Controllers\API\ColorController;
 use App\Http\Controllers\API\SizeController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
-
-
-
+use App\Http\Controllers\Api\StatisticsController;
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -40,11 +38,11 @@ Route::post('/logout', [AuthController::class,'logout'])->middleware('auth:sanct
 
 Route::apiResource('blogs', BlogController::class);
 Route::post('/blogs/{blog}/update', [BlogController::class, 'update']);
-
-
 Route::apiResource('tiers', TierController::class);
-
 Route::apiResource('promotions', PromotionController::class);
+Route::prefix('statistics')->group(function () {
+    Route::get('dashboard', [StatisticsController::class, 'dashboard']); 
+});
 
 Route::apiResource( 'users', UserController::class);
 
