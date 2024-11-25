@@ -1,11 +1,10 @@
-<?php
+<?php 
 
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
-
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Cart;
@@ -20,6 +19,7 @@ use App\Http\Controllers\BaseController;
 use App\Models\Product;
 use App\Models\ProductVariant;
 
+
 class OrderController extends Controller
 {
     /**
@@ -27,25 +27,9 @@ class OrderController extends Controller
      */
     public function index()
     {
-      
-        if(auth::check()){
-            if(Auth::user()->role_id == 2){
-        $orders = Order::with('orderDetails','address')-> get();
-
-            } else if(Auth::user()->role_id == 1){
-                $orders = Order::where('user_id', Auth::id())->with('orderDetails','address')->get();
-            }
-        }
-        // return $orders[0]->orderDetails;
-        return response()->json($orders, 200);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        // Load the necessary relationships and include order_code
+        $orders = Order::with(['address', 'promotion', 'orderDetails'])->get();
+        return response()->json($orders);
     }
 
     /**
@@ -53,79 +37,66 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request)
     {
-        DB::beginTransaction(); // Bắt đầu giao dịch
+        DB::beginTransaction();
 
-    try {
-        
-        $userId = auth()->id();
-    if (!$userId) {
-        return response()->json([
-            'error' => 'User not authenticated. Please log in.',
-        ], 401);
-    }
-    $idCartDetails = $request->carts_detail;
-        $CartDetails = CartDetail::whereIn('id', $idCartDetails)->get();
+        try {
+            $userId = auth()->id();
+            if (!$userId) {
+                return response()->json(['error' => 'User not authenticated. Please log in.'], 401);
+            }
 
-        $prefix = 'ORDER';  // Tiền tố mã đơn
-        $date = Carbon::now()->format('Ymd');  // Ngày theo định dạng YYYYMMDD
-        $random_number = Str::upper(Str::random(5));  // Phần ngẫu nhiên
+            // Fetch cart details and validate
+            $cartDetails = CartDetail::whereIn('id', $request->carts_detail)->get();
+            if ($cartDetails->isEmpty()) {
+                return response()->json(['message' => 'Cart detail not found'], 404);
+            }
 
-        // Ví dụ: ORDER-20241117-ABCDE
-        
+            // Validate shipping address
+            $address = ShippingAddress::find($request->address_id);
+            if (!$address) {
+                return response()->json(['error' => 'Address not found'], 404);
+            }
 
-        if ($CartDetails) {
-            $Address = ShippingAddress::find($request->address_id);
-        // // Tạo đơn hàng mới
-        $order = Order::create([
-            'user_id' => $userId,
-            'total_amount' => $request->total_amount,
-            'promotion_id' => $request->promotion_id,
-            'status' => 'pending', // Hoặc trạng thái khác tùy ý
-            'address_id' => $request->address_id,
-            'payment_method' => $request->payment_method,
-            'shipping_cost' => $request->shipping_cost,
-            'order_code' => $prefix . '-' . $date . '-' . $random_number,
-            'order_date' => now(), // Ngày đặt hàng
-            'name'=>  $Address->recipient_name,
-            'phone'=>  $Address->phone,
-            'address'=> $Address->address_line.'-'.$Address->state.'-'.$Address->city,
-        ]);
-
-        
-
-        foreach ($CartDetails as $CartDetail) {
-            // Tạo chi tiết đơn hàng
-            OrderDetail::create([
-                'order_id' => $order->id,
-                'product_id' => $CartDetail->product_id,
-                'variant_id' => $CartDetail->variant_id,
-                'quantity' => $CartDetail->quantity,
-                'price' => $CartDetail->product_price,
-                'order_code' =>$CartDetail ->order_code,
+            // Create the order
+            $order = Order::create([
+                'user_id' => $userId,
+                'total_amount' => $request->total_amount,
+                'promotion_id' => $request->promotion_id,
+                'status' => 'pending',
+                'address_id' => $request->address_id,
+                'payment_method' => $request->payment_method,
+                'shipping_cost' => $request->shipping_cost,
+                'order_code' => 'ORDER-' . now()->format('Ymd') . '-' . Str::upper(Str::random(5)),
+                'order_date' => now(),
+                'name' => $address->recipient_name,
+                'phone' => $address->phone,
+                'address' => $address->address_line,
             ]);
 
-        CartDetail::find($CartDetail->id)->delete();
+            // Create order details and delete cart items
+            foreach ($cartDetails as $cartDetail) {
+                OrderDetail::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartDetail->product_id,
+                    'variant_id' => $cartDetail->variant_id,
+                    'quantity' => $cartDetail->quantity,
+                    'price' => $cartDetail->product_price,
+                ]);
+                $cartDetail->delete(); // Remove cart detail after order is processed
+            }
 
+            DB::commit();
+            return response()->json([
+                'message' => 'Order created successfully',
+                'order' => $order->load('address', 'promotion', 'orderDetails'),
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Could not create order. Please try again later.',
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        $order['order_details']=$order->orderDetails;
-
-        DB::commit(); // Xác nhận giao dịch
-        return response()->json(['message' => 'Order created successfully', 'order' => $order], 201);
-    } else {
-        DB::rollBack();
-        return response()->json(['message'=> 'Cart detail not found']);
-    }
-
-    } catch (\Exception $e) {
-        DB::rollBack(); // Hoàn tác giao dịch
-        return response()->json([
-            'error' => 'Could not create order. Please try again later.',
-            'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trường sản xuất
-            'line'=>$e->getLine(),
-            'file'=>$e->getFile(),
-        ], 500);
-    }
     }
 
     /**
@@ -134,36 +105,15 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            $orderDetails = $order->orderDetails;
-            $order['order_details'] = $orderDetails;
-            $address = $order->address;
-            $order['address'] = $address;
-         
-
-            // $order =  $order->with('orderDetails','address')->get();
-      
-            return response()->json([
-                'order' => $order,
-                // 'order_detail' => $orderDetail,
-                // 'address' => $address,
-            ], 200);
+            // Load relationships including order_code
+            $order->load(['address', 'promotion', 'orderDetails']);
+            return response()->json(['order' => $order], 200);
         } catch (\Exception $e) {
-            // Trả về thông báo l��i
             return response()->json([
-                'error' => 'Could not fetch product. Please try again later.',
-               'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trư��ng sản xuất
+                'error' => 'Could not fetch order. Please try again later.',
+                'message' => $e->getMessage(),
             ], 500);
         }
-            
-        
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
-    {
-        //
     }
 
     /**
@@ -171,72 +121,55 @@ class OrderController extends Controller
      */
     public function update(UpdateOrderRequest $request, Order $order)
     {
-        // Cập nhật các trường khác
+        // Update the order's fields, including order_code
         $order->status = $request->status;
         $order->payment_method = $request->payment_method;
         $order->shipping_cost = $request->shipping_cost;
-        $order->address_id = $request->address_id;
-        $order->order_code = $request->order_code;
-    
-        // Nếu có trường 'is_active' trong request, cập nhật nó
+        $order->address_id = $request->address_id; // Ensure you're using the correct address_id
+        $order->order_code = $request->order_code; // Allow updating order_code
+
+        // Update 'is_active' if present in the request
         if ($request->has('is_active')) {
             $order->is_active = $request->is_active;
         }
-    
+
         $order->save();
-    
         return response()->json([
             'message' => 'Order updated successfully!',
-            'order' => $order
+            'order' => $order->load('address', 'promotion', 'orderDetails'), // Include relationships in response
         ], 200);
     }
-    
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Order $order)
     {
-        $order -> update( ["is_active"=>false]);
+        $order->update(["is_active" => false]);
         return response()->json([
             "status" => "success",
-            "message"=> "update thanh cong"
+            "message" => "Order deactivated successfully"
         ]);
     }
 
-    public function getAllOrderByUser(){
+    /**
+     * Get all orders by user.
+     */
+    public function getAllOrderByUser()
+    {
         try {
-            $user = auth::user();
-            $orders = $user->orders()->get();
-            foreach ($orders as $order){
-                $orderDetails = $order->orderDetails;
-                $order['order_details'] = $orderDetails;
-                foreach ($orderDetails as $orderDetail){
-                    $orderDetail['name'] = Product::find($orderDetail['product_id'])['name'];
-                    $orderDetail['color_name'] = ProductVariant::find($orderDetail['variant_id'])->color()->first()['color_name'];
-                    $orderDetail['size_name'] = ProductVariant::find($orderDetail['variant_id'])->size()->first()['size_name'];
-                    $orderDetail['price_variant'] = ProductVariant::find($orderDetail['variant_id'])['price'];
-                    // $orderDetail['variant'] = ProductVariant::find($orderDetail['variant_id'])->with('size','color')->get();
-
-                }
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated.'], 401);
             }
 
-            return BaseController::success($orders);
-
-        } 
-        catch (\Exception $e) {
+            $orders = $user->orders()->with(['address', 'promotion', 'orderDetails'])->get();
+            return response()->json(['orders' => $orders], 200);
+        } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Could not create order. Please try again later.',
-                'message' => $e->getMessage(), // Bạn có thể ẩn message trong môi trường sản xuất
-                'line'=>$e->getLine(),
-                'file'=>$e->getFile(),
+                'error' => 'Could not fetch orders. Please try again later.',
+                'message' => $e->getMessage(),
             ], 500);
         }
-        
-
     }
-   
-    
-    
-
 }
