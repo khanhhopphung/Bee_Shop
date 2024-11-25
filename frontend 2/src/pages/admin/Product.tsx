@@ -160,7 +160,7 @@ const Products: React.FC = () => {
       }
 
       if (currentProduct) {
-        await axios.put(
+        await axios.post(
           `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
           formData,
           {
