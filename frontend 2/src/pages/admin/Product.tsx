@@ -183,10 +183,33 @@ const Products: React.FC = () => {
   };
 
   const columns = [
-    { title: "STT", dataIndex: "id", key: "id" },
-    { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
-    { title: "Mã sản phẩm ", dataIndex: "sku", key: "sku" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
+
+    
+    {
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: any, record: Product, index: number) => index + 1,
+    },
+    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+
+    {
+      title: 'Hình ảnh',
+      dataIndex: 'image_url',
+      key: 'image',
+      render: (image: string, record: Product) => (
+        <img
+          src={record.image?.image_url ? `http://127.0.0.1:8000/storage/${record.image.image_url}` : 'http://127.0.0.1:8000/storage/default-image.jpg'}
+          alt="Ảnh sản phẩm"
+          style={{ width: '100px', height: 'auto' }}
+        />
+      )
+    },
+    
+
+    { title: 'Mã sản phẩm ', dataIndex: 'sku', key: 'sku' },
+    { title: 'Mô tả', dataIndex: 'description', key: 'description' },
+
     {
       title: "Danh mục",
       dataIndex: "category_id",
@@ -198,7 +221,7 @@ const Products: React.FC = () => {
       },
     },
     { title: "Số lượng", dataIndex: "stock", key: "stock" },
-    { title: "Giá", dataIndex: "price", key: "price" },
+    { title: "Giá", dataIndex: "price", key: "{price.toLocaleString()}₫" },
     {
       title: "Kích thước",
       dataIndex: "size_id",
@@ -221,37 +244,18 @@ const Products: React.FC = () => {
     },
 
     {
+
       title: "Kích hoạt",
       dataIndex: "is_active",
       key: "is_active",
       render: (active: boolean) => (active ? "Có" : "Không"),
     },
 
-    {
-      title: "Active",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (active: boolean) => (active ? "Yes" : "No"),
-    },
-    {
-      title: "Hình ảnh",
-      dataIndex: "image",
-      key: "image",
-      render: (image: { image_url: string }) => (
-        <img
-          src={
-            image
-              ? `http://127.0.0.1:8000/storage/${image}`
-              : `http://127.0.0.1:8000/storage/${image}`
-          }
-          alt="Ảnh sản phẩm"
-          style={{ width: "100px", height: "auto" }}
-        />
-      ),
-    },
+    
     {
       title: "Thao tác",
       key: "actions",
+
 
       render: (record: Product) => (
         <>
@@ -312,11 +316,11 @@ const Products: React.FC = () => {
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Mã sản phẩm "
-            name="sku"
-            rules={[{ required: true, message: "Vui lòng nhập SKU!" }]}
-          >
+
+      
+
+          <Form.Item label="Mã sản phẩm " name="sku" rules={[{ required: true, message: 'Vui lòng nhập SKU!' }]}>
+
             <Input />
           </Form.Item>
           <Form.Item label="Mô tả" name="description">
