@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreignId('promotion_id')->nullable()->constrained('promotions');
             $table->enum('status', ['pending', 'completed', 'cancelled']);
             $table->foreignId('address_id')->constrained('shipping_addresses');
-            $table->foreignId('address_id')->constrained('shipping_addresses');
             $table->string('payment_method', 50);
             $table->decimal('shipping_cost', 10, 2);
             $table->timestamps();

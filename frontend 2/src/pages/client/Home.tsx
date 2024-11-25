@@ -309,7 +309,7 @@ const Home: React.FC = () => {
 
             <div className="row">
               {/* Bài blog 1 */}
-              {blogs.map((blog, index) => (
+              {blogs.slice(0, 3).map((blog, index) => (
                 <div key={index} className="col-sm-6 col-md-4 p-b-40">
                   <div className="blog-item">
                     <div className="hov-img0">
@@ -334,11 +334,32 @@ const Home: React.FC = () => {
                           day: "numeric",
                         })}
                       </span>
-                      <p className="stext-108 cl6 p-t-10">{blog.content}</p>
+                      <p className="stext-108 cl6 p-t-10">
+                        {/* Cắt nội dung */}
+                        {blog.content.length > 100
+                          ? `${blog.content.substring(0, 100)}...`
+                          : blog.content}
+                        {blog.content.length > 100 && (
+                          <a
+                            href="#"
+                            className="mtext-102 cl2 hov-cl1 trans-04"
+                          >
+                            Xem thêm
+                          </a>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="flex-c-m flex-w w-full p-t-45">
+              <a
+                href="/products"
+                className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
+              >
+                Xem tất cả
+              </a>
             </div>
           </div>
         </section>

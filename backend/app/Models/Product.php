@@ -20,7 +20,10 @@ class Product extends Model
         'is_active',
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
+        'size_id',
+        'color_id',
+        
     ];
 
    
@@ -40,12 +43,24 @@ class Product extends Model
 
 
     public function image(){
-        return $this->hasOne(Image::class);
+        return $this->hasone(Image::class);
     }
 
     public function reviews(){
         return $this->hasMany(Review::class);
     }
+<<<<<<< HEAD
     
+=======
+    public function size()
+    {
+        return $this->hasMany(Size::class);
+    }
+
+    public function color()
+    {
+        return $this->hasMany(Color::class);
+    }
+>>>>>>> 9e46b7a74fd9c0a4d786d6676144f5539d985831
 
 }

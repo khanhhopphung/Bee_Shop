@@ -51,7 +51,10 @@ class ProductController extends BaseController
                 'sku' => $request->sku,
                 'description' => $request->description,
                 'category_id' => $request->category_id,
-                'stock' => $request->stock
+                'stock' => $request->stock,
+                'size_id'=> $request->size_id,
+                'color_id'=> $request->color_id,
+
             ];
             $product = Product::create($pro);
 
@@ -76,12 +79,12 @@ class ProductController extends BaseController
      * Display the specified resource.
      */
     public function show(Product $product)
-    {
-        // Lấy sản phẩm cùng với hình ảnh liên quan
-        $productWithImage = Product::with('image')->find($product->id);
+{
+    // Lấy sản phẩm cùng với các thông tin liên quan
+    $productWithDetails = Product::with(['image', 'size', 'color'])->find($product->id);
 
-        return $this->success($productWithImage);
-    }
+    return $this->success($productWithDetails);
+}
 
 
 
@@ -89,11 +92,60 @@ class ProductController extends BaseController
     //     /**
     //      * Update the specified resource in storage.
     //      */
-    public function update(UpdateProductRequest $request, Product $product)
-    {
+  /**
+ * Update the specified resource in storage.
+ */
+public function update(Request $request, Product $product)
+{
+    
+    try {
+        DB::beginTransaction();
+  
+        // Kiểm tra nếu có hình ảnh mới, thì lưu lại và cập nhật đường dẫn
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('images', 'public');
+            
+            // Xóa hình ảnh cũ nếu cần (nếu muốn lưu lại, bỏ qua bước này)
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image->image_url);
+                $product->image->update(['image_url' => $path]);
+            } else {
+                // Thêm hình ảnh nếu sản phẩm chưa có hình ảnh
+                Image::create([
+                    'product_id' => $product->id,
+                    'image_url' => $path,
+                ]);
+            }
+           
+    
+        }
+ 
 
-        return $this->edit($product, $request->all());
+        // Cập nhật thông tin sản phẩm
+        $product->update($request->only([
+            'name',
+            'price',
+            'sku',
+            'description',
+            'category_id',
+            'stock',
+            'size_id',
+            'color_id',
+            
+        ]));
+
+        DB::commit();
+
+        return $this->success($product, 'Product updated successfully');
+    } catch (Throwable $e) {
+        DB::rollback();
+        return $this->error($e->getMessage());
     }
+    if ($request->has('is_active')) {
+        $product->is_active = $request->is_active;
+    }
+
+}
 
     //     /**
     //      * Remove the specified resource from storage.

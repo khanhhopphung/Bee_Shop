@@ -21,7 +21,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
     if (accessToken && roleId) {
       // Điều hướng dựa trên role_id
       if (roleId == "2") {
-        navigate("/admin");
+        navigate("/admin/statistics");
       } else {
         navigate("/"); // Điều hướng đến trang client
       }
@@ -71,7 +71,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
 
       // Điều hướng dựa trên role_id
       if (data.role_id == "2") {
-        navigate("/admin"); // Đến trang admin
+        navigate("/admin/statistics"); // Đến trang admin
       } else  {
         navigate("/"); // Đến trang client
       }
