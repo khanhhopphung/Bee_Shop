@@ -27,3 +27,5 @@ Route::get('products/category/{category?}', [ProductController::class, 'filter']
 
 Route::resource('products', ProductController::class);
 
+Route::post('/products/{product}/update', [ProductController::class, 'update']);
+

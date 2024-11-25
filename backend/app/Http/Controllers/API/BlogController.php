@@ -5,11 +5,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreBlogRequest;
+use App\Http\Requests\UpdateBlogRequest;
 use App\Models\Blog;
 use Attribute;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Log;
 
 class BlogController extends BaseController
 {
@@ -96,34 +98,55 @@ class BlogController extends BaseController
      * Show the form for editing the specified resource.
      */
 
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Blog $blog)
+    
+    
+     public function update(Request $request, Blog $blog)
      {
          try {
-             $data = $request->all();
+             // Log toàn bộ thông tin Request
+             Log::info("Full Request Data:", [
+                 "request" => $request->all(),
+                 "files" => $request->files->all()
+             ]);
+     
+             // Lấy tất cả dữ liệu từ request (ngoại trừ file)
+             $data = $request->except('image'); 
      
              if ($request->hasFile('image')) {
+                 // Log khi nhận được file ảnh
+                 Log::info("File is uploaded.", ["file_name" => $request->file('image')->getClientOriginalName()]);
+     
                  $path = $request->file('image')->store('public/images');
                  $data['image'] = str_replace('public/', '', $path);
+     
+                 Log::info("Image Uploaded Path:", [$path]);
+             } else {
+                 Log::info("No image found in request.");
              }
      
-             $blog->update($data);
+             // Cập nhật dữ liệu
+             $isUpdated = $blog->update($data);
+     
+             Log::info("Update Status:", [$isUpdated]);
      
              return response()->json([
                  "status" => true,
                  "message" => "Blog updated successfully",
-                 "data" => $blog
+                 "data" => $blog->refresh()
              ], 200);
          } catch (\Exception $e) {
+             Log::error("Update Error:", ["message" => $e->getMessage()]);
+     
              return response()->json([
                  "status" => "error",
                  "message" => "Error: " . $e->getMessage()
              ], 500);
          }
      }
+     
+     
+     
+    
 
 
     /**
