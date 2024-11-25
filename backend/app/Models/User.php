@@ -41,5 +41,9 @@ class User extends Model implements AuthenticatableContract
     {
         return $this->hasMany(ShippingAddress::class); // Giả sử 1 người dùng có nhiều địa chỉ
     }
+
+    public function orders(){
+        return $this->hasMany(Order::class); // Giả sử 1 người dùng có nhiều đơn hàng
+    }
    
 }

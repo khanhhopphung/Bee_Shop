@@ -2347,7 +2347,7 @@ input.num-product::-webkit-inner-spin-button {
 .stext-102 {
   font-family: Poppins-Regular;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 0.4;
 }
 
 .stext-103 {
@@ -3321,6 +3321,7 @@ input.num-product::-webkit-inner-spin-button {
   -o-transition: transform 0.9s ease;
   -moz-transition: transform 0.9s ease;
   transition: transform 0.9s ease;
+  height: 393px;
 }
 
 .hov-img0:hover img {
@@ -3913,6 +3914,7 @@ strong {
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 15px;
+  overflow: auto;
 }
 
 /* Tabs */

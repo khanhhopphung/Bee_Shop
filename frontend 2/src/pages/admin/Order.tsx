@@ -9,7 +9,6 @@ import {
   Select,
   InputNumber,
   Switch,
-  DatePicker,
 } from "antd";
 import {
   DeleteOutlined,
@@ -20,12 +19,11 @@ import {
 import axios from "axios";
 import moment from "moment";
 
-import axiosInstance from "../axiosConfig";
-
 // Define the types for Order, User, Address, and Promotion
 interface Order {
   id: number;
   user_id: number;
+  order_code: string;
   order_date: string;
   total_amount: number;
   shipping_cost: number;
@@ -50,11 +48,12 @@ interface User {
 
 interface Address {
   id: number;
-  address: string;
+  address_line: string;
 }
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,7 +76,7 @@ const Orders: React.FC = () => {
 
       const response = await axios.get("http://127.0.0.1:8000/api/orders", {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Gửi token trong header Authorization
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -86,7 +85,6 @@ const Orders: React.FC = () => {
       setFilteredOrders(data);
     } catch (error) {
       message.error("Lỗi khi tải đơn hàng.");
-
       setOrders([]);
       setFilteredOrders([]);
     } finally {
@@ -140,7 +138,7 @@ const Orders: React.FC = () => {
       const userName =
         users.find((user) => user.id === order.user_id)?.username || "";
       const address =
-        addresses.find((addr) => addr.id === order.address_id)?.address || "";
+        addresses.find((addr) => addr.id === order.address_id)?.address_line || "";
       return (
         userName.toLowerCase().includes(lowerKeyword) ||
         order.status.toLowerCase().includes(lowerKeyword) ||
@@ -150,9 +148,29 @@ const Orders: React.FC = () => {
     setFilteredOrders(filtered);
   }, [searchKeyword, orders, users, addresses]);
 
+  useEffect(() => {
+    if (statusFilter === "all" || !statusFilter) {
+      setFilteredOrders(orders);
+    } else {
+      const filtered = orders.filter((order) => order.status === statusFilter);
+      setFilteredOrders(filtered);
+    }
+  }, [statusFilter, orders]);
+
   const handleEdit = (order: Order) => {
     setCurrentOrder(order);
     setIsModalVisible(true);
+    form.setFieldsValue({
+      order_date: moment(order.order_date),
+      order_code: order.order_code,
+      total_amount: order.total_amount,
+      shipping_cost: order.shipping_cost,
+      payment_method: order.payment_method,
+      status: order.status,
+      promotion_id: order.promotion_id,
+      address_id: order.address_id,
+      is_active: order.is_active,
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -165,12 +183,11 @@ const Orders: React.FC = () => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/orders/${id}`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+          Authorization: `Bearer ${accessToken}`,
         },
       });
       message.success("Order deleted successfully");
-
-      fetchOrders(); // Refresh the list
+      fetchOrders();
     } catch (error) {
       message.error("Failed to delete order");
     }
@@ -190,17 +207,16 @@ const Orders: React.FC = () => {
           values,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
-        message.success("Order updated successfully");
-
+        message.success("Cập nhật thành công");
         fetchOrders(); // Refresh orders after updating
       }
       setIsModalVisible(false);
     } catch (error) {
-      message.error("Failed to update order");
+      message.error("Cập nhật thất bại");
     }
   };
 
@@ -230,7 +246,7 @@ const Orders: React.FC = () => {
             <p>
               Address:{" "}
               {addresses.find((address) => address.id === order.address_id)
-                ?.address || "N/A"}
+                ?.address_line || "N/A"}
             </p>
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
           </div>
@@ -240,53 +256,58 @@ const Orders: React.FC = () => {
   };
 
   const columns = [
-    { title: "Stt", dataIndex: "id", key: "id" },
     {
-      title: "User Name",
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: any, record: Order, index: number) => index + 1,
+    },
+    {
+      title: "Mã đơn hàng",
+      dataIndex: "order_code",
+      key: "order_code",
+      render: (orderCode: string) => orderCode || "N/A",
+    },
+    {
+      title: "Tên người đặt",
       dataIndex: "user_id",
       key: "user_id",
       render: (userId: number) =>
         users.find((user) => user.id === userId)?.username || "Unknown",
     },
-    { title: "Order Date", dataIndex: "order_date", key: "order_date" },
-    { title: "Total Amount", dataIndex: "total_amount", key: "total_amount" },
-    { title: "Status", dataIndex: "status", key: "status" },
+    { title: "Ngày đặt hàng", dataIndex: "order_date", key: "order_date" },
+    { title: "Tổng đơn hàng", dataIndex: "total_amount", key: "total_amount" },
+    { title: "Trạng thái", dataIndex: "status", key: "status" },
     {
-      title: "Shipping Cost",
+      title: "Phí vận chuyển",
       dataIndex: "shipping_cost",
       key: "shipping_cost",
     },
     {
-      title: "Payment Method",
+      title: "Phương thức thanh toán",
       dataIndex: "payment_method",
       key: "payment_method",
     },
     {
-      title: "Promotion Code",
-      dataIndex: "promotion_id",
-      key: "promotion_id",
-      render: (promoId: number) => {
-        const promo = promotions.find((p) => p.id === promoId);
-        return promo ? promo.code : "N/A";
-      },
+      title: "Địa chỉ",
+      dataIndex: "address",
+      key: "address",
+      render: (address: { id: string }) => address?.id || "N/A",
     },
     {
-      title: "Address",
-      dataIndex: "address_id",
-      key: "address_id",
-      render: (addressId: number) => {
-        const address = addresses.find((address) => address.id === addressId);
-        return address ? address.address : "N/A";
-      },
+      title: "Khuyến mãi",
+      dataIndex: "promotion",
+      key: "promotion",
+      render: (promotion: { code: string }) => promotion?.code || "N/A",
     },
     {
-      title: "Active",
+      title: "Trạng thái hoạt động",
       dataIndex: "is_active",
       key: "is_active",
       render: (isActive: boolean) => (isActive ? "Yes" : "No"),
     },
     {
-      title: "Actions",
+      title: "Hành động",
       key: "actions",
       render: (record: Order) => (
         <>
@@ -320,12 +341,24 @@ const Orders: React.FC = () => {
         }}
       >
         <Input
-          placeholder="Search orders by user, status, or address"
+          placeholder="Tìm kiếm bằng user, status, hoặc address"
           prefix={<SearchOutlined />}
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
         />
       </div>
+      <Select
+        placeholder="Lọc theo trạng thái"
+        value={statusFilter}
+        onChange={(value) => setStatusFilter(value)}
+        style={{ width: 200, marginBottom: 20 }}
+      >
+        <Select.Option value="all">Tất cả trạng thái</Select.Option>
+        <Select.Option value="pending">Đang giao</Select.Option>
+        <Select.Option value="completed">Đã hoàn thành</Select.Option>
+        <Select.Option value="canceled">Đã hủy</Select.Option>
+      </Select>
+
       <Table
         columns={columns}
         dataSource={filteredOrders}
@@ -335,85 +368,83 @@ const Orders: React.FC = () => {
 
       {/* Modal for editing order */}
       <Modal
-        title="Edit Order"
+        title="Sửa đơn hàng"
         visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields(); // Ensure form resets when closed
+        }}
         onOk={() => currentOrder && form.submit()}
       >
         <Form
           form={form}
-          initialValues={
-            currentOrder
-              ? {
-                  order_date: moment(currentOrder.order_date),
-                  total_amount: currentOrder.total_amount,
-                  shipping_cost: currentOrder.shipping_cost,
-                  payment_method: currentOrder.payment_method,
-                  status: currentOrder.status,
-                  promotion_id: currentOrder.promotion_id,
-                  address_id: currentOrder.address_id,
-                  is_active: currentOrder.is_active,
-                }
-              : {}
-          }
           onFinish={handleSubmit}
         >
-          <Form.Item
-            name="order_date"
-            label="Order Date"
-            rules={[{ required: true }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="total_amount"
-            label="Total Amount"
-            rules={[{ required: true }]}
-          >
-            <InputNumber style={{ width: "100%" }} min={0} />
-          </Form.Item>
-          <Form.Item
-            name="shipping_cost"
-            label="Shipping Cost"
-            rules={[{ required: true }]}
-          >
-            <InputNumber style={{ width: "100%" }} min={0} />
-          </Form.Item>
-          <Form.Item
-            name="payment_method"
-            label="Payment Method"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="promotion_id" label="Promotion">
-            <Select>
-              {promotions.map((promo) => (
-                <Select.Option key={promo.id} value={promo.id}>
-                  {promo.code}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="address_id"
-            label="Address"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              {addresses.map((address) => (
-                <Select.Option key={address.id} value={address.id}>
-                  {address.address}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
-            <Switch />
-          </Form.Item>
+         <Form.Item
+  name="order_date"
+  label="Ngày đặt hàng"
+>
+  <Input disabled />
+</Form.Item>
+<Form.Item
+  name="order_code"
+  label="Mã đơn hàng"
+>
+  <Input disabled />
+</Form.Item>
+<Form.Item
+  name="total_amount"
+  label="Tổng đơn hàng"
+>
+  <InputNumber style={{ width: "100%" }} min={0} disabled />
+</Form.Item>
+<Form.Item
+  name="shipping_cost"
+  label="Phí vận chuyển"
+>
+  <InputNumber style={{ width: "100%" }} min={0} disabled />
+</Form.Item>
+<Form.Item
+  name="payment_method"
+  label="Phương thức thanh toán"
+>
+  <Input disabled />
+</Form.Item>
+<Form.Item
+  name="status"
+  label="Trạng thái"
+  rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+>
+  <Select placeholder="Chọn trạng thái">
+    <Select.Option value="pending">Đang xử lý</Select.Option>
+    <Select.Option value="completed">Hoàn thành</Select.Option>
+    <Select.Option value="canceled">Đã hủy</Select.Option>
+  </Select>
+</Form.Item>
+<Form.Item name="promotion_id" label="Khuyến mãi">
+  <Select disabled>
+    {promotions.map((promo) => (
+      <Select.Option key={promo.id} value={promo.id}>
+        {promo.code}
+      </Select.Option>
+    ))}
+  </Select>
+</Form.Item>
+<Form.Item
+  name="address_id"
+  label="Địa chỉ"
+>
+  <Select disabled>
+    {addresses.map((address) => (
+      <Select.Option key={address.id} value={address.id}>
+        {address.address_line}
+      </Select.Option>
+    ))}
+  </Select>
+</Form.Item>
+<Form.Item name="is_active" label="Trạng thái hoạt động" valuePropName="checked">
+  <Switch disabled />
+</Form.Item>
         </Form>
       </Modal>
     </div>

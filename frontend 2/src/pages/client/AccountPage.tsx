@@ -48,7 +48,7 @@ const AccountPage: React.FC = () => {
               style={{ marginLeft: "5px", fontSize: "40px" }}
             ></i>
             <div className="profile-details" style={{ marginLeft: "10px" }}>
-              <h3>Username</h3>
+              <h3>{user?.username}</h3>
 
               <p>
                 {" "}

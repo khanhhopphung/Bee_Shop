@@ -25,7 +25,9 @@ Route::get('products-search', [ProductController::class, 'search'])->name('produ
 
 Route::get('products/category/{category?}', [ProductController::class, 'filter'])->name('products.category');
 
-Route::resource('products', ProductController::class);
+Route::apiResource('products', ProductController::class);
+Route::post('/products/{product}', [ProductController::class, 'update']);
+
 
 Route::post('/products/{product}/update', [ProductController::class, 'update']);
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useForm } from "antd/es/form/Form";
 import {
   Table,
   Button,
@@ -30,8 +31,8 @@ interface Product {
   price: number;
   is_active: boolean;
   image: { image_url: string };
-  size_id?: number;
-  color_id?: number;
+  size_id: number;
+  color_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -52,6 +53,7 @@ interface Color {
 }
 
 const Products: React.FC = () => {
+  const [form] = useForm();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -59,10 +61,7 @@ const Products: React.FC = () => {
   const [colors, setColors] = useState<Color[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-
   const [searchText, setSearchText] = useState<string>("");
-
-  const [fileList, setFileList] = useState<any[]>([]);
   const [imageFile, setImageFile] = useState<any | null>(null);
 
   const fetchCategories = async () => {
@@ -101,9 +100,6 @@ const Products: React.FC = () => {
       message.error("Không thể tải sản phẩm");
     }
   };
-  useEffect(() => {
-    console.log(products);
-  }, [products]);
 
   useEffect(() => {
     fetchCategories();
@@ -128,19 +124,23 @@ const Products: React.FC = () => {
   const handleAdd = () => {
     setCurrentProduct(null);
     setIsModalVisible(true);
-    setFileList([]);
+    form.resetFields();
+    setImageFile(null);
   };
 
   const handleEdit = (product: Product) => {
     setCurrentProduct(product);
     setIsModalVisible(true);
-    setFileList([]);
+    form.setFieldsValue({
+      ...product,
+      image_url: undefined, // Remove image_url to prevent form from trying to bind it
+    });
+    setImageFile(null); // Reset image file, no preview shown
   };
 
   const handleDelete = async (id: number) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/products/${id}`);
-
       message.success("Sản phẩm đã được xóa");
       fetchProducts();
     } catch (error) {
@@ -172,38 +172,54 @@ const Products: React.FC = () => {
         await axios.post("http://127.0.0.1:8000/api/products", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-
         message.success("Sản phẩm đã được tạo");
       }
       setIsModalVisible(false);
       fetchProducts();
+      form.resetFields();
+      setImageFile(null);
     } catch (error) {
       message.error("Không thể lưu sản phẩm");
     }
   };
 
   const columns = [
-    { title: "STT", dataIndex: "id", key: "id" },
-    { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
-    { title: "Mã sản phẩm ", dataIndex: "sku", key: "sku" },
-    { title: "Mô tả", dataIndex: "description", key: "description" },
+    {
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: any, record: Product, index: number) => index + 1,
+    },
+    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+    {
+      title: 'Hình ảnh',
+      dataIndex: 'image_url',
+      key: 'image',
+      render: (image: string, record: Product) => (
+        <img
+          src={record.image?.image_url ? `http://127.0.0.1:8000/storage/${record.image.image_url}` : 'http://127.0.0.1:8000/storage/default-image.jpg'}
+          alt="Ảnh sản phẩm"
+          style={{ width: '100px', height: 'auto' }}
+        />
+      )
+    },
+    { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
+    { title: 'Mô tả', dataIndex: 'description', key: 'description' },
     {
       title: "Danh mục",
       dataIndex: "category_id",
       key: "category_id",
-
       render: (categoryId: number) => {
         const category = categories.find((cat) => cat.id === categoryId);
         return category ? category.name : "N/A";
       },
     },
     { title: "Số lượng", dataIndex: "stock", key: "stock" },
-    { title: "Giá", dataIndex: "price", key: "price" },
+    { title: "Giá", dataIndex: "price", key: "price", render: (price: number) => `${price.toLocaleString()}₫` },
     {
       title: "Kích thước",
       dataIndex: "size_id",
       key: "size_id",
-
       render: (sizeId: number) => {
         const size = sizes.find((s) => s.id === sizeId);
         return size ? size.size_name : "N/A";
@@ -213,46 +229,20 @@ const Products: React.FC = () => {
       title: "Màu sắc",
       dataIndex: "color_id",
       key: "color_id",
-
       render: (colorId: number) => {
         const color = colors.find((c) => c.id === colorId);
         return color ? color.color_name : "N/A";
       },
     },
-
     {
-      title: "Kích hoạt",
+      title: "Trạng thái hoạt động",
       dataIndex: "is_active",
       key: "is_active",
       render: (active: boolean) => (active ? "Có" : "Không"),
     },
-
-    {
-      title: "Active",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (active: boolean) => (active ? "Yes" : "No"),
-    },
-    {
-      title: "Hình ảnh",
-      dataIndex: "image",
-      key: "image",
-      render: (image: { image_url: string }) => (
-        <img
-          src={
-            image
-              ? `http://127.0.0.1:8000/storage/${image}`
-              : `http://127.0.0.1:8000/storage/${image}`
-          }
-          alt="Ảnh sản phẩm"
-          style={{ width: "100px", height: "auto" }}
-        />
-      ),
-    },
     {
       title: "Thao tác",
       key: "actions",
-
       render: (record: Product) => (
         <>
           <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
@@ -275,7 +265,6 @@ const Products: React.FC = () => {
           placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
           prefix={<SearchOutlined />}
         />
-
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Thêm sản phẩm
         </Button>
@@ -289,38 +278,21 @@ const Products: React.FC = () => {
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <Form
-          initialValues={
-            currentProduct || {
-              name: "",
-              sku: "",
-              description: "",
-              category_id: "",
-              stock: 0,
-              price: 0,
-              size_id: "",
-              color_id: "",
-              is_active: true,
-            }
-          }
-          onFinish={handleSubmit}
-        >
-          <Form.Item
-            label="Tên sản phẩm"
+        <Form  form={form} onFinish={handleSubmit}>
+          <Form.Item 
+            label="Tên sản phẩm "
             name="name"
             rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
           >
-            <Input />
+            <Input disabled={currentProduct !== null} />
           </Form.Item>
-          <Form.Item
-            label="Mã sản phẩm "
-            name="sku"
-            rules={[{ required: true, message: "Vui lòng nhập SKU!" }]}
-          >
-            <Input />
+
+          <Form.Item  label="Mã sản phẩm" name="sku" rules={[{ required: true, message: 'Vui lòng nhập SKU!' }]}>
+            <Input disabled={currentProduct !== null} />
           </Form.Item>
+
           <Form.Item label="Mô tả" name="description">
-            <Input.TextArea />
+            <Input.TextArea disabled={currentProduct !== null} />
           </Form.Item>
 
           <Form.Item
@@ -328,7 +300,7 @@ const Products: React.FC = () => {
             name="category_id"
             rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
           >
-            <Select>
+            <Select disabled={currentProduct !== null}>
               {categories.map((category) => (
                 <Select.Option key={category.id} value={category.id}>
                   {category.name}
@@ -336,8 +308,9 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item label="Kích thước" name="size_id">
-            <Select>
+            <Select disabled={currentProduct !== null}>
               {sizes.map((size) => (
                 <Select.Option key={size.id} value={size.id}>
                   {size.size_name}
@@ -345,8 +318,9 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item label="Màu sắc" name="color_id">
-            <Select>
+            <Select disabled={currentProduct !== null}>
               {colors.map((color) => (
                 <Select.Option key={color.id} value={color.id}>
                   {color.color_name}
@@ -354,23 +328,27 @@ const Products: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item
             label="Số lượng"
             name="stock"
             rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
           >
-            <Input type="number" />
+            <Input type="number" disabled={currentProduct !== null} />
           </Form.Item>
+
           <Form.Item
             label="Giá"
             name="price"
             rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
           >
-            <Input type="number" />
+            <Input type="number" disabled={currentProduct !== null} />
           </Form.Item>
+
           <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
             <Switch />
           </Form.Item>
+
           <Form.Item label="Hình ảnh" name="image_url">
             <Upload
               listType="picture"
@@ -382,7 +360,15 @@ const Products: React.FC = () => {
             >
               <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
             </Upload>
+            {currentProduct && currentProduct.image && (
+              <img
+                src={`http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`}
+                alt="Ảnh sản phẩm"
+                style={{ width: '100px', height: 'auto', marginTop: '10px' }}
+              />
+            )}
           </Form.Item>
+
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Lưu

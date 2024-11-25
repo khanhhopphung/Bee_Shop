@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { setQuantityCart } from "../../store/quantityCartSlice";
 import { Rate } from "antd";
+import Heart from "../../components/Heart";
 
 interface Product {
   id: number;
@@ -14,6 +15,17 @@ interface Product {
   price: number;
   image: { image_url: string };
 }
+interface Review {
+  id: number;
+  user_id: number;
+  user: {
+    username: string;
+  };
+  product_id: number;
+  comment: string;
+  rating: number;
+  review_date: Date;
+}
 interface Size {
   id: number;
   size_name: string;
@@ -21,6 +33,10 @@ interface Size {
 interface Color {
   id: number;
   color_name: string;
+}
+interface rating {
+  average_rating: number;
+  rating_count: number;
 }
 
 interface Error {
@@ -55,6 +71,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
   const [colors, setColor] = useState<Color[]>([]);
   const [products, setProducts] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [rating, setRating] = useState<{
+    average_rating: number;
+    rating_count: number;
+  }>({
+    average_rating: 0,
+    rating_count: 0,
+  });
 
   const [selectedVariant, setSelectedVariant] = useState<string>("");
 
@@ -85,6 +109,45 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
     };
 
     fetchProducts();
+  }, [id]);
+  // call api review
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/get-reviews-by-product/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra xem result có dữ liệu hợp lệ không
+        if (result && result.data) {
+          setReviews(result.data);
+          console.log(result);
+          setRating({
+            average_rating: result.average_rating,
+            rating_count: result.rating_count,
+          });
+        } else {
+          console.error("Data is not valid:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchReviews();
   }, [id]);
 
   // call api sizes
@@ -189,7 +252,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
             <div className="col-md-6 col-lg-7 p-b-30">
               <div className="p-l-25 p-r-30 p-lr-0-lg">
                 <div className="wrap-slick3 flex-sb flex-w">
-                  <div className="wrap-slick3-dots"></div>
                   {/* <div className="wrap-slick3-arrows flex-sb-m flex-w">
                       ảnh
                     </div> */}
@@ -199,20 +261,53 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                       className="item-slick3"
                       data-thumb="images/product-detail-01.jpg"
                     >
-                      <div className="wrap-pic-w pos-relative">
+                      <div
+                        className="wrap-pic-w pos-relative"
+                        style={{ display: "flex" }}
+                      >
+                        <div className="slick3 gallery-lb">
+                          <div
+                            className="item-slick3"
+                            data-thumb="images/product-detail-01.jpg"
+                          >
+                            <div className="wrap-pic-w pos-relative">
+                              <img
+                                src="images/product-detail-01.jpg"
+                                alt="IMG-PRODUCT"
+                              />
+                            </div>
+                          </div>
+
+                          <div
+                            className="item-slick3"
+                            data-thumb="images/product-detail-02.jpg"
+                          >
+                            <div className="wrap-pic-w pos-relative">
+                              <img
+                                src="images/product-detail-02.jpg"
+                                alt="IMG-PRODUCT"
+                              />
+                            </div>
+                          </div>
+
+                          <div
+                            className="item-slick3"
+                            data-thumb="images/product-detail-03.jpg"
+                          >
+                            <div className="wrap-pic-w pos-relative">
+                              <img
+                                src="images/product-detail-03.jpg"
+                                alt="IMG-PRODUCT"
+                              />
+                            </div>
+                          </div>
+                        </div>
                         <img
                           src={`http://127.0.0.1:8000/storage/${
                             products?.image?.image_url || "default-image.jpg"
                           }`}
                           alt="IMG-PRODUCT"
                         />
-
-                        <a
-                          className="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04"
-                          href="images/product-detail-01.jpg"
-                        >
-                          <i className="fa fa-expand"></i>
-                        </a>
                       </div>
                     </div>
                   </div>
@@ -371,13 +466,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
 
                   <div className="flex-w flex-m p-l-100 p-t-40 respon7">
                     <div className="flex-m bor9 p-r-10 m-r-11">
-                      <a
-                        href="#"
-                        className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 js-addwish-detail tooltip100"
-                        data-tooltip="Add to Wishlist"
-                      >
-                        <i className="zmdi zmdi-favorite"></i>
-                      </a>
+                      <Heart product_id={products.id} />
                     </div>
 
                     <a
@@ -453,39 +542,119 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                 ></div>
 
                 <div className="tab-pane fade" id="reviews" role="tabpanel">
-                  <div className="row">
-                    <div className="col-sm-10 col-md-8 col-lg-6 m-lr-auto">
-                      <div className="review">
-                        <div className="flex-w flex-t p-b-20">
-                          <div className="size-204 flex-w flex-t">
-                            <span className="mtext-106 cl2">John Doe</span>
-                            <span className="mtext-102 cl3 p-l-10">
-                              01 Jan 2023
-                            </span>
-                          </div>
+                  <div style={{ padding: "5px" }}>
+                    {/* Hiển thị trung bình sao */}
+                    <strong>
+                      <strong>{rating.average_rating} trên 5</strong>
+                    </strong>
+                    <div style={{ display: "flex" }}>
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <span
+                          key={index}
+                          style={{
+                            color:
+                              index < Math.round(rating.average_rating)
+                                ? "orange"
+                                : "lightgray", // Vàng cho các sao đã đạt, xám cho sao chưa đạt
+                          }}
+                        >
+                          ⭐
+                        </span>
+                      ))}
+                    </div>
+                    <br />
 
-                          <div className="size-205">
-                            <div className="wrap-rating flex-m p-t-6">
-                              <input
-                                className="rating"
-                                type="hidden"
-                                name="rating"
-                                value={5}
-                                onChange={handle}
-                              />
-                              <div className="wrap-rating">
-                                <Rate />
+                    {/* Hiển thị số lượng đánh giá */}
+                    <span>{rating.rating_count} Bình luận</span>
+                  </div>
+
+                  {reviews?.map((review, index) => (
+                    <div
+                      key={index}
+                      className="rowww"
+                      // style={{ height: "200px" }}
+                    >
+                      <div
+                        className="comments"
+                        style={{ marginRight: "600px" }}
+                      >
+                        <div
+                          className="avatar"
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            display: "flex",
+                          }}
+                        >
+                          <img
+                            src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
+                            alt="avt"
+                          />
+                          <div
+                            className="review"
+                            style={{ marginLeft: "15px" }}
+                          >
+                            <div
+                              className="username"
+                              style={{ display: "inline-block", gap: "10px" }}
+                            >
+                              <span
+                                className="mtext-106 cl2"
+                                style={{ marginRight: "5px" }}
+                              >
+                                {review.user.username}
+                              </span>
+
+                              {review.review_date
+                                ? new Date(
+                                    review.review_date
+                                  ).toLocaleDateString()
+                                : "Invalid Date"}
+                            </div>
+
+                            <div className="star">
+                              <div className="wrap-rating flex-m p-t-6">
+                                <div>
+                                  {Array.from({ length: review.rating }).map(
+                                    (_, index) => (
+                                      <span
+                                        key={index}
+                                        style={{ color: "gold" }}
+                                      >
+                                        ⭐
+                                      </span>
+                                    )
+                                  )}
+                                </div>
                               </div>
+                              <p
+                                className="comment"
+                                style={{
+                                  marginTop: "10px",
+                                  whiteSpace: "pre-wrap", // Giúp văn bản tự động xuống dòng nếu dài
+                                  overflowWrap: "break-word", // Giúp văn bản dài không bị tràn
+                                }}
+                              >
+                                {review.comment}
+                                <img
+                                  style={{ width: "50px", height: "50px" }}
+                                  src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
+                                  alt=""
+                                />
+                              </p>
                             </div>
                           </div>
                         </div>
-
-                        <p className="stext-102 cl6">
-                          Great product! Highly recommend it to everyone.
-                        </p>
                       </div>
+                      <hr
+                        style={{
+                          margin: "20px 0",
+                          borderColor: "#ccc",
+                          borderWidth: "1px",
+                        }}
+                      />
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
