@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, message, Switch } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-
 import axios from 'axios';
 
 interface Category {
@@ -21,6 +20,7 @@ const Categories: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
+  const [form] = Form.useForm(); // Form instance
 
   const fetchCategories = async () => {
     try {
@@ -50,11 +50,13 @@ const Categories: React.FC = () => {
 
   const handleAdd = () => {
     setCurrentCategory(null);
+    form.resetFields(); // Reset form fields for adding new data
     setIsModalVisible(true);
   };
 
   const handleEdit = (category: Category) => {
     setCurrentCategory(category);
+    form.setFieldsValue(category); // Set form values for editing
     setIsModalVisible(true);
   };
 
@@ -68,7 +70,7 @@ const Categories: React.FC = () => {
         try {
           await axios.delete(`http://127.0.0.1:8000/api/categories/${id}`);
           message.success('Category deleted successfully');
-          fetchCategories(); // Refresh the list
+          fetchCategories();
         } catch (error) {
           message.error('Failed to delete category');
         }
@@ -86,23 +88,33 @@ const Categories: React.FC = () => {
         message.success('Category created successfully');
       }
       setIsModalVisible(false);
-      fetchCategories(); // Refresh the list
+      fetchCategories();
     } catch (error) {
       message.error('Failed to save category');
     }
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'SKU', dataIndex: 'sku', key: 'sku' },
-    { title: 'Active', dataIndex: 'is_active', key: 'is_active', render: (active: boolean) => (active ? 'Yes' : 'No') },
+    {
+      title: 'STT',
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: any, record: Category, index: number) => index + 1,
+    },
+    { title: 'Tên danh mục', dataIndex: 'name', key: 'name' },
+    { title: 'Mã danh mục', dataIndex: 'sku', key: 'sku' },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (active: boolean) => (active ? 'Yes' : 'No'),
+    },
     {
       title: 'Actions',
       key: 'actions',
       render: (record: Category) => (
         <>
-          <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} />
+          <Button onClick={() => handleEdit(record)} icon={<EditOutlined />} style={{ marginRight: 8 }} />
           <Button onClick={() => handleDelete(record.id)} icon={<DeleteOutlined />} danger />
         </>
       ),
@@ -115,12 +127,13 @@ const Categories: React.FC = () => {
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
           Add Category
         </Button>
+        
         <Input
           placeholder="Search by name or SKU"
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => handleSearch(e.target.value)}
-          style={{ width: 300 }}
+          style={{ width: 600 }}
         />
       </div>
       <Table columns={columns} dataSource={filteredCategories} rowKey="id" />
@@ -132,18 +145,22 @@ const Categories: React.FC = () => {
         footer={null}
       >
         <Form
-          initialValues={currentCategory || { name: '', sku: '', is_active: false }}
+          form={form} // Bind form instance
+          initialValues={{ name: '', sku: '', is_active: false }}
           onFinish={handleSubmit}
         >
           <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
             <Input />
           </Form.Item>
+
           <Form.Item name="sku" label="SKU" rules={[{ required: true, message: 'Please enter an SKU' }]}>
             <Input />
           </Form.Item>
+
           <Form.Item name="is_active" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
+
           <Button type="primary" htmlType="submit">
             Submit
           </Button>
