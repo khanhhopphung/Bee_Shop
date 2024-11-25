@@ -39,6 +39,8 @@ Route::post('/logout', [AuthController::class,'logout'])->middleware('auth:sanct
 
 
 Route::apiResource('blogs', BlogController::class);
+Route::post('/blogs/{blog}/update', [BlogController::class, 'update']);
+
 
 Route::apiResource('tiers', TierController::class);
 

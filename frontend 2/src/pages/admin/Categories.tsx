@@ -161,7 +161,7 @@ const Categories: React.FC = () => {
       align: 'center',
     },
   ];
-  
+
 
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
@@ -185,7 +185,6 @@ const Categories: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-           
             onClick={handleAdd}
             style={{ fontSize: '16px', height: '40px' }}
           >
@@ -207,7 +206,7 @@ const Categories: React.FC = () => {
             }}
           />
         </div>
-
+        <hr />
         <Table
           columns={columns}
           dataSource={filteredCategories}

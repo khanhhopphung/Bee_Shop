@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, message, Switch, Select } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { ColumnsType } from 'antd/es/table';
+
 
 interface Promotion {
   id: number;
