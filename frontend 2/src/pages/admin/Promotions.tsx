@@ -74,7 +74,7 @@ const Promotions: React.FC = () => {
       const response = await axios.get("http://127.0.0.1:8000/api/tiers");
       setTiers(response.data.data || []);
     } catch (error) {
-      message.error("Failed to load tiers");
+      message.error("không thể tải bảng tier");
     } finally {
       setLoading(false);
     }
@@ -141,18 +141,18 @@ const Promotions: React.FC = () => {
 
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: "Are you sure you want to delete this Promotion?",
-      okText: "Yes",
+      title: "bạn có chắc chắn muốn xóa khuyến mãi không",
+      okText: "có",
       okType: "danger",
-      cancelText: "No",
+      cancelText: "không",
       onOk: async () => {
         try {
           await axios.delete(`http://127.0.0.1:8000/api/promotions/${id}`);
 
-          message.success("Promotion deleted successfully");
+          message.success("xóa thành công khuyến mãi");
           fetchPromotions();
         } catch (error) {
-          message.error("Failed to delete promotion");
+          message.error("xóa thất bại khuyến mãi");
         }
       },
     });
@@ -166,16 +166,16 @@ const Promotions: React.FC = () => {
           `http://127.0.0.1:8000/api/promotions/${currentPromotion.id}`,
           values
         );
-        message.success("Promotion updated successfully");
+        message.success("sửa thành công khuyến mãi");
       } else {
         // Add new promotion
         await axios.post("http://127.0.0.1:8000/api/promotions", values);
-        message.success("Promotion created successfully");
+        message.success("tạo thành công khuyến mãi");
       }
       setIsModalVisible(false);
       fetchPromotions();
     } catch (error) {
-      message.error("Failed to save promotion");
+      message.error("không thể lưu khuyến mãi");
     }
   };
 
@@ -313,7 +313,7 @@ const Promotions: React.FC = () => {
           </Button>
   
           <Input.Search
-            placeholder="Search promotion by code or discount type"
+            placeholder="tìm kiếm bàng tên mã giảm giá hoặc  giá trị mã giảm giá "
             allowClear
             enterButton={<SearchOutlined />}
             size="large"
@@ -328,7 +328,7 @@ const Promotions: React.FC = () => {
           />
         </div>
         <Select
-          placeholder="Filter by Discount Value"
+          placeholder="lọc bằng giá trị giảm giá"
           allowClear
           style={{
             width: 250,

@@ -95,7 +95,6 @@ const Categories: React.FC = () => {
       },
     });
   };
-
   const handleSubmit = async (values: any) => {
     try {
       if (currentCategory) {
@@ -108,7 +107,7 @@ const Categories: React.FC = () => {
       setIsModalVisible(false);
       fetchCategories();
     } catch (error) {
-      message.error('Failed to save category');
+      message.error('không thể lưu do danh mục đã tồn tại ');
     }
   };
 
