@@ -389,3 +389,4 @@ const Blogs: React.FC = () => {
 };
 
 export default Blogs;
+//src={`http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`}
