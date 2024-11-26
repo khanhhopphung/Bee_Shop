@@ -390,8 +390,15 @@ const Carts: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <Link to="/payments">
-                <button className="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer mt-[3px] text-xl py-4 px-8 w-full md:w-auto">
+              <Link to={ids.length > 0 ? "/payments" : "#"}>
+                <button
+                  className="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer mt-[3px] text-xl py-4 px-8 w-full md:w-auto"
+                  disabled={ids.length === 0} // Disable nút nếu không có sản phẩm được chọn
+                  style={{
+                    backgroundColor: ids.length > 0 ? "#333" : "#ccc", // Thay đổi màu khi nút bị disable
+                    cursor: ids.length > 0 ? "pointer" : "not-allowed", // Thay đổi con trỏ
+                  }}
+                >
                   Tiến hành thanh toán
                 </button>
               </Link>

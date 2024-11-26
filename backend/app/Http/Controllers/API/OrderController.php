@@ -235,6 +235,33 @@ class OrderController extends Controller
         
 
     }
+
+    public function cancel(Order $order)
+    {
+        try {
+            if ($order->status == 'pending') {
+                $order->status = 'cancel';
+                $order->save();
+            } else {
+                return response()->json([
+                    'message' => 'Order cannot be cancelled. Please contact support.',
+                ], 400);
+            }
+
+            return response()->json([
+                'message' => 'Order cancelled successfully!',
+                'order' => $order,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Could not cancel order. Please try again later.',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'code' => $e->getCode(),
+            ], 500);
+        }
+    }
    
     
     

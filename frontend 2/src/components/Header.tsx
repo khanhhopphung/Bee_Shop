@@ -132,10 +132,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 <li className="active-menu">
                   <Link to="/">Trang chủ</Link>
                 </li>
-                <li>
-                  <Link to="/products">Sản phẩm</Link>
-                </li>
-                {/* {categories.map((category,index) => ( */}
+
                 <li className="relative active-menu">
                   <Link to="">Danh Mục</Link>
 
@@ -144,7 +141,7 @@ const Header: React.FC<Props> = ({ quantity }) => {
                     {categories.map((category, index) => (
                       <li key={index} className="relative">
                         <Link
-                          to="/sub-category"
+                          to="#"
                           className="flex items-center justify-between px-4 hover:bg-gray-200"
                           style={{ textAlign: "left" }}
                         >
@@ -162,44 +159,11 @@ const Header: React.FC<Props> = ({ quantity }) => {
                         </Link>
                       </li>
                     ))}
-                    {/* <li className="relative">
-                      <Link
-                        to="/sub-category"
-                        className="block px-4 hover:bg-gray-200"
-                      >
-                        Danh mục 2
-                        <i className="fa-solid fa-chevron-right pl-4"></i>
-                      </Link>
-                      <ul className="sub-menu absolute left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white shadow-lg rounded-md text-center">
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-1"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 1
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-2"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 2
-                          </Link>
-                        </li>
-                        <li className="py-2">
-                          <Link
-                            to="/sub-category-3"
-                            className="block px-4 hover:bg-gray-200"
-                          >
-                            Danh mục con 3
-                          </Link>
-                        </li>
-                      </ul>
-                    </li> */}
                   </ul>
                 </li>
-
+                <li>
+                  <Link to="/products">Sản phẩm</Link>
+                </li>
                 <li>
                   <Link to="/contact">Liên hệ</Link>
                 </li>

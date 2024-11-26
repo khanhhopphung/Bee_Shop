@@ -104,7 +104,8 @@ class ProductController extends BaseController
     {
 
 
-        $products = Product::with('productvariants','image')->latest('id')->get();
+        $products = Product::with('productvariants.images','image')->latest('id')->get();
+       
         return $this->success($products);
     }
 

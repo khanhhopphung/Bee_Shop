@@ -234,12 +234,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
       {/* bread-crumb */}
       <div className="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
         <a href="/" className="stext-109 cl8 hov-cl1 trans-04">
-          Home
+          Trang chủ
           <i className="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
         </a>
 
-        <a href="/" className="stext-109 cl8 hov-cl1 trans-04">
-          Men
+        <a href="/products" className="stext-109 cl8 hov-cl1 trans-04">
+          Sản phẩm
           <i className="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
         </a>
 
@@ -341,7 +341,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                   <div className="p-t-33">
                     {/* Chọn Kích Thước */}
                     <div className="flex-w flex-r-m p-b-10">
-                      <div className="size-203 flex-c-m respon6">Size</div>
+                      <div className="size-203 flex-c-m respon6">
+                        Kích thước
+                      </div>
                       <div className="size-204 respon6-next">
                         <div className="rs1-select2 bor8 bg0">
                           <select
@@ -375,7 +377,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
 
                     {/* Chọn Màu Sắc */}
                     <div className="flex-w flex-r-m p-b-10">
-                      <div className="size-203 flex-c-m respon6">Color</div>
+                      <div className="size-203 flex-c-m respon6">Màu sắc</div>
                       <div className="size-204 respon6-next">
                         <div className="rs1-select2 bor8 bg0">
                           <select
@@ -470,7 +472,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                     </div>
 
                     <a
-                      href="#"
+                      href="https://www.facebook.com/profile.php?id=61569659241755"
                       className="fs-14 cl3 hov-cl1 trans-04 lh-10 p-lr-5 p-tb-2 m-r-8 tooltip100"
                       data-tooltip="Facebook"
                     >
@@ -675,57 +677,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
               <div className="wrap-slick2">
                 <div className="slick2">
                   {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
-                  <div className="flex-w flex-sb-m p-l-15 p-r-15">
-                    {/* Sản phẩm 1 */}
-                    {/* <div
-                      className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
-                      style={{ width: "25%" }}
-                    >
-                      <div className="block2">
-                        <div className="block2-pic hov-img0">
-                          <img
-                            src="images/product-01.jpg"
-                            alt="IMG-PRODUCT"
-                            style={{ width: "100%", height: "auto" }}
-                          />
-                          <a
-                            href="#"
-                            className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
-                          >
-                            Quick View
-                          </a>
-                        </div>
-                        <div className="block2-txt flex-w flex-t p-t-14">
-                          <div className="block2-txt-child1 flex-col-l">
-                            <a
-                              href="/"
-                              className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
-                            >
-                              Esprit Ruffle Shirt
-                            </a>
-                            <span className="stext-105 cl3">$16.64</span>
-                          </div>
-                          <div className="block2-txt-child2 flex-r p-t-3">
-                            <a
-                              href="#"
-                              className="btn-addwish-b2 dis-block pos-relative js-addwish-b2"
-                            >
-                              <img
-                                className="icon-heart1 dis-block trans-04"
-                                src="images/icons/icon-heart-01.png"
-                                alt="ICON"
-                              />
-                              <img
-                                className="icon-heart2 dis-block trans-04 ab-t-l"
-                                src="images/icons/icon-heart-02.png"
-                                alt="ICON"
-                              />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </div> */}
-                  </div>
+                  <div className="flex-w flex-sb-m p-l-15 p-r-15"></div>
                   {/* Thêm các sản phẩm khác nếu cần */}
                 </div>
               </div>

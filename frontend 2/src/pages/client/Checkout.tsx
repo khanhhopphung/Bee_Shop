@@ -253,6 +253,22 @@ const PaymentPage: React.FC = () => {
       message.error("Vui lòng chọn phương thức thanh toán");
       return;
     }
+    if (paymentMethod === "vnpay") {
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/payment-vnpay",
+          {
+            amount: totalAmount,
+            bank_code: "NCB",
+          }
+        );
+        window.location.href = response.data.data;
+        console.log(response.data.data);
+      } catch (error) {
+        console.error("Error creating payment:", error);
+        return;
+      }
+    }
     const orderData: Order = {
       total_amount: totalAmount,
       promotion_id: idVoucher,

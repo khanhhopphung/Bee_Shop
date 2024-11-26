@@ -23,11 +23,11 @@ interface Category {
 }
 const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([
-    { id: 0, name: "All Products" }, // Đối tượng phải nằm trong ngoặc nhọn
+    { id: 0, name: "Tất cả sản phẩm" }, // Đối tượng phải nằm trong ngoặc nhọn
   ]);
   const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All Products");
+  const [selectedFilter, setSelectedFilter] = useState("Tất cả sản phẩm");
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
@@ -115,7 +115,16 @@ const Products: React.FC = () => {
   };
 
   // Tính toán các sản phẩm hiển thị trong trang hiện tại
-  const currentPageProducts = products.slice(
+  const filteredProducts = products
+    .filter(
+      (product) =>
+        selectedCategory === 0 || product.category_id === selectedCategory
+    )
+    .filter((product) =>
+      product.name.toLowerCase().includes(key.toLowerCase())
+    );
+
+  const currentPageProducts = filteredProducts.slice(
     (currentPage - 1) * productsPerPage,
     currentPage * productsPerPage
   );
@@ -163,7 +172,7 @@ const Products: React.FC = () => {
                 <input
                   className="mtext-107 cl2 size-114 plh2 p-r-15"
                   type="text"
-                  placeholder="Search"
+                  placeholder="Tìm kiếm"
                   value={key}
                   onChange={handleSearch}
                 />
@@ -178,7 +187,10 @@ const Products: React.FC = () => {
               : "dis-none panel-filter w-full p-t-10 mb-4"
           }
           id="fi"
-          style={{ marginBottom: isVisible ? "0.5cm" : "0" }}
+          style={{
+            marginBottom: isVisible ? "0.5cm" : "0",
+            marginTop: "-54px",
+          }}
         >
           <div className="wrap-filter flex-w bg6 w-full p-lr-40 p-t-27 p-lr-15-sm">
             <div className="filter-col1 p-r-15 p-b-27">
@@ -374,7 +386,7 @@ const Products: React.FC = () => {
         <div className="flex-c-m flex-w w-full p-t-45">
           <Pagination
             current={currentPage}
-            total={products.length}
+            total={filteredProducts.length}
             pageSize={productsPerPage}
             onChange={handlePageChange} // Cập nhật trang khi người dùng chọn
           />

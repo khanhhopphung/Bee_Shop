@@ -537,6 +537,7 @@ const Home: React.FC = () => {
               <a
                 href="/blogs"
                 className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
+                style={{ marginTop: "-50px" }}
               >
                 Xem tất cả
               </a>

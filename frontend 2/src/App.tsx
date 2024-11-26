@@ -44,6 +44,8 @@ import User from "./pages/admin/User";
 import WishList from "./pages/client/WishList";
 import BlogDetail from "./pages/client/BlogDetail";
 import Contact from "./components/Contact";
+import VNPayForm from "./components/VNPayForm";
+import ScrollToTop from "./components/ScrollToTop";
 
 interface CartItem {
   product_id: any;
@@ -212,6 +214,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="" element={<Layout q={cart.length} />}>
           <Route index element={<Home />} />
@@ -242,7 +245,8 @@ const App: React.FC = () => {
           <Route path="/comment" element={<Comment />} />
           <Route path="/order-list" element={<OrderList />} />
           <Route path="/voucher" element={<Voucher />} />
-          <Route path="contact" element={<Contact />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/vnpay" element={<VNPayForm />} />
         </Route>
 
         {/* Route cho phần admin */}

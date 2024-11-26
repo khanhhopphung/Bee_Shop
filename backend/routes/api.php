@@ -13,11 +13,7 @@ use App\Http\Controllers\API\SizeController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\OrderController;
-
-
-
-
-
+use App\Http\Controllers\API\PaymentController;
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -77,4 +73,12 @@ Route::middleware('auth:api')->group(function () {
 
 Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+
+//Thanh toán vn pay
+Route::post('/payment-vnpay', [PaymentController::class, 'vnPay']);
+Route::get('/vnpay-return', [PaymentController::class, 'paymentReturn']);
+// Route::post('/payment-vnpay-callback', [PaymentController::class, 'paymentVnpayCallback']);
+// Route::post('/payment-vnpay-cancel', [PaymentController::class, 'paymentVnpayCancel']);
+// Route::post('/payment-vnpay-return', [PaymentController::class, 'paymentVnpayReturn']);
+// Route::post('/payment-vnpay-success', [PaymentController::class, 'paymentVnpaySuccess']);
 
