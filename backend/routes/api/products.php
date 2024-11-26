@@ -29,3 +29,5 @@ Route::apiResource('products', ProductController::class);
 Route::post('/products/{product}', [ProductController::class, 'update']);
 
 
+Route::post('/products/{product}/update', [ProductController::class, 'update']);
+

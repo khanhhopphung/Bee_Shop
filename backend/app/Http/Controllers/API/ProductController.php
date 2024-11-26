@@ -99,6 +99,9 @@ public function update(Request $request, Product $product)
 {
     
     try {
+        if ($request->has('is_active')) {
+            $product->is_active = filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+        }
         DB::beginTransaction();
   
         // Kiểm tra nếu có hình ảnh mới, thì lưu lại và cập nhật đường dẫn

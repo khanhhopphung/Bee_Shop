@@ -17,4 +17,8 @@ class Image extends Model
         'created_at',
         'updated_at',
     ];
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id', 'id');
+    }
 }

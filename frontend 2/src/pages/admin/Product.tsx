@@ -114,8 +114,7 @@ const Products: React.FC = () => {
 
     const filtered = products.filter(
       (product) =>
-        product.name.toLowerCase().includes(value.toLowerCase()) ||
-        product.sku.toLowerCase().includes(value.toLowerCase()) ||
+        product.name.toLowerCase().includes(value.toLowerCase()) || product.sku.toLowerCase().includes(value.toLowerCase()) ||
         product.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredProducts(filtered);
@@ -134,6 +133,7 @@ const Products: React.FC = () => {
     form.setFieldsValue({
       ...product,
       image_url: undefined, // Remove image_url to prevent form from trying to bind it
+      is_active: product.is_active,
     });
     setImageFile(null); // Reset image file, no preview shown
   };
@@ -213,8 +213,7 @@ const Products: React.FC = () => {
         const category = categories.find((cat) => cat.id === categoryId);
         return category ? category.name : "N/A";
       },
-    },
-    { title: "Số lượng", dataIndex: "stock", key: "stock" },
+    },{ title: "Số lượng", dataIndex: "stock", key: "stock" },
     { title: "Giá", dataIndex: "price", key: "price", render: (price: number) => `${price.toLocaleString()}₫` },
     {
       title: "Kích thước",
@@ -322,8 +321,7 @@ const Products: React.FC = () => {
         ))}
       </Select>
     </Form.Item>
-
-    <Form.Item label="Màu sắc" name="color_id">
+<Form.Item label="Màu sắc" name="color_id">
       <Select>
         {colors.map((color) => (
           <Select.Option key={color.id} value={color.id}>
