@@ -160,7 +160,7 @@ const Products: React.FC = () => {
       }
 
       if (currentProduct) {
-        await axios.put(
+        await axios.post(
           `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
           formData,
           {
@@ -273,109 +273,114 @@ const Products: React.FC = () => {
       <Table columns={columns} dataSource={filteredProducts} rowKey="id" />
 
       <Modal
-        open={isModalVisible}
-        title={currentProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
+  open={isModalVisible}
+  title={currentProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
+  onCancel={() => setIsModalVisible(false)}
+  footer={null}
+>
+  <Form form={form} onFinish={handleSubmit}>
+    <Form.Item
+      label="Tên sản phẩm "
+      name="name"
+      rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item
+      label="Mã sản phẩm"
+      name="sku"
+      rules={[{ required: true, message: "Vui lòng nhập SKU!" }]}
+    >
+      <Input />
+    </Form.Item>
+
+    <Form.Item label="Mô tả" name="description">
+      <Input.TextArea />
+    </Form.Item>
+
+    <Form.Item
+      label="Danh mục"
+      name="category_id"
+      rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+    >
+      <Select>
+        {categories.map((category) => (
+          <Select.Option key={category.id} value={category.id}>
+            {category.name}
+          </Select.Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    <Form.Item label="Kích thước" name="size_id">
+      <Select>
+        {sizes.map((size) => (
+          <Select.Option key={size.id} value={size.id}>
+            {size.size_name}
+          </Select.Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    <Form.Item label="Màu sắc" name="color_id">
+      <Select>
+        {colors.map((color) => (
+          <Select.Option key={color.id} value={color.id}>
+            {color.color_name}
+          </Select.Option>
+        ))}
+      </Select>
+    </Form.Item>
+
+    <Form.Item
+      label="Số lượng"
+      name="stock"
+      rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
+    >
+      <Input type="number" />
+    </Form.Item>
+
+    <Form.Item
+      label="Giá"
+      name="price"
+      rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
+    >
+      <Input type="number" />
+    </Form.Item>
+
+    <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
+      <Switch />
+    </Form.Item>
+
+    <Form.Item label="Hình ảnh" name="image_url">
+      <Upload
+        listType="picture"
+        beforeUpload={(file) => {
+          setImageFile(file);
+          return false;
+        }}
+        onRemove={() => setImageFile(null)}
       >
-        <Form  form={form} onFinish={handleSubmit}>
-          <Form.Item 
-            label="Tên sản phẩm "
-            name="name"
-            rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
-          >
-            <Input disabled={currentProduct !== null} />
-          </Form.Item>
+        <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
+      </Upload>
+      {currentProduct && currentProduct.image && (
+        <img
+          src={`http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`}
+          alt="Ảnh sản phẩm"
+          style={{ width: "100px", height: "auto", marginTop: "10px" }}
+        />
+      )}
+    </Form.Item>
 
-          <Form.Item  label="Mã sản phẩm" name="sku" rules={[{ required: true, message: 'Vui lòng nhập SKU!' }]}>
-            <Input disabled={currentProduct !== null} />
-          </Form.Item>
+    <Form.Item>
+      <Button type="primary" htmlType="submit">
+        Lưu
+      </Button>
+    </Form.Item>
+  </Form>
+</Modal>
 
-          <Form.Item label="Mô tả" name="description">
-            <Input.TextArea disabled={currentProduct !== null} />
-          </Form.Item>
-
-          <Form.Item
-            label="Danh mục"
-            name="category_id"
-            rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
-          >
-            <Select disabled={currentProduct !== null}>
-              {categories.map((category) => (
-                <Select.Option key={category.id} value={category.id}>
-                  {category.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="Kích thước" name="size_id">
-            <Select disabled={currentProduct !== null}>
-              {sizes.map((size) => (
-                <Select.Option key={size.id} value={size.id}>
-                  {size.size_name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="Màu sắc" name="color_id">
-            <Select disabled={currentProduct !== null}>
-              {colors.map((color) => (
-                <Select.Option key={color.id} value={color.id}>
-                  {color.color_name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Số lượng"
-            name="stock"
-            rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
-          >
-            <Input type="number" disabled={currentProduct !== null} />
-          </Form.Item>
-
-          <Form.Item
-            label="Giá"
-            name="price"
-            rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
-          >
-            <Input type="number" disabled={currentProduct !== null} />
-          </Form.Item>
-
-          <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item label="Hình ảnh" name="image_url">
-            <Upload
-              listType="picture"
-              beforeUpload={(file) => {
-                setImageFile(file);
-                return false;
-              }}
-              onRemove={() => setImageFile(null)}
-            >
-              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
-            </Upload>
-            {currentProduct && currentProduct.image && (
-              <img
-                src={`http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`}
-                alt="Ảnh sản phẩm"
-                style={{ width: '100px', height: 'auto', marginTop: '10px' }}
-              />
-            )}
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Lưu
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
