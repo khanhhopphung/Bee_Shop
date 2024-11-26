@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  message,
-  Switch,
-  Select,
-} from "antd";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
+import {Table, Button, Modal, Form, Input, message, Switch, Select, Space} from "antd";
+import {DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined,} from "@ant-design/icons";
 import dayjs from "dayjs";
+import { ColumnsType } from 'antd/es/table';
 
 interface Promotion {
   id: number;
@@ -50,20 +37,36 @@ const Promotions: React.FC = () => {
   const fetchPromotions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/promotions");
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get("http://127.0.0.1:8000/api/promotions", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       const promotionsData = response.data.data.map((promotion: Promotion) => ({
         ...promotion,
         start_date: dayjs(promotion.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(promotion.end_date).format("YYYY-MM-DD"),
       }));
+      
       setPromotions(promotionsData);
       setFilteredPromotions(promotionsData);
     } catch (error) {
-      message.error("Failed to load promotions");
+      message.error("Không thể tải khuyến mãi");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchTiers = async () => {
     setLoading(true);
@@ -176,112 +179,162 @@ const Promotions: React.FC = () => {
     }
   };
 
-  const columns = [
-    // <<<<<<< HEAD
-    //     { title: "ID", dataIndex: "id", key: "id" },
-    //     { title: "Code", dataIndex: "code", key: "code" },
-    //     {
-    //       title: "Discount Type",
-    //       dataIndex: "discount_type",
-    //       key: "discount_type",
-    //     },
-    //     {
-    //       title: "Discount Value",
-    //       dataIndex: "discount_value",
-    //       key: "discount_value",
-    //     },
-    //     { title: "Usage Limit", dataIndex: "usage_limit", key: "usage_limit" },
-    //     { title: "Start Date", dataIndex: "start_date", key: "start_date" },
-    //     { title: "End Date", dataIndex: "end_date", key: "end_date" },
-    //     {
-    //       title: "Tier",
-    //       dataIndex: "tier_id",
-    //       key: "tier_id",
-    //       render: (tierId: number) => {
-    //         const tier = tiers.find((t) => t.id === tierId);
-    //         return tier ? tier.tier_name : "N/A";
-    //       },
-    //     },
-    //     {
-    //       title: "Active",
-    //       dataIndex: "is_active",
-    //       key: "is_active",
-    //       render: (is_active: boolean) => (is_active ? "Yes" : "No"),
-    //     },
-    //     {
-    //       title: "Actions",
-    //       key: "actions",
-    //       render: (record: Promotion) => (
-    // =======
+  const columns: ColumnsType<Promotion> = [
     {
-      title: "STT",
-      dataIndex: "id",
-      key: "id",
-      render: (text: any, record: Promotion, index: number) => index + 1,
-    },
-    { title: "Tên mã giảm giá", dataIndex: "code", key: "code" },
-    {
-      title: "Loại giảm giá ",
-      dataIndex: "discount_type",
-      key: "discount_type",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ID</span>,
+      dataIndex: 'id',
+      key: 'id',
+      render: (text: number) => <strong style={{ fontSize: '16px' }}>{text}</strong>,
+      align: 'center',
     },
     {
-      title: "Giá trị giảm gía",
-      dataIndex: "discount_value",
-      key: "discount_value",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên mã giảm giá</span>,
+      dataIndex: 'code',
+      key: 'code',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'left',
     },
-    { title: "Số lần sử dụng", dataIndex: "usage_limit", key: "usage_limit" },
     {
-      title: "Loại cấp bậc",
-      dataIndex: "tier_id",
-      key: "tier_id",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Loại giảm giá</span>,
+      dataIndex: 'discount_type',
+      key: 'discount_type',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Giá trị giảm gía</span>,
+      dataIndex: 'discount_value',
+      key: 'discount_value',
+      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Số lần sử dụng</span>,
+      dataIndex: 'usage_limit',
+      key: 'usage_limit',
+      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày áp dụng</span>,
+      dataIndex: 'start_date',
+      key: 'start_date',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày kết thúc</span>,
+      dataIndex: 'end_date',
+      key: 'end_date',
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Cấp bậc </span>,
+      dataIndex: 'tier_id',
+      key: 'tier_id',
       render: (tierId: number) => {
         const tier = tiers.find((t) => t.id === tierId);
-        return tier ? tier.tier_name : "N/A";
+        return tier ? (
+          <span style={{ fontSize: '16px' }}>{tier.tier_name}</span>
+        ) : (
+          <span style={{ fontSize: '16px', color: '#cf1322' }}>N/A</span>
+        );
       },
-    },
-    { title: "Ngày áp dụng", dataIndex: "start_date", key: "start_date" },
-    { title: "Ngày kết thúc", dataIndex: "end_date", key: "end_date" },
-    {
-      title: "Trạng thái",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (active: boolean) => (active ? "Yes" : "No"),
+      align: 'left',
     },
     {
-      title: "Actions",
-      key: "actions",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (is_active: boolean) => (
+        <span
+          style={{
+            fontSize: '16px',
+            color: is_active ? '#3f8600' : '#cf1322',
+            fontWeight: 'bold',
+          }}
+        >
+          {is_active ? 'Hoạt động' : 'Không hoạt dộng'}
+        </span>
+      ),
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Actions</span>,
+      key: 'actions',
       render: (record: Promotion) => (
-        // >>>>>>> fix-dev
-        <>
+        <Space>
           <Button
+            type="primary"
+            size="large"
             onClick={() => handleEdit(record)}
             icon={<EditOutlined />}
-            style={{ marginRight: 8 }}
           />
           <Button
+            type="primary"
+            danger
+            size="large"
             onClick={() => handleDelete(record.id)}
             icon={<DeleteOutlined />}
-            danger
           />
-        </>
+        </Space>
       ),
+      align: 'center',
     },
   ];
+  
 
   return (
-    <div>
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 17,
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '16px 24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
         }}
       >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            style={{ fontSize: '16px', height: '40px' }}
+          >
+            Thêm khuyến mãi
+          </Button>
+  
+          <Input.Search
+            placeholder="Search promotion by code or discount type"
+            allowClear
+            enterButton={<SearchOutlined />}
+            size="large"
+            value={searchText}
+            onChange={(e) => handleSearch(e.target.value)}
+            onSearch={handleSearch}
+            style={{
+              maxWidth: '600px',
+              borderRadius: '8px',
+              height: '48px',
+            }}
+          />
+        </div>
         <Select
           placeholder="Filter by Discount Value"
           allowClear
-          style={{ width: 200 }}
+          style={{
+            width: 250,
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          }}
           onChange={(value) => handleDiscountRangeFilter(value)}
         >
           <Select.Option value="5-15">Mã giảm giá 5% - 15%</Select.Option>
@@ -289,201 +342,97 @@ const Promotions: React.FC = () => {
           <Select.Option value="30-45">Mã giảm giá 30% - 45%</Select.Option>
           <Select.Option value="45-60">Mã giảm giá 45% - 60%</Select.Option>
         </Select>
-
-        <Input
-          placeholder="Search by code "
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ width: 600 }}
+        <hr />
+        <Table
+          columns={columns}
+          dataSource={filteredPromotions}
+          rowKey="id"
+          bordered
+          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          scroll={{ x: '800' }} 
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%', 
+          }}
+          loading={loading}
         />
       </div>
-
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAdd}
-        style={{ marginBottom: 16 }}
-      >
-        Add Promotion
-      </Button>
-
-      <Table
-        columns={columns}
-        dataSource={filteredPromotions}
-        rowKey="id"
-        loading={loading}
-      />
-
+  
       <Modal
         open={isModalVisible}
-        // <<<<<<< HEAD
-        //         title={currentPromotion ? "Edit Promotion" : "Add Promotion"}
-        //         onCancel={() => setIsModalVisible(false)}
-        //         footer={null}
-        //       >
-        //         <Form
-        //           initialValues={
-        //             currentPromotion || {
-        //               code: "",
-        //               discount_type: "",
-        //               discount_value: 0,
-        //               usage_limit: 0,
-        //               start_date: "",
-        //               end_date: "",
-        //               is_active: false,
-        //               tier_id: undefined,
-        //             }
-        //           }
-        //           onFinish={handleSubmit}
-        //         >
-        //           <Form.Item
-        //             name="code"
-        //             label="Promotion Code"
-        //             rules={[{ required: true, message: "Please enter promotion code" }]}
-        //           >
-        // =======
-        title={currentPromotion ? "Edit Promotion" : "Add Promotion"}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields(); // Reset form fields when closing the modal
-        }}
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentPromotion ? 'Chỉnh sửa khuyến mãi' : 'Thêm khuyến mãi'}</span>}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
+        centered
       >
         <Form
           form={form}
-          initialValues={{
-            code: "",
-            discount_type: "",
-            discount_value: 0,
-            usage_limit: 0,
-            start_date: "",
-            end_date: "",
-            is_active: false,
-          }}
+          layout="vertical"
           onFinish={handleSubmit}
+          
         >
           <Form.Item
             name="code"
             label="Promotion Code"
-            rules={[{ required: true, message: "Please enter promotion code" }]}
+            rules={[{ required: true, message: 'Please enter promotion code' }]}
           >
-            {/* >>>>>>> fix-dev */}
-            <Input />
+            <Input placeholder="Enter promotion code" />
           </Form.Item>
-
+  
           <Form.Item
             name="discount_type"
             label="Discount Type"
-            rules={[{ required: true, message: "Please select discount type" }]}
+            rules={[{ required: true, message: 'Please select discount type' }]}
           >
             <Select>
               <Select.Option value="percentage">Percentage</Select.Option>
+             
             </Select>
           </Form.Item>
-
+  
           <Form.Item
             name="discount_value"
             label="Discount Value"
-            // <<<<<<< HEAD
-            //             rules={[{ required: true, message: "Please enter discount value" }]}
-            //           >
-            //             <Input type="number" />
-            //           </Form.Item>
-            //           <Form.Item
-            //             name="usage_limit"
-            //             label="Usage Limit"
-            //             rules={[{ required: true, message: "Please enter usage limit" }]}
-            //           >
-            //             <Input type="number" />
-            //           </Form.Item>
-            //           <Form.Item
-            //             name="start_date"
-            //             label="Start Date"
-            //             rules={[{ required: true, message: "Please select start date" }]}
-            //           >
-            //             <Input type="date" />
-            //           </Form.Item>
-            //           <Form.Item
-            //             name="end_date"
-            //             label="End Date"
-            //             rules={[{ required: true, message: "Please select end date" }]}
-            //           >
-            //             <Input type="date" />
-            //           </Form.Item>
-            // =======
-            rules={[
-              { required: true, message: "Please enter discount value" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (value >= 0) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    "Discount value must be a non-negative number"
-                  );
-                },
-              }),
-            ]}
+            rules={[{ required: true, message: 'Please enter discount value' }]}
           >
-            <Input type="number" />
+            <Input type="number" placeholder="Enter discount value" />
           </Form.Item>
-
+  
           <Form.Item
             name="usage_limit"
             label="Usage Limit"
-            rules={[
-              { required: true, message: "Please enter usage limit" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (value >= 0) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    "Usage limit must be a non-negative number"
-                  );
-                },
-              }),
-            ]}
+            rules={[{ required: true, message: 'Please enter usage limit' }]}
           >
-            <Input type="number" />
+            <Input type="number" placeholder="Enter usage limit" />
           </Form.Item>
-
+  
           <Form.Item
             name="start_date"
             label="Start Date"
-            rules={[{ required: true, message: "Please select start date" }]}
+            rules={[{ required: true, message: 'Please select start date' }]}
           >
             <Input type="date" />
           </Form.Item>
-
+  
           <Form.Item
             name="end_date"
             label="End Date"
-            rules={[{ required: true, message: "Please select end date" }]}
+            rules={[{ required: true, message: 'Please select end date' }]}
           >
             <Input type="date" />
           </Form.Item>
-
-          {/* >>>>>>> fix-dev */}
+  
           <Form.Item name="is_active" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
-
-          {/* <<<<<<< HEAD
+  
           <Form.Item
             name="tier_id"
             label="Tier"
-            rules={[{ required: true, message: "Please select a tier" }]}
+            rules={[{ required: true, message: 'Please select a tier' }]}
           >
-======= */}
-          <Form.Item
-            name="tier_id"
-            label="Tier"
-            rules={[{ required: true, message: "Please select a tier" }]}
-          >
-            {/* >>>>>>> fix-dev */}
-            <Select>
+            <Select placeholder="Select a tier">
               {tiers.map((tier) => (
                 <Select.Option key={tier.id} value={tier.id}>
                   {tier.tier_name}
@@ -491,13 +440,16 @@ const Promotions: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
-          <Button type="primary" htmlType="submit">
-            Submit
-          </Button>
+  
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block size="large">
+              Lưu
+            </Button>
+          </Form.Item>
         </Form>
       </Modal>
     </div>
   );
+  
 };
 export default Promotions;

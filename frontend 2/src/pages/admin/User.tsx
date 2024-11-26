@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Modal, Form, message, Switch } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { Table, Button, Input, Modal, Form, message, Switch, Space } from "antd";
+import { EditOutlined, DeleteOutlined, PlusOutlined,  SearchOutlined} from "@ant-design/icons";
 import axios from "axios";
+import { ColumnsType } from 'antd/es/table';
 
 interface User {
   id: number;
@@ -27,16 +28,32 @@ const UserPage: React.FC = () => {
 
   // Fetch user data
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true); // Đặt trạng thái loading trước khi bắt đầu
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/users");
-      setUsers(response.data);
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu không có token (nghĩa là người dùng chưa đăng nhập)
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        setLoading(false); // Dừng trạng thái loading và thoát
+        return;
+      }
+  
+      // Thêm token vào header của yêu cầu
+      const response = await axios.get("http://127.0.0.1:8000/api/users", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
+      setUsers(response.data); // Cập nhật danh sách người dùng vào state
     } catch (error) {
       message.error("Lấy danh sách người dùng thất bại");
     } finally {
-      setLoading(false);
+      setLoading(false); // Kết thúc trạng thái loading
     }
   };
+  
 
   useEffect(() => {
     fetchUsers();
@@ -95,21 +112,21 @@ const UserPage: React.FC = () => {
       }
 
       setIsModalVisible(false);
-      fetchUsers(); // Refetch users after submit
-      form.resetFields(); // Reset form fields
+      fetchUsers(); 
+      form.resetFields(); 
     } catch (error) {
       message.error("Lưu người dùng thất bại");
     }
   };  // Show modal for add/edit
   const handleAdd = () => {
     setCurrentUser(null);
-    form.resetFields(); // Reset form fields for new user
+    form.resetFields(); 
     setIsModalVisible(true);
   };
 
   const handleEdit = (user: User) => {
     setCurrentUser(user);
-    form.setFieldsValue(user); // Set form fields with user data
+    form.setFieldsValue(user); 
     setIsModalVisible(true);
   };
 
@@ -119,49 +136,57 @@ const UserPage: React.FC = () => {
   );
 
   // Define table columns
-  const columns = [
+  const columns: ColumnsType<User> = [
     {
-      title: "ID",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ID</span>,
       dataIndex: "id",
       key: "id",
+      render: (text: any) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Tên người dùng",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người dùng</span>,
       dataIndex: "username",
       key: "username",
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Email",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Email</span>,
       dataIndex: "email",
       key: "email",
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Số điện thoại",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Số điện thoại</span>,
       dataIndex: "phone",
       key: "phone",
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Mã vai trò",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã vai trò</span>,
       dataIndex: "role_id",
       key: "role_id",
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Mã cấp bậc",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã cấp bậc</span>,
       dataIndex: "tier_id",
       key: "tier_id",
+      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Tổng điểm",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng điểm</span>,
       dataIndex: "points_total",
       key: "points_total",
+      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Tổng chi tiêu",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng chi tiêu</span>,
       dataIndex: "total_spent",
       key: "total_spent",
+      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
     },
     {
-      title: "Trạng thái",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
       dataIndex: "is_active",
       key: "is_active",
       render: (is_active: boolean, user: User) => (
@@ -170,98 +195,137 @@ const UserPage: React.FC = () => {
           onChange={() => handleStatusToggle(user)}
         />
       ),
+      align: 'center',
     },
     {
-      title: "Hành động",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
       key: "actions",
       render: (user: User) => (
-        <>
+        <Space>
           <Button
+            type="primary"
+            size="large"
             icon={<EditOutlined />}
             onClick={() => handleEdit(user)}
             style={{ marginRight: 8 }}
           />
           <Button
+            type="primary"
+            danger
+            size="large"
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(user.id)}
-            danger
+
           />
-        </>
+        </Space>
       ),
+      align: 'center',
     },
   ];
 
+
   return (
-    <div>
-      <Input.Search
-        placeholder="Tìm kiếm người dùng theo tên"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{ marginBottom: 16, width: 300 }}
-      />
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={handleAdd}
-        style={{ marginBottom: 16 }}
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '16px 24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+        }}
       >
-        Thêm người dùng
-      </Button>
-      <Table
-        columns={columns}
-        dataSource={filteredUsers}
-        rowKey="id"
-        loading={loading}
-      />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+         
+
+          <Input.Search
+            placeholder="Tìm kiếm người dùng theo tên"
+            allowClear
+            enterButton={<SearchOutlined />}
+            size="large"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              maxWidth: '600px',
+              borderRadius: '8px',
+              height: '48px',
+            }}
+          />
+        </div>
+        <hr />
+        <Table
+          columns={columns}
+          dataSource={filteredUsers}
+          rowKey="id"
+          bordered
+          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          scroll={{ x: '800' }} 
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%', 
+          }}
+        />
+      </div>
       <Modal
         open={isModalVisible}
-        title={currentUser ? "Chỉnh sửa người dùng" : "Thêm người dùng"}
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}</span>}
+
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
         }}
         footer={null}
+        centered
+
       >
         <Form form={form} onFinish={handleSubmit}>
           <Form.Item
             name="username"
             label="Tên người dùng"
             rules={[{ required: true, message: "Vui lòng nhập tên người dùng" }]}
+            
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="email" label="Email"
             rules={[{ required: true, message: "Vui lòng nhập email" }]}
           >
-            <Input />
+            <Input disabled  />
           </Form.Item>
           <Form.Item
             name="phone"
             label="Số điện thoại"
             rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="role_id"
             label="Mã vai trò"
             rules={[{ required: true, message: "Vui lòng nhập mã vai trò" }]}
           >
-            <Input type="number" />
+            <Input type="number"  />
           </Form.Item>
           <Form.Item
             name="tier_id"
             label="Mã cấp bậc"
             rules={[{ required: true, message: "Vui lòng nhập mã cấp bậc" }]}
           >
-            <Input type="number" />
+            <Input type="number"   />
           </Form.Item>
           <Form.Item name="points_total" label="Tổng điểm">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item name="total_spent" label="Tổng chi tiêu">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item
             name="is_active"
@@ -271,9 +335,11 @@ const UserPage: React.FC = () => {
           >
             <Switch />
           </Form.Item>
-          <Button type="primary" htmlType="submit">
-            Lưu
-          </Button>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block size="large">
+              Lưu
+            </Button>
+          </Form.Item>
         </Form>
       </Modal>
     </div>

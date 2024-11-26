@@ -24,15 +24,13 @@ class StoreProductVariantRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => 'required|exists:products,id',  
-            'size_id' => 'required|exists:sizes,id',         
-            'color_id' => 'required|exists:colors,id',       
-            'price' => 'required|numeric|min:0',             
-            'stock' => 'required|integer|min:0',             
-            'is_active' => 'boolean',                        
-            'created_at' => 'nullable|date',                 
-            'updated_at' => 'nullable|date',                 
-            'deleted_at' => 'nullable|date',                 
+            'product_id' => 'required|exists:products,id',  // Sản phẩm phải tồn tại trong bảng `products`
+            'size_id' => 'required|exists:sizes,id',        // Kích thước phải tồn tại trong bảng `sizes`
+            'color_id' => 'required|exists:colors,id',      // Màu sắc phải tồn tại trong bảng `colors`
+            'price' => 'required|numeric|min:0',           // Giá phải là số >= 0
+            'stock' => 'required|integer|min:0',           // Tồn kho phải là số nguyên >= 0
+            'is_active' => 'boolean',                      // Trạng thái hoạt động phải là true/false
+            'images.*' => 'nullable|image|max:2048',       // Các ảnh phải là file hợp lệ và kích thước <= 2MB          
         ];
     }
     /**

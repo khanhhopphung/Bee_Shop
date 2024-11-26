@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Table, Card, Spin, Row, Col, Statistic, message, Typography, DatePicker, Button } from 'antd';
-import { DollarCircleOutlined, ShoppingCartOutlined, UserOutlined, AlertOutlined } from '@ant-design/icons';
+import { DollarCircleOutlined, ShoppingCartOutlined, UserOutlined, AlertOutlined, PoweroffOutlined } from '@ant-design/icons';
 import { Pie, Column } from '@ant-design/charts';
 import dayjs from 'dayjs';
 
@@ -22,19 +22,40 @@ const Statistics: React.FC = () => {
   };
 
   const fetchStatistics = async () => {
+    setLoading(true);
     try {
+      const accessToken = localStorage.getItem("access_token");
+
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        setLoading(false);
+        return;
+      }
+
       const params: any = {};
       if (startDate && endDate) {
         params.start_date = startDate.format('YYYY-MM-DD');
         params.end_date = endDate.format('YYYY-MM-DD');
       }
-      const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', { params });
+
+      const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', {
+        params,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
       setStatistics(response.data);
-      setLoading(false);
     } catch (err) {
-      message.error('Failed to fetch statistics.');
+      message.error('Không thể tải thống kê.');
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token"); // Remove token from localStorage
+    window.location.reload(); // Reload the page to reflect logout
   };
 
   useEffect(() => {
@@ -68,9 +89,7 @@ const Statistics: React.FC = () => {
     colorField: 'payment_method',
     radius: 0.8,
     interactions: [{ type: 'element-active' }],
-
   };
-
 
   const shippingStatusConfig = {
     data: statistics.shipping_stats,
@@ -102,9 +121,10 @@ const Statistics: React.FC = () => {
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#fafafa' }}>
-      {/* Date Picker for Date Range */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }}>
-        <Col xs={24} sm={12} md={6}>
+      {/* Row for Logout Button and Date Pickers */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }} align="middle">
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for Start Date */}
           <DatePicker
             style={{
               width: '100%',
@@ -120,7 +140,8 @@ const Statistics: React.FC = () => {
             suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
           />
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for End Date */}
           <DatePicker
             style={{
               width: '100%',
@@ -136,8 +157,17 @@ const Statistics: React.FC = () => {
             suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
           />
         </Col>
+        {/* Align Logout button to the right */}
+        <Col xs={24} sm={12} md={8} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            type="primary"
+            icon={<PoweroffOutlined />}
+            onClick={handleLogout}
+          >
+            Đăng xuất
+          </Button>
+        </Col>
       </Row>
-
 
       {/* Overview Statistics */}
       <Row gutter={[16, 16]}>
@@ -205,9 +235,9 @@ const Statistics: React.FC = () => {
             <Table
               columns={topSellingColumns}
               dataSource={statistics.top_selling_products}
-              pagination={{ pageSize: 3 }}
-              rowKey="name"
-              bordered
+              pagination={false}
+              rowKey="id"
+              size="small"
             />
           </Card>
         </Col>
@@ -225,54 +255,22 @@ const Statistics: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={8}>
-          <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Tồn kho thấp</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
-          >
-            <Table
-              columns={[
-                { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-                { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
-                { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
-                {
-                  title: 'Giá',
-                  dataIndex: 'price',
-                  key: 'price',
-                  render: (price: number) => formatCurrency(price),
-                },
-              ]}
-              dataSource={statistics.low_stock_products.products}
-              pagination={{ pageSize: 3 }}
-              rowKey="sku"
-              bordered
-            />
-          </Card>
-        </Col>
       </Row>
 
-      {/* Payment Method Statistics and Shipping Status */}
+      {/* Payment Methods and Shipping Status */}
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-        <Col xs={24} sm={12}>
+        <Col span={12}>
           <Card
             title={<Title level={4} style={{ color: '#2c3e50' }}>Phương thức thanh toán</Title>}
-            style={{
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              backgroundColor: '#fff',
-            }}
+            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Pie {...paymentMethodConfig} />
           </Card>
         </Col>
-        <Col xs={24} sm={12}>
+        <Col span={12}>
           <Card
             title={<Title level={4} style={{ color: '#2c3e50' }}>Trạng thái giao hàng</Title>}
-            style={{
-              borderRadius: '10px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              backgroundColor: '#fff',
-            }}
+            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Column {...shippingStatusConfig} />
           </Card>

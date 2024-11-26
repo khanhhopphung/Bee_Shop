@@ -20,7 +20,7 @@ class Order extends Model
         'order_code',
         'name', 
         'phone', 
-        'address',
+        'address_line',
         'is_active',
     ];
     public function users()
@@ -34,7 +34,12 @@ class Order extends Model
 
     public function address()
     {
-        return $this->belongsTo(ShippingAddress::class,'address_id');
+        return $this->belongsTo(ShippingAddress::class, 'address_id');
+    }
+    
+    public function promotion()
+    {
+        return $this->belongsTo(Promotion::class,'promotion_id');
     }
 
 }

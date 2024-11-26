@@ -18,4 +18,4 @@ use App\Http\Controllers\API\ProductVariantController;
 //     return $request->user();
 // });
 
-Route::resource('product-variants', ProductVariantController::class);
+Route::apiResource('product-variants', ProductVariantController::class);

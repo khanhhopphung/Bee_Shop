@@ -39,7 +39,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class,'logout'])->middleware('auth:sanctum');
 
 
-Route::apiResource('blogs', BlogController::class);
+Route::apiResource('blogs', controller: BlogController::class);
+Route::post('/blogs/{blog}/update', [BlogController::class, 'update']);
+
+
 Route::apiResource('tiers', TierController::class);
 Route::apiResource('promotions', PromotionController::class);
 Route::apiResource('addresses', ShippingAddressController::class);

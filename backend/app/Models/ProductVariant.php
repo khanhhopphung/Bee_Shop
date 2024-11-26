@@ -36,8 +36,10 @@ class ProductVariant extends Model
         return $this->belongsTo(Color::class);
     }
 
+
     public function images(){
         return $this->hasMany(Image::class,'variant_id','id');
     }
+
 }
 

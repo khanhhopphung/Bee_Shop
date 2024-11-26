@@ -64,7 +64,6 @@ return [
 
     'allowed_origins' => [
         'http://localhost:3000',  // Frontend URL
-          // In case you use localhost as well
     ],
 
 

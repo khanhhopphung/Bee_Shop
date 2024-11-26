@@ -26,5 +26,9 @@ Route::get('best-products',[ProductController::class, 'bestProduct']);
 Route::get('bad-products',[ProductController::class, 'badProduct']);
 Route::get('products/category/{category?}', [ProductController::class, 'filter'])->name('products.category');
 
-Route::resource('products', ProductController::class);
+Route::apiResource('products', ProductController::class);
+Route::post('/products/{product}', [ProductController::class, 'update']);
+
+
+Route::post('/products/{product}/update', [ProductController::class, 'update']);
 

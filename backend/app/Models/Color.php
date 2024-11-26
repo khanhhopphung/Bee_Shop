@@ -16,4 +16,8 @@ class Color extends Model
         'update_at',
         
     ];
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id', 'id');
+    }
 }

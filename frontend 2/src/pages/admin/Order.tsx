@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  message,
-  Select,
-  InputNumber,
-  Switch,
-} from "antd";
+import {Table,Button,Modal,Form,Input,message,Select,InputNumber,Switch,Space} from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -18,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import moment from "moment";
+import { ColumnsType } from 'antd/es/table';
 
 // Define the types for Order, User, Address, and Promotion
 interface Order {
@@ -48,7 +39,7 @@ interface User {
 
 interface Address {
   id: number;
-  address: string;
+  address_line: string;
 }
 
 const Orders: React.FC = () => {
@@ -66,7 +57,6 @@ const Orders: React.FC = () => {
   const [form] = Form.useForm();
 
   const fetchOrders = async () => {
-    
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
@@ -77,7 +67,7 @@ const Orders: React.FC = () => {
 
       const response = await axios.get("http://127.0.0.1:8000/api/orders", {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Gửi token trong header Authorization
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -86,7 +76,6 @@ const Orders: React.FC = () => {
       setFilteredOrders(data);
     } catch (error) {
       message.error("Lỗi khi tải đơn hàng.");
-
       setOrders([]);
       setFilteredOrders([]);
     } finally {
@@ -136,12 +125,11 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     const lowerKeyword = searchKeyword.toLowerCase();
-    
     const filtered = orders.filter((order) => {
       const userName =
         users.find((user) => user.id === order.user_id)?.username || "";
       const address =
-        addresses.find((addr) => addr.id === order.address_id)?.address || "";
+        addresses.find((addr) => addr.id === order.address_id)?.address_line || "";
       return (
         userName.toLowerCase().includes(lowerKeyword) ||
         order.status.toLowerCase().includes(lowerKeyword) ||
@@ -150,9 +138,10 @@ const Orders: React.FC = () => {
     });
     setFilteredOrders(filtered);
   }, [searchKeyword, orders, users, addresses]);
+
   useEffect(() => {
     if (statusFilter === "all" || !statusFilter) {
-      setFilteredOrders(orders); // Hiển thị tất cả đơn hàng
+      setFilteredOrders(orders);
     } else {
       const filtered = orders.filter((order) => order.status === statusFilter);
       setFilteredOrders(filtered);
@@ -162,6 +151,17 @@ const Orders: React.FC = () => {
   const handleEdit = (order: Order) => {
     setCurrentOrder(order);
     setIsModalVisible(true);
+    form.setFieldsValue({
+      order_date: moment(order.order_date),
+      order_code: order.order_code,
+      total_amount: order.total_amount,
+      shipping_cost: order.shipping_cost,
+      payment_method: order.payment_method,
+      status: order.status,
+      promotion_id: order.promotion_id,
+      address_id: order.address_id,
+      is_active: order.is_active,
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -174,12 +174,11 @@ const Orders: React.FC = () => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/orders/${id}`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+          Authorization: `Bearer ${accessToken}`,
         },
       });
       message.success("Order deleted successfully");
-
-      fetchOrders(); // Refresh the list
+      fetchOrders();
     } catch (error) {
       message.error("Failed to delete order");
     }
@@ -199,17 +198,16 @@ const Orders: React.FC = () => {
           values,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`, // Send token in the Authorization header
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
-        message.success("sửa thành công");
-
+        message.success("Cập nhật thành công");
         fetchOrders(); // Refresh orders after updating
       }
       setIsModalVisible(false);
     } catch (error) {
-      message.error("sửa thất bại");
+      message.error("Cập nhật thất bại");
     }
   };
 
@@ -231,16 +229,16 @@ const Orders: React.FC = () => {
             <p>Payment Method: {order.payment_method}</p>
             {order.promotion_id && (
               <p>
-                Promotion:{" "}
-                {promotions.find((promo) => promo.id === order.promotion_id)
-                  ?.code || "N/A"}
+                Promotion:{order.promotion_id  }
+                
               </p>
             )}
-            <p>
-              Address:{" "}
-              {addresses.find((address) => address.id === order.address_id)
-                ?.address || "N/A"}
-            </p>
+           {order.promotion_id && (
+              <p>
+                Promotion:{order.promotion_id  }
+                
+              </p>
+            )}
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
           </div>
         ),
@@ -248,205 +246,279 @@ const Orders: React.FC = () => {
     }
   };
 
-  const columns = [
-    
-   
+  const columns: ColumnsType<Order> = [
     {
-      title: 'STT',
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       dataIndex: 'id',
       key: 'id',
-      render: (text: any, record: Order, index: number) => index + 1,
+      render: (text: any, record: Order, index: number) => (
+        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+      ),
+      align: 'center',
     },
     {
-      title: "Mã đơn hàng",
-      dataIndex: "order_code",
-      key: "order_code",
-      render: (orderCode: string) => orderCode || "N/A", // Hiển thị "N/A" nếu không có mã
-    },
-
-    
-  {
-      title: "Tên người đặt",
-      dataIndex: "user_id",
-      key: "user_id",
-      render: (userId: number) =>
-        users.find((user) => user.id === userId)?.username || "Unknown",
-    },
-    { title: "ngày đặt hàng", dataIndex: "order_date", key: "order_date" },
-    { title: "tổng đơn hàng", dataIndex: "total_amount", key: "total_amount" },
-    { title: "trạng thái ", dataIndex: "status", key: "status" },
-    {
-      title: "phí vận chuyển",
-      dataIndex: "shipping_cost",
-      key: "shipping_cost",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã đơn hàng</span>,
+      dataIndex: 'order_code',
+      key: 'order_code',
+      render: (orderCode: string) => (
+        <span style={{ fontSize: '16px' }}>{orderCode || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "phương thức thanh toán ",
-      dataIndex: "payment_method",
-      key: "payment_method",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người đặt</span>,
+      dataIndex: 'user_id',
+      key: 'user_id',
+      render: (userId: number) => (
+        <span style={{ fontSize: '16px' }}>
+          {users.find((user) => user.id === userId)?.username || 'Unknown'}
+        </span>
+      ),
+      align: 'left',
     },
     {
-      title: "mã khuyến mãi",
-      dataIndex: "promotion_id",
-      key: "promotion_id",
-      render: (promoId: number) => {
-        const promo = promotions.find((p) => p.id === promoId);
-        return promo ? promo.code : "N/A";
-      },
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày đặt hàng</span>,
+      dataIndex: 'order_date',
+      key: 'order_date',
+      render: (orderDate: string) => (
+        <span style={{ fontSize: '16px' }}>{orderDate || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "địa chỉ ",
-      dataIndex: "address_id",
-      key: "address_id",
-      render: (addressId: number) => {
-        const address = addresses.find((address) => address.id === addressId);
-        return address ? address.address : "N/A";
-      },
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng đơn hàng</span>,
+      dataIndex: 'total_amount',
+      key: 'total_amount',
+      render: (totalAmount: number) => (
+        <span style={{ fontSize: '16px' }}>{totalAmount || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "trạng thái hoạt động ",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (isActive: boolean) => (isActive ? "Yes" : "No"),
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <span style={{ fontSize: '16px' }}>{status || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "hành động ",
-      key: "actions",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phí vận chuyển</span>,
+      dataIndex: 'shipping_cost',
+      key: 'shipping_cost',
+      render: (shippingCost: number) => (
+        <span style={{ fontSize: '16px' }}>{shippingCost || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phương thức thanh toán</span>,
+      dataIndex: 'payment_method',
+      key: 'payment_method',
+      render: (paymentMethod: string) => (
+        <span style={{ fontSize: '16px' }}>{paymentMethod || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Địa chỉ</span>,
+      dataIndex: 'address',
+      key: 'address',
+      render: (address: { address_line: string }) => (
+        <span style={{ fontSize: '16px' }}>{address?.address_line || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Khuyến mãi</span>,
+      dataIndex: 'promotion',
+      key: 'promotion',
+      render: (promotion: { code: string }) => (
+        <span style={{ fontSize: '16px' }}>{promotion?.code || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái hoạt động</span>,
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (
+        <span
+          style={{
+            fontSize: '16px',
+            color: isActive ? '#3f8600' : '#cf1322',
+            fontWeight: 'bold',
+          }}
+        >
+          {isActive ? 'Yes' : 'No'}
+        </span>
+      ),
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
+      key: 'actions',
       render: (record: Order) => (
-        <>
+        <Space>
           <Button
+            type="primary"
+            size="large"
             onClick={() => handleEdit(record)}
             icon={<EditOutlined />}
-            style={{ marginRight: 8 }}
           />
           <Button
+            type="primary"
+            danger
+            size="large"
             onClick={() => handleDelete(record.id)}
             icon={<DeleteOutlined />}
-            danger
-            style={{ marginRight: 8 }}
           />
           <Button
             icon={<EyeOutlined />}
             onClick={() => handleViewDetails(record.id)}
           />
-        </>
+        </Space>
       ),
+      align: 'center',
     },
   ];
 
   return (
-    <div>
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
       <div
         style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '16px 24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
         }}
       >
-        
-        <Input
-          placeholder="tìm kiếm bằnguser, status, hoặc address"
-          prefix={<SearchOutlined />}
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+          <Select
+            placeholder="Lọc theo trạng thái"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            allowClear
+            style={{
+              width: 250,
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Select.Option value="all">Tất cả trạng thái</Select.Option>
+            <Select.Option value="pending">Đang giao</Select.Option>
+            <Select.Option value="completed">Đã hoàn thành</Select.Option>
+            <Select.Option value="canceled">Đã hủy</Select.Option>
+          </Select>
+
+          <Input.Search
+            placeholder="Tìm kiếm bằng user, status, hoặc address"
+            allowClear
+            size="large"
+            enterButton={<SearchOutlined />}
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            style={{
+              maxWidth: '600px',
+              borderRadius: '8px',
+              height: '48px',
+            }}
+          />
+        </div>
+        <hr />
+        <Table
+          columns={columns}
+          dataSource={filteredOrders}
+          rowKey="id"
+          bordered
+          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          scroll={{ x: '800' }} 
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%', 
+          }}
         />
       </div>
-      <Select
-  placeholder="lọc  status"
-  value={statusFilter}
-  onChange={(value) => setStatusFilter(value)}
-  style={{ width: 200, marginBottom: 20 }}
->
-  <Select.Option value="all"> tất cả trạng thái</Select.Option>
-  <Select.Option value="pending">đang giao</Select.Option>
-  <Select.Option value="completed">đã hoàn thành</Select.Option>
-  <Select.Option value="canceled">đã hủy</Select.Option>
-</Select>
-
-
-      <Table
-        columns={columns}
-        dataSource={filteredOrders}
-        rowKey="id"
-        loading={loading}
-      />
 
       {/* Modal for editing order */}
       <Modal
-        title="Sửa đơn hàng"
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>Chỉnh sửa đơn hàng</span>}
         visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        onOk={() => currentOrder && form.submit()}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields(); // Ensure form resets when closed
+        }}
+        footer={null}
+        centered
       >
-        <Form
-          form={form}
-          initialValues={
-            currentOrder
-              ? {
-                  order_date: moment(currentOrder.order_date),
-                  order_code: currentOrder.order_code ,
-                  total_amount: currentOrder.total_amount,
-                  shipping_cost: currentOrder.shipping_cost,
-                  payment_method: currentOrder.payment_method,
-                  status: currentOrder.status,
-                  promotion_id: currentOrder.promotion_id,
-                  address_id: currentOrder.address_id,
-                  is_active: currentOrder.is_active,
-                }
-              : {}
-          }
-          onFinish={handleSubmit}
-        >
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
             name="order_date"
-            label="ngày đặt hàng"
-            rules={[{ required: true }]}
+            label="Ngày đặt hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập ngày đặt hàng!' }]}
           >
-            <Input />
-            </Form.Item>
-            <Form.Item
-      name="order_code"
-      label="mã đơn hàng"
-      rules={[{ required: true, message: "Please input the order code!" }]}
->
-  <Input />
-</Form.Item>
-           
-        
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="order_code"
+            label="Mã đơn hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập mã đơn hàng!' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+
           <Form.Item
             name="total_amount"
-            label="tổng đơn hàng"
-            rules={[{ required: true }]}
+            label="Tổng đơn hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập tổng đơn hàng!' }]}
           >
-            <InputNumber style={{ width: "100%" }} min={0} />
+            <InputNumber style={{ width: '100%' }} min={0} disabled />
           </Form.Item>
+
           <Form.Item
             name="shipping_cost"
-            label="phí vận chuyển"
-            rules={[{ required: true }]}
+            label="Phí vận chuyển"
+            rules={[{ required: true, message: 'Vui lòng nhập phí vận chuyển!' }]}
           >
-            <InputNumber style={{ width: "100%" }} min={0} />
+            <InputNumber style={{ width: '100%' }} min={0} disabled />
           </Form.Item>
+
           <Form.Item
             name="payment_method"
-            label="phương thức thanh toán"
-            rules={[{ required: true }]}
+            label="Phương thức thanh toán"
+            rules={[{ required: true, message: 'Vui lòng nhập phương thức thanh toán!' }]}
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
+
           <Form.Item
-  name="status"
-  label="Trạng thái"
-  rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
->
-  <Select placeholder="Chọn trạng thái">
-    <Select.Option value="pending">Đang xử lý</Select.Option>
-    <Select.Option value="completed">Hoàn thành</Select.Option>
-    <Select.Option value="cancelled">Đã hủy</Select.Option>
-  </Select>
-</Form.Item>
-          <Form.Item name="promotion_id" label="khuyến mãi">
-            <Select>
+            name="status"
+            label="Trạng thái"
+            rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+          >
+            <Select placeholder="Chọn trạng thái">
+              <Select.Option value="pending">Đang xử lý</Select.Option>
+              <Select.Option value="completed">Hoàn thành</Select.Option>
+              <Select.Option value="canceled">Đã hủy</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="promotion_id"
+            label="Khuyến mãi"
+            rules={[{ required: true, message: 'Vui lòng chọn khuyến mãi!' }]}
+          >
+            <Select disabled>
               {promotions.map((promo) => (
                 <Select.Option key={promo.id} value={promo.id}>
                   {promo.code}
@@ -454,23 +526,36 @@ const Orders: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item
             name="address_id"
-            label="địa chỉ"
-            rules={[{ required: true }]}
+            label="Địa chỉ"
+            rules={[{ required: true, message: 'Vui lòng chọn địa chỉ!' }]}
           >
-            <Select>
+            <Select disabled>
               {addresses.map((address) => (
                 <Select.Option key={address.id} value={address.id}>
-                  {address.address}
+                  {address.address_line}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="is_active" label="trạng thái hoạt động " valuePropName="checked">
+
+          <Form.Item
+            name="is_active"
+            label="Trạng thái hoạt động"
+            valuePropName="checked"
+          >
             <Switch />
           </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block size="large">
+              Lưu
+            </Button>
+          </Form.Item>
         </Form>
+
       </Modal>
     </div>
   );
