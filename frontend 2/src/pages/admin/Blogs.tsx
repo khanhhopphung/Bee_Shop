@@ -294,9 +294,11 @@ const Blogs: React.FC = () => {
           rowKey="id"
           bordered
           pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          scroll={{ x: '800' }} 
           style={{
             fontSize: '16px',
             borderRadius: '8px',
+            width: '100%', 
           }}
         />
       </div>
