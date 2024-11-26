@@ -133,7 +133,7 @@ const Products: React.FC = () => {
     setIsModalVisible(true);
     form.setFieldsValue({
       ...product,
-      image_url: undefined, // Remove image_url to prevent form from trying to bind it
+      image_url: undefined, 
       is_active: product.is_active,
     });
     setImageFile(null); // Reset image file, no preview shown
@@ -475,7 +475,7 @@ const Products: React.FC = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" block size="large">
               Lưu
             </Button>
           </Form.Item>

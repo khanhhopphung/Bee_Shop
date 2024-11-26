@@ -357,7 +357,7 @@ const Blogs: React.FC = () => {
                       url: URL.createObjectURL(imageFile), // Hiển thị ảnh đã chọn
                     },
                   ]
-                  : currentBlog?.image // Hiển thị ảnh đã lưu khi chỉnh sửa
+                  : currentBlog?.image 
                     ? [
                       {
                         uid: '-2',
@@ -389,4 +389,3 @@ const Blogs: React.FC = () => {
 };
 
 export default Blogs;
-//src={`http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`}
