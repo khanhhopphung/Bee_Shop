@@ -229,16 +229,16 @@ const Orders: React.FC = () => {
             <p>Payment Method: {order.payment_method}</p>
             {order.promotion_id && (
               <p>
-                Promotion:{" "}
-                {promotions.find((promo) => promo.id === order.promotion_id)
-                  ?.code || "N/A"}
+                Promotion:{order.promotion_id  }
+                
               </p>
             )}
-            <p>
-              Address:{" "}
-              {addresses.find((address) => address.id === order.address_id)
-                ?.address_line || "N/A"}
-            </p>
+           {order.promotion_id && (
+              <p>
+                Promotion:{order.promotion_id  }
+                
+              </p>
+            )}
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
           </div>
         ),
@@ -325,8 +325,8 @@ const Orders: React.FC = () => {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Địa chỉ</span>,
       dataIndex: 'address',
       key: 'address',
-      render: (address: { id: string }) => (
-        <span style={{ fontSize: '16px' }}>{address?.id || 'N/A'}</span>
+      render: (address: { address_line: string }) => (
+        <span style={{ fontSize: '16px' }}>{address?.address_line || 'N/A'}</span>
       ),
       align: 'left',
     },

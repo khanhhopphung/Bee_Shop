@@ -70,7 +70,7 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
-                'address' => $address->address_line,
+         
             ]);
 
             // Create order details and delete cart items
