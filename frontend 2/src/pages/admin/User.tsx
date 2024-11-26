@@ -242,14 +242,7 @@ const UserPage: React.FC = () => {
             marginBottom: '16px',
           }}
         >
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
-          >
-            Thêm người dùng
-          </Button>
+         
 
           <Input.Search
             placeholder="Tìm kiếm người dùng theo tên"
@@ -295,41 +288,42 @@ const UserPage: React.FC = () => {
             name="username"
             label="Tên người dùng"
             rules={[{ required: true, message: "Vui lòng nhập tên người dùng" }]}
+            
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="email" label="Email"
             rules={[{ required: true, message: "Vui lòng nhập email" }]}
           >
-            <Input />
+            <Input disabled  />
           </Form.Item>
           <Form.Item
             name="phone"
             label="Số điện thoại"
             rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="role_id"
             label="Mã vai trò"
             rules={[{ required: true, message: "Vui lòng nhập mã vai trò" }]}
           >
-            <Input type="number" />
+            <Input type="number"  />
           </Form.Item>
           <Form.Item
             name="tier_id"
             label="Mã cấp bậc"
             rules={[{ required: true, message: "Vui lòng nhập mã cấp bậc" }]}
           >
-            <Input type="number" />
+            <Input type="number"   />
           </Form.Item>
           <Form.Item name="points_total" label="Tổng điểm">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item name="total_spent" label="Tổng chi tiêu">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item
             name="is_active"
