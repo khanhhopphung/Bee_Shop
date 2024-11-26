@@ -376,12 +376,12 @@ const Blogs: React.FC = () => {
             </Upload>
           </Form.Item>
 
-
           <Form.Item>
             <Button type="primary" htmlType="submit" block size="large">
               Lưu
             </Button>
           </Form.Item>
+          
         </Form>
       </Modal>
     </div>

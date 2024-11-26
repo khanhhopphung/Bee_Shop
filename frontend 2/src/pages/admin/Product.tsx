@@ -326,14 +326,14 @@ const Products: React.FC = () => {
           >
             Thêm sản phẩm
           </Button>
-
+          
           <Input.Search
-            placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
-            allowClear
-            enterButton={<SearchOutlined />}
-            size="large"
             value={searchText}
-            onChange={(e) => handleSearchChange}
+            onChange={handleSearchChange}
+            size="large"
+            allowClear
+            placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
+            enterButton={<SearchOutlined />}
 
             style={{
               maxWidth: '600px',
@@ -341,6 +341,7 @@ const Products: React.FC = () => {
               height: '48px',
             }}
           />
+
         </div>
         <hr />
         <Table
@@ -460,13 +461,13 @@ const Products: React.FC = () => {
                         uid: '-2',
                         name: 'Current Image',
                         status: 'done',
-                        url: `http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`, 
+                        url: `http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`,
                       },
                     ]
-                    : [] 
+                    : []
               }
               showUploadList={{
-                showRemoveIcon: false, 
+                showRemoveIcon: false,
               }}
             >
               <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>

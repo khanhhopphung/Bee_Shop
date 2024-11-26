@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  message,
-  Select,
-  InputNumber,
-  Switch,
-} from "antd";
+import {Table,Button,Modal,Form,Input,message,Select,InputNumber,Switch,Space} from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -18,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import moment from "moment";
+import { ColumnsType } from 'antd/es/table';
 
 // Define the types for Order, User, Address, and Promotion
 interface Order {
@@ -255,197 +246,315 @@ const Orders: React.FC = () => {
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<Order> = [
     {
-      title: 'STT',
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       dataIndex: 'id',
       key: 'id',
-      render: (text: any, record: Order, index: number) => index + 1,
+      render: (text: any, record: Order, index: number) => (
+        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+      ),
+      align: 'center',
     },
     {
-      title: "Mã đơn hàng",
-      dataIndex: "order_code",
-      key: "order_code",
-      render: (orderCode: string) => orderCode || "N/A",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã đơn hàng</span>,
+      dataIndex: 'order_code',
+      key: 'order_code',
+      render: (orderCode: string) => (
+        <span style={{ fontSize: '16px' }}>{orderCode || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "Tên người đặt",
-      dataIndex: "user_id",
-      key: "user_id",
-      render: (userId: number) =>
-        users.find((user) => user.id === userId)?.username || "Unknown",
-    },
-    { title: "Ngày đặt hàng", dataIndex: "order_date", key: "order_date" },
-    { title: "Tổng đơn hàng", dataIndex: "total_amount", key: "total_amount" },
-    { title: "Trạng thái", dataIndex: "status", key: "status" },
-    {
-      title: "Phí vận chuyển",
-      dataIndex: "shipping_cost",
-      key: "shipping_cost",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người đặt</span>,
+      dataIndex: 'user_id',
+      key: 'user_id',
+      render: (userId: number) => (
+        <span style={{ fontSize: '16px' }}>
+          {users.find((user) => user.id === userId)?.username || 'Unknown'}
+        </span>
+      ),
+      align: 'left',
     },
     {
-      title: "Phương thức thanh toán",
-      dataIndex: "payment_method",
-      key: "payment_method",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày đặt hàng</span>,
+      dataIndex: 'order_date',
+      key: 'order_date',
+      render: (orderDate: string) => (
+        <span style={{ fontSize: '16px' }}>{orderDate || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "Địa chỉ",
-      dataIndex: "address",
-      key: "address",
-      render: (address: { id: string }) => address?.id || "N/A",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng đơn hàng</span>,
+      dataIndex: 'total_amount',
+      key: 'total_amount',
+      render: (totalAmount: number) => (
+        <span style={{ fontSize: '16px' }}>{totalAmount || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "Khuyến mãi",
-      dataIndex: "promotion",
-      key: "promotion",
-      render: (promotion: { code: string }) => promotion?.code || "N/A",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <span style={{ fontSize: '16px' }}>{status || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "Trạng thái hoạt động",
-      dataIndex: "is_active",
-      key: "is_active",
-      render: (isActive: boolean) => (isActive ? "Yes" : "No"),
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phí vận chuyển</span>,
+      dataIndex: 'shipping_cost',
+      key: 'shipping_cost',
+      render: (shippingCost: number) => (
+        <span style={{ fontSize: '16px' }}>{shippingCost || 'N/A'}</span>
+      ),
+      align: 'left',
     },
     {
-      title: "Hành động",
-      key: "actions",
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phương thức thanh toán</span>,
+      dataIndex: 'payment_method',
+      key: 'payment_method',
+      render: (paymentMethod: string) => (
+        <span style={{ fontSize: '16px' }}>{paymentMethod || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Địa chỉ</span>,
+      dataIndex: 'address',
+      key: 'address',
+      render: (address: { id: string }) => (
+        <span style={{ fontSize: '16px' }}>{address?.id || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Khuyến mãi</span>,
+      dataIndex: 'promotion',
+      key: 'promotion',
+      render: (promotion: { code: string }) => (
+        <span style={{ fontSize: '16px' }}>{promotion?.code || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái hoạt động</span>,
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (isActive: boolean) => (
+        <span
+          style={{
+            fontSize: '16px',
+            color: isActive ? '#3f8600' : '#cf1322',
+            fontWeight: 'bold',
+          }}
+        >
+          {isActive ? 'Yes' : 'No'}
+        </span>
+      ),
+      align: 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
+      key: 'actions',
       render: (record: Order) => (
-        <>
+        <Space>
           <Button
+            type="primary"
+            size="large"
             onClick={() => handleEdit(record)}
             icon={<EditOutlined />}
-            style={{ marginRight: 8 }}
           />
           <Button
+            type="primary"
+            danger
+            size="large"
             onClick={() => handleDelete(record.id)}
             icon={<DeleteOutlined />}
-            danger
-            style={{ marginRight: 8 }}
           />
           <Button
             icon={<EyeOutlined />}
             onClick={() => handleViewDetails(record.id)}
           />
-        </>
+        </Space>
       ),
+      align: 'center',
     },
   ];
 
   return (
-    <div>
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
       <div
         style={{
-          marginBottom: 16,
-          display: "flex",
-          justifyContent: "space-between",
+          background: '#fff',
+          borderRadius: '8px',
+          padding: '16px 24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
         }}
       >
-        <Input
-          placeholder="Tìm kiếm bằng user, status, hoặc address"
-          prefix={<SearchOutlined />}
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '16px',
+          }}
+        >
+          <Select
+            placeholder="Lọc theo trạng thái"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            allowClear
+            style={{
+              width: 250,
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Select.Option value="all">Tất cả trạng thái</Select.Option>
+            <Select.Option value="pending">Đang giao</Select.Option>
+            <Select.Option value="completed">Đã hoàn thành</Select.Option>
+            <Select.Option value="canceled">Đã hủy</Select.Option>
+          </Select>
+
+          <Input.Search
+            placeholder="Tìm kiếm bằng user, status, hoặc address"
+            allowClear
+            size="large"
+            enterButton={<SearchOutlined />}
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+
+            style={{
+              maxWidth: '600px',
+              borderRadius: '8px',
+              height: '48px',
+            }}
+          />
+        </div>
+        <hr />
+        <Table
+          columns={columns}
+          dataSource={filteredOrders}
+          rowKey="id"
+          bordered
+          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+          }}
         />
       </div>
-      <Select
-        placeholder="Lọc theo trạng thái"
-        value={statusFilter}
-        onChange={(value) => setStatusFilter(value)}
-        style={{ width: 200, marginBottom: 20 }}
-      >
-        <Select.Option value="all">Tất cả trạng thái</Select.Option>
-        <Select.Option value="pending">Đang giao</Select.Option>
-        <Select.Option value="completed">Đã hoàn thành</Select.Option>
-        <Select.Option value="canceled">Đã hủy</Select.Option>
-      </Select>
-
-      <Table
-        columns={columns}
-        dataSource={filteredOrders}
-        rowKey="id"
-        loading={loading}
-      />
 
       {/* Modal for editing order */}
       <Modal
-        title="Sửa đơn hàng"
+        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>Chỉnh sửa đơn hàng</span>}
         visible={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields(); // Ensure form resets when closed
         }}
-        onOk={() => currentOrder && form.submit()}
+        footer={null}
+        centered
       >
-        <Form
-          form={form}
-          onFinish={handleSubmit}
-        >
-         <Form.Item
-  name="order_date"
-  label="Ngày đặt hàng"
->
-  <Input disabled />
-</Form.Item>
-<Form.Item
-  name="order_code"
-  label="Mã đơn hàng"
->
-  <Input disabled />
-</Form.Item>
-<Form.Item
-  name="total_amount"
-  label="Tổng đơn hàng"
->
-  <InputNumber style={{ width: "100%" }} min={0} disabled />
-</Form.Item>
-<Form.Item
-  name="shipping_cost"
-  label="Phí vận chuyển"
->
-  <InputNumber style={{ width: "100%" }} min={0} disabled />
-</Form.Item>
-<Form.Item
-  name="payment_method"
-  label="Phương thức thanh toán"
->
-  <Input disabled />
-</Form.Item>
-<Form.Item
-  name="status"
-  label="Trạng thái"
-  rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
->
-  <Select placeholder="Chọn trạng thái">
-    <Select.Option value="pending">Đang xử lý</Select.Option>
-    <Select.Option value="completed">Hoàn thành</Select.Option>
-    <Select.Option value="canceled">Đã hủy</Select.Option>
-  </Select>
-</Form.Item>
-<Form.Item name="promotion_id" label="Khuyến mãi">
-  <Select disabled>
-    {promotions.map((promo) => (
-      <Select.Option key={promo.id} value={promo.id}>
-        {promo.code}
-      </Select.Option>
-    ))}
-  </Select>
-</Form.Item>
-<Form.Item
-  name="address_id"
-  label="Địa chỉ"
->
-  <Select disabled>
-    {addresses.map((address) => (
-      <Select.Option key={address.id} value={address.id}>
-        {address.address_line}
-      </Select.Option>
-    ))}
-  </Select>
-</Form.Item>
-<Form.Item name="is_active" label="Trạng thái hoạt động" valuePropName="checked">
-  <Switch disabled />
-</Form.Item>
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
+          <Form.Item
+            name="order_date"
+            label="Ngày đặt hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập ngày đặt hàng!' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="order_code"
+            label="Mã đơn hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập mã đơn hàng!' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="total_amount"
+            label="Tổng đơn hàng"
+            rules={[{ required: true, message: 'Vui lòng nhập tổng đơn hàng!' }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="shipping_cost"
+            label="Phí vận chuyển"
+            rules={[{ required: true, message: 'Vui lòng nhập phí vận chuyển!' }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="payment_method"
+            label="Phương thức thanh toán"
+            rules={[{ required: true, message: 'Vui lòng nhập phương thức thanh toán!' }]}
+          >
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="Trạng thái"
+            rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+          >
+            <Select placeholder="Chọn trạng thái">
+              <Select.Option value="pending">Đang xử lý</Select.Option>
+              <Select.Option value="completed">Hoàn thành</Select.Option>
+              <Select.Option value="canceled">Đã hủy</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="promotion_id"
+            label="Khuyến mãi"
+            rules={[{ required: true, message: 'Vui lòng chọn khuyến mãi!' }]}
+          >
+            <Select disabled>
+              {promotions.map((promo) => (
+                <Select.Option key={promo.id} value={promo.id}>
+                  {promo.code}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="address_id"
+            label="Địa chỉ"
+            rules={[{ required: true, message: 'Vui lòng chọn địa chỉ!' }]}
+          >
+            <Select disabled>
+              {addresses.map((address) => (
+                <Select.Option key={address.id} value={address.id}>
+                  {address.address_line}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="is_active"
+            label="Trạng thái hoạt động"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block size="large">
+              Lưu
+            </Button>
+          </Form.Item>
         </Form>
+
       </Modal>
     </div>
   );
