@@ -426,7 +426,6 @@ const Orders: React.FC = () => {
             enterButton={<SearchOutlined />}
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
-
             style={{
               maxWidth: '600px',
               borderRadius: '8px',
