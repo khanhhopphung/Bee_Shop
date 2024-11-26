@@ -28,16 +28,32 @@ const UserPage: React.FC = () => {
 
   // Fetch user data
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true); // Đặt trạng thái loading trước khi bắt đầu
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/users");
-      setUsers(response.data);
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu không có token (nghĩa là người dùng chưa đăng nhập)
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        setLoading(false); // Dừng trạng thái loading và thoát
+        return;
+      }
+  
+      // Thêm token vào header của yêu cầu
+      const response = await axios.get("http://127.0.0.1:8000/api/users", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
+      setUsers(response.data); // Cập nhật danh sách người dùng vào state
     } catch (error) {
       message.error("Lấy danh sách người dùng thất bại");
     } finally {
-      setLoading(false);
+      setLoading(false); // Kết thúc trạng thái loading
     }
   };
+  
 
   useEffect(() => {
     fetchUsers();
