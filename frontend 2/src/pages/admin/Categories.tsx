@@ -27,16 +27,31 @@ const Categories: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/categories');
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get('http://127.0.0.1:8000/api/categories', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       setCategories(data);
       setFilteredCategories(data);
     } catch (error) {
-      message.error('Failed to load categories');
+      message.error('Lỗi khi tải danh mục.');
       setCategories([]);
       setFilteredCategories([]);
     }
   };
+  
 
   useEffect(() => {
     fetchCategories();

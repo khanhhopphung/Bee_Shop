@@ -28,14 +28,29 @@ const Reviews: React.FC = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/reviews');
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get('http://127.0.0.1:8000/api/reviews', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       setReviews(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load reviews');
+      message.error('Không thể tải đánh giá');
     } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchReviews();

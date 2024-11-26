@@ -46,16 +46,32 @@ const ProductVariants: React.FC = () => {
   const [form] = Form.useForm();
   // Lấy dữ liệu từ API
   const fetchVariants = async () => {
-    setLoading(true);
+    setLoading(true); // Đặt trạng thái loading trước khi bắt đầu
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/product-variants');
-      setVariants(response.data.data || []); // Đảm bảo API trả về danh sách biến thể
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu không có token (nghĩa là người dùng chưa đăng nhập)
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        setLoading(false); // Dừng trạng thái loading và thoát
+        return;
+      }
+  
+      // Thêm token vào header của yêu cầu
+      const response = await axios.get('http://127.0.0.1:8000/api/product-variants', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
+      setVariants(response.data.data || []); // Cập nhật danh sách biến thể sản phẩm vào state
     } catch (error) {
       message.error('Không thể tải danh sách biến thể sản phẩm');
     } finally {
-      setLoading(false);
+      setLoading(false); // Kết thúc trạng thái loading
     }
   };
+  
 
   const fetchProducts = async () => {
     try {

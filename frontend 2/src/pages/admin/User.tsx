@@ -28,16 +28,32 @@ const UserPage: React.FC = () => {
 
   // Fetch user data
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true); // Đặt trạng thái loading trước khi bắt đầu
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/users");
-      setUsers(response.data);
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu không có token (nghĩa là người dùng chưa đăng nhập)
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        setLoading(false); // Dừng trạng thái loading và thoát
+        return;
+      }
+  
+      // Thêm token vào header của yêu cầu
+      const response = await axios.get("http://127.0.0.1:8000/api/users", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
+      setUsers(response.data); // Cập nhật danh sách người dùng vào state
     } catch (error) {
       message.error("Lấy danh sách người dùng thất bại");
     } finally {
-      setLoading(false);
+      setLoading(false); // Kết thúc trạng thái loading
     }
   };
+  
 
   useEffect(() => {
     fetchUsers();
@@ -226,14 +242,7 @@ const UserPage: React.FC = () => {
             marginBottom: '16px',
           }}
         >
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
-          >
-            Thêm người dùng
-          </Button>
+         
 
           <Input.Search
             placeholder="Tìm kiếm người dùng theo tên"
@@ -281,41 +290,42 @@ const UserPage: React.FC = () => {
             name="username"
             label="Tên người dùng"
             rules={[{ required: true, message: "Vui lòng nhập tên người dùng" }]}
+            
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="email" label="Email"
             rules={[{ required: true, message: "Vui lòng nhập email" }]}
           >
-            <Input />
+            <Input disabled  />
           </Form.Item>
           <Form.Item
             name="phone"
             label="Số điện thoại"
             rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
           >
-            <Input />
+            <Input disabled />
           </Form.Item>
           <Form.Item
             name="role_id"
             label="Mã vai trò"
             rules={[{ required: true, message: "Vui lòng nhập mã vai trò" }]}
           >
-            <Input type="number" />
+            <Input type="number"  />
           </Form.Item>
           <Form.Item
             name="tier_id"
             label="Mã cấp bậc"
             rules={[{ required: true, message: "Vui lòng nhập mã cấp bậc" }]}
           >
-            <Input type="number" />
+            <Input type="number"   />
           </Form.Item>
           <Form.Item name="points_total" label="Tổng điểm">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item name="total_spent" label="Tổng chi tiêu">
-            <Input type="number" />
+            <Input type="number" disabled  />
           </Form.Item>
           <Form.Item
             name="is_active"

@@ -37,20 +37,36 @@ const Promotions: React.FC = () => {
   const fetchPromotions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/promotions");
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get("http://127.0.0.1:8000/api/promotions", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       const promotionsData = response.data.data.map((promotion: Promotion) => ({
         ...promotion,
         start_date: dayjs(promotion.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(promotion.end_date).format("YYYY-MM-DD"),
       }));
+      
       setPromotions(promotionsData);
       setFilteredPromotions(promotionsData);
     } catch (error) {
-      message.error("Failed to load promotions");
+      message.error("Không thể tải khuyến mãi");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchTiers = async () => {
     setLoading(true);

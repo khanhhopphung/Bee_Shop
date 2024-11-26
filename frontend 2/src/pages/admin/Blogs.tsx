@@ -35,16 +35,32 @@ const Blogs: React.FC = () => {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/blogs');
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get('http://127.0.0.1:8000/api/blogs', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       setBlogs(response.data.data || []);
       setFilteredBlogs(response.data.data || []);
     } catch (error) {
-      message.error('Failed to load blogs');
+      message.error('Lỗi khi tải bài viết.');
+      setBlogs([]);
+      setFilteredBlogs([]);
     } finally {
       setLoading(false);
     }
   };
-
+  
   // Fetch categories from API
   const fetchCategories = async () => {
     try {

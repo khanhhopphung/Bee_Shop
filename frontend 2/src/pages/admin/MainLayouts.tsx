@@ -44,7 +44,7 @@ const AdminLayout = () => {
             <Link to="/admin/statistics">Thống kê</Link>
           </Menu.Item>
           <Menu.Item key="10" icon={<FileTextOutlined />}>
-            <Link to="/admin/Login">Login admin </Link>
+            <Link to="/Login">Login admin </Link>
           </Menu.Item>
   
         </Menu>

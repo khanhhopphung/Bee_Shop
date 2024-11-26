@@ -94,13 +94,30 @@ const Products: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/products");
+      const accessToken = localStorage.getItem("access_token");
+  
+      // Kiểm tra nếu token không tồn tại
+      if (!accessToken) {
+        message.error("Bạn chưa đăng nhập!");
+        return; // Dừng việc tải dữ liệu nếu chưa có token
+      }
+  
+      // Thêm token vào headers nếu có
+      const response = await axios.get("http://127.0.0.1:8000/api/products", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
+        },
+      });
+  
       setProducts(response.data.data || []);
       setFilteredProducts(response.data.data || []);
     } catch (error) {
-      message.error("Không thể tải sản phẩm");
+      message.error("Lỗi khi tải sản phẩm.");
+      setProducts([]);
+      setFilteredProducts([]);
     }
   };
+  
 
   useEffect(() => {
     fetchCategories();
