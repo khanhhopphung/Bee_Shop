@@ -426,7 +426,6 @@ const Orders: React.FC = () => {
             enterButton={<SearchOutlined />}
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
-
             style={{
               maxWidth: '600px',
               borderRadius: '8px',
@@ -441,9 +440,11 @@ const Orders: React.FC = () => {
           rowKey="id"
           bordered
           pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
+          scroll={{ x: '800' }} 
           style={{
             fontSize: '16px',
             borderRadius: '8px',
+            width: '100%', 
           }}
         />
       </div>

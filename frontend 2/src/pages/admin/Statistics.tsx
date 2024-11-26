@@ -25,26 +25,26 @@ const Statistics: React.FC = () => {
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
-  
+
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         setLoading(false);
         return;
       }
-  
+
       const params: any = {};
       if (startDate && endDate) {
         params.start_date = startDate.format('YYYY-MM-DD');
         params.end_date = endDate.format('YYYY-MM-DD');
       }
-  
+
       const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', {
         params,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-  
+
       setStatistics(response.data);
     } catch (err) {
       message.error('Không thể tải thống kê.');
@@ -123,51 +123,51 @@ const Statistics: React.FC = () => {
     <div style={{ padding: '30px', backgroundColor: '#fafafa' }}>
       {/* Row for Logout Button and Date Pickers */}
       <Row gutter={[16, 16]} style={{ marginBottom: '20px' }} align="middle">
-  <Col xs={24} sm={12} md={8}>
-    {/* DatePicker for Start Date */}
-    <DatePicker
-      style={{
-        width: '100%',
-        borderRadius: '10px',
-        padding: '10px',
-        border: '1px solid #d9d9d9',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease',
-      }}
-      placeholder="Chọn ngày bắt đầu"
-      onChange={(date) => setStartDate(date)}
-      value={startDate}
-      suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
-    />
-  </Col>
-  <Col xs={24} sm={12} md={8}>
-    {/* DatePicker for End Date */}
-    <DatePicker
-      style={{
-        width: '100%',
-        borderRadius: '10px',
-        padding: '10px',
-        border: '1px solid #d9d9d9',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease',
-      }}
-      placeholder="Chọn ngày kết thúc"
-      onChange={(date) => setEndDate(date)}
-      value={endDate}
-      suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
-    />
-  </Col>
-  {/* Align Logout button to the right */}
-  <Col xs={24} sm={12} md={8} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-    <Button 
-      type="primary" 
-      icon={<PoweroffOutlined />} 
-      onClick={handleLogout} 
-    >
-      Đăng xuất
-    </Button>
-  </Col>
-</Row>
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for Start Date */}
+          <DatePicker
+            style={{
+              width: '100%',
+              borderRadius: '10px',
+              padding: '10px',
+              border: '1px solid #d9d9d9',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s ease',
+            }}
+            placeholder="Chọn ngày bắt đầu"
+            onChange={(date) => setStartDate(date)}
+            value={startDate}
+            suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for End Date */}
+          <DatePicker
+            style={{
+              width: '100%',
+              borderRadius: '10px',
+              padding: '10px',
+              border: '1px solid #d9d9d9',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s ease',
+            }}
+            placeholder="Chọn ngày kết thúc"
+            onChange={(date) => setEndDate(date)}
+            value={endDate}
+            suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
+          />
+        </Col>
+        {/* Align Logout button to the right */}
+        <Col xs={24} sm={12} md={8} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            type="primary"
+            icon={<PoweroffOutlined />}
+            onClick={handleLogout}
+          >
+            Đăng xuất
+          </Button>
+        </Col>
+      </Row>
 
       {/* Overview Statistics */}
       <Row gutter={[16, 16]}>
