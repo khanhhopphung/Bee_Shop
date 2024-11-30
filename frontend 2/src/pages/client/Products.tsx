@@ -7,19 +7,28 @@ import { RootState } from "../../store/store";
 import { setSearchRedux } from "../../store/searchSlice";
 import { AppDispatch } from "../../store/store";
 import { addToFavorites, removeFromFavorites } from "../../store/favoriteSlice";
+import CategoryPage from "./CategoryPage";
 // import Heart from "../../components/Heart";
 interface Product {
   id: number;
   name: string;
-  price: string;
-  image: { image_url: string };
+  price_max: number;
+  price_min: number;
+  image_url: string;
   category_id: number;
-  category: string;
+}
+interface Category {
+  id: number;
+  name: string;
 }
 const Products: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([
+    { id: 0, name: "Tất cả sản phẩm" }, // Đối tượng phải nằm trong ngoặc nhọn
+  ]);
   const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All Products");
+  const [selectedFilter, setSelectedFilter] = useState("Tất cả sản phẩm");
+  const [selectedCategory, setSelectedCategory] = useState(0);
   const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,10 +37,39 @@ const Products: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1); // Trạng thái cho trang hiện tại
   const productsPerPage = 12;
 
+  // call api category
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/categories");
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result && result.data && Array.isArray(result.data)) {
+          setCategories((prev) => [...prev, ...result.data]);
+          console.log(result.data);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // call api products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/products");
+        const response = await fetch("http://127.0.0.1:8000/api/all-products");
 
         // Kiểm tra nếu phản hồi từ server là thành công
         if (!response.ok) {
@@ -59,8 +97,9 @@ const Products: React.FC = () => {
     dispatch(setSearchRedux(event.target.value));
   };
 
-  const handleFilter = (filter: string) => {
-    setSelectedFilter(filter);
+  const handleFilter = (id: number) => {
+    setSelectedCategory(id);
+    // setSelectedFilter(filter);
   };
 
   const [isVisible, setIsVisible] = useState(false);
@@ -76,36 +115,20 @@ const Products: React.FC = () => {
   };
 
   // Tính toán các sản phẩm hiển thị trong trang hiện tại
-  const currentPageProducts = products.slice(
+  const filteredProducts = products
+    .filter(
+      (product) =>
+        selectedCategory === 0 || product.category_id === selectedCategory
+    )
+    .filter((product) =>
+      product.name.toLowerCase().includes(key.toLowerCase())
+    );
+
+  const currentPageProducts = filteredProducts.slice(
     (currentPage - 1) * productsPerPage,
     currentPage * productsPerPage
   );
-  // Hàm lọc sản phẩm
-  // const filteredProducts = products
-  //   .filter(
-  //     (product) =>
-  //       selectedFilter === "All Products" || product.category === selectedFilter
-  //   )
-  //   .filter((product) => product.name.toLowerCase().includes(key.toLowerCase()))
-  //   .filter((product) => {
-  //     if (selectedPrice) {
-  //       const price = parseFloat(product.price.replace(/[^0-9.-]+/g, ""));
-  //       if (selectedPrice === "0-100k" && price <= 100000) return true;
-  //       if (selectedPrice === "100k-200k" && price > 100000 && price <= 200000)
-  //         return true;
-  //       if (selectedPrice === "200k-500k" && price > 200000 && price <= 500000)
-  //         return true;
-  //       if (selectedPrice === "500k+" && price > 500000) return true;
-  //       return false;
-  //     }
-  //     return true;
-  //   })
-  //   .filter((product) => {
-  //     if (selectedColor) {
-  //       return product.color.toLowerCase() === selectedColor.toLowerCase();
-  //     }
-  //     return true;
-  //   });
+
   return (
     // <Layout q={10}>
     <div className="bg0 m-t-23 p-b-140">
@@ -113,19 +136,17 @@ const Products: React.FC = () => {
         {/* Bộ lọc sản phẩm và Tìm kiếm */}
         <div className="flex-w flex-sb-m p-b-52">
           <div className="flex-w flex-l-m filter-tope-group m-tb-10">
-            {["All Products", "Women", "Men", "Bag", "Shoes", "Watches"].map(
-              (filter) => (
-                <button
-                  key={filter}
-                  className={`stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 ${
-                    selectedFilter === filter ? "how-active1" : ""
-                  }`}
-                  onClick={() => handleFilter(filter)}
-                >
-                  {filter}
-                </button>
-              )
-            )}
+            {categories.map((item, index) => (
+              <button
+                key={index}
+                className={`stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 ${
+                  selectedCategory === item.id ? "how-active1" : ""
+                }`}
+                onClick={() => handleFilter(item.id)}
+              >
+                {item.name}
+              </button>
+            ))}
           </div>
 
           {/* Tìm kiếm sản phẩm */}
@@ -151,7 +172,7 @@ const Products: React.FC = () => {
                 <input
                   className="mtext-107 cl2 size-114 plh2 p-r-15"
                   type="text"
-                  placeholder="Search"
+                  placeholder="Tìm kiếm"
                   value={key}
                   onChange={handleSearch}
                 />
@@ -166,7 +187,10 @@ const Products: React.FC = () => {
               : "dis-none panel-filter w-full p-t-10 mb-4"
           }
           id="fi"
-          style={{ marginBottom: isVisible ? "0.5cm" : "0" }}
+          style={{
+            marginBottom: isVisible ? "0.5cm" : "0",
+            marginTop: "-54px",
+          }}
         >
           <div className="wrap-filter flex-w bg6 w-full p-lr-40 p-t-27 p-lr-15-sm">
             <div className="filter-col1 p-r-15 p-b-27">
@@ -346,8 +370,8 @@ const Products: React.FC = () => {
           {currentPageProducts
             .filter(
               (product) =>
-                selectedFilter === "All Products" ||
-                product.category === selectedFilter
+                selectedCategory === 0 ||
+                product.category_id === selectedCategory
             )
             .filter((product) =>
               product.name.toLowerCase().includes(key.toLowerCase())
@@ -356,12 +380,13 @@ const Products: React.FC = () => {
               <ProductItem key={product.id} {...product} />
             ))}
         </div>
+        <>{console.log(currentPageProducts)}</>
 
         {/* Phân trang */}
         <div className="flex-c-m flex-w w-full p-t-45">
           <Pagination
             current={currentPage}
-            total={products.length}
+            total={filteredProducts.length}
             pageSize={productsPerPage}
             onChange={handlePageChange} // Cập nhật trang khi người dùng chọn
           />

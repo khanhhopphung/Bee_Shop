@@ -1,5 +1,5 @@
-import { EditOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Checkbox, CheckboxProps, Input, Space } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+import { Button, Input, Modal, message, notification } from "antd";
 import React, { useEffect, useState } from "react";
 
 interface User {
@@ -10,12 +10,12 @@ interface User {
 }
 
 const AccountPage: React.FC = () => {
-  const onChange: CheckboxProps["onChange"] = (e) => {
-    console.log(`checked = ${e.target.checked}`);
-  };
+  const [isModalVisible, setIsModalVisible] = useState(false); // State để hiển thị modal
+  const [newPhone, setNewPhone] = useState<string>(""); // State để lưu số điện thoại mới
+  const [user, setUser] = useState<User>(); // State thông tin người dùng
+  const [isLoading, setIsLoading] = useState(false); // State cho loading
   const token = localStorage.getItem("access_token");
 
-  const [user, setUser] = useState<User>();
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -30,14 +30,68 @@ const AccountPage: React.FC = () => {
           throw new Error("Lỗi khi lấy thông tin người dùng");
         }
         const data = await response.json();
-        console.log(data.data);
         setUser(data.data);
       } catch (e) {
-        console.error("L��i khi lấy thông tin người dùng", e);
+        console.error("Lỗi khi lấy thông tin người dùng", e);
       }
     };
     fetchUser();
-  }, []);
+  }, [token]);
+
+  // Hiển thị modal
+  const showModal = () => {
+    setIsModalVisible(true);
+    setNewPhone(user?.phone || ""); // Hiển thị số điện thoại hiện tại
+  };
+
+  // Đóng modal
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  // Xử lý khi lưu số điện thoại mới
+  const handleSave = async () => {
+    setIsLoading(true); // Hiển thị loading
+    message.loading({
+      content: "Đang cập nhật số điện thoại...",
+      key: "updatePhone",
+    });
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/update-phone/${user?.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ phone: newPhone }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Cập nhật số điện thoại thất bại");
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser); // Cập nhật thông tin người dùng
+      setIsModalVisible(false); // Đóng modal
+      message.success({
+        content: "Cập nhật số điện thoại thành công!",
+        key: "updatePhone",
+      });
+    } catch (error) {
+      console.error("Lỗi khi cập nhật số điện thoại:", error);
+      notification.error({
+        message: "Lỗi",
+        description: "Cập nhật số điện thoại thất bại. Vui lòng thử lại!",
+      });
+    } finally {
+      setIsLoading(false); // Ẩn loading
+    }
+  };
+
   return (
     <div className="account-page">
       <div className="account-content">
@@ -49,14 +103,11 @@ const AccountPage: React.FC = () => {
             ></i>
             <div className="profile-details" style={{ marginLeft: "10px" }}>
               <h3>{user?.username}</h3>
-
               <p>
-                {" "}
                 <EditOutlined /> Sửa hồ sơ
               </p>
             </div>
           </div>
-
           <ul>
             <li>
               <a href="/account">
@@ -87,9 +138,8 @@ const AccountPage: React.FC = () => {
                 Đơn mua
               </a>
             </li>
-
             <li>
-              <a href="voucher">
+              <a href="/voucher">
                 <i
                   className="fa-solid fa-ticket"
                   style={{ color: "#B197FC", marginRight: "10px" }}
@@ -101,13 +151,7 @@ const AccountPage: React.FC = () => {
         </div>
 
         <div className="account-info">
-          <h2
-            style={{
-              marginRight: "90%",
-              width: "270px",
-              fontSize: "2rem",
-            }}
-          >
+          <h2 style={{ marginRight: "90%", width: "270px", fontSize: "2rem" }}>
             Thông tin tài khoản
           </h2>
 
@@ -116,49 +160,46 @@ const AccountPage: React.FC = () => {
               <h3 style={{ width: "150px" }}>Tên đăng nhập</h3>
               <p>{user?.username}</p>
             </div>
-
-            {/* <div className="info-section">
-              <h3>Tên</h3>
-              <Space.Compact>
-                <Input
-                  defaultValue="Khánh Hợp"
-                  style={{ marginLeft: "28px" }}
-                />
-              </Space.Compact>
-            </div> */}
-
             <div className="info-section">
               <h3>Email</h3>
               <p>{user?.email}</p>
               <button className="edit-button">Thay đổi</button>
             </div>
-
             <div className="info-section">
               <h3>Số điện thoại</h3>
               <p>{user?.phone}</p>
-              <button className="edit-button">Thay đổi</button>
+              <button
+                className="edit-button"
+                onClick={showModal}
+                disabled={isLoading}
+              >
+                Thay đổi
+              </button>
             </div>
-
-            {/* <div className="info-section">
-              <h3>Giới tính</h3>
-              <div style={{ marginLeft: "30px" }}>
-                <Checkbox onChange={onChange}>Nam</Checkbox>
-                <Checkbox onChange={onChange}>Nữ</Checkbox>
-                <Checkbox onChange={onChange}>Khác</Checkbox>
-              </div>
-            </div> */}
-
-            {/* <div className="info-section">
-              <h3>Ngày sinh</h3>
-              <p>19/09/2004</p>
-              <button className="edit-button">Thay đổi</button>
-            </div> */}
             <Button type="primary" style={{ backgroundColor: "#717fe0" }}>
               Lưu
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        title="Chỉnh sửa số điện thoại mới"
+        visible={isModalVisible}
+        onCancel={handleCancel}
+        onOk={handleSave}
+        confirmLoading={isLoading}
+        okText="Lưu"
+        cancelText="Hủy"
+      >
+        <Input
+          placeholder="Nhập số điện thoại mới"
+          value={newPhone}
+          onChange={(e) => setNewPhone(e.target.value)}
+          disabled={isLoading} // Disable input khi đang loading
+        />
+      </Modal>
     </div>
   );
 };

@@ -42,12 +42,21 @@ import OrderList from "./pages/client/OrderList";
 import Voucher from "./pages/client/Voucher";
 import User from "./pages/admin/User";
 import WishList from "./pages/client/WishList";
+import BlogDetail from "./pages/client/BlogDetail";
+import Contact from "./components/Contact";
+import VNPayForm from "./components/VNPayForm";
+import ScrollToTop from "./components/ScrollToTop";
+import ResetPassEmail from "./pages/client/ResetPassEmail";
+import VerifyOtp from "./pages/client/VerifyOtp";
+import ResetPass from "./pages/client/ResetPass";
+import ProductDetail2 from "./pages/client/ProductDetail2";
 
 interface CartItem {
   product_id: any;
   color_id: any;
   size_id: any;
   quantity: any;
+  price: number | null;
   discount_value?: any;
 }
 interface Cart {
@@ -72,7 +81,8 @@ const App: React.FC = () => {
     productId: number | string | undefined,
     sizeId: number | string | undefined,
     colorId: number | string | undefined,
-    quantities: number | string
+    quantities: number | string,
+    price: number | null
   ) => {
     // Chuyển quantities thành số và kiểm tra tính hợp lệ
     quantities = Number(quantities);
@@ -85,6 +95,7 @@ const App: React.FC = () => {
       color_id: colorId,
       size_id: sizeId,
       quantity: quantities,
+      price: price,
     });
 
     setCart((prevCart: any) => {
@@ -97,16 +108,16 @@ const App: React.FC = () => {
 
       if (existingProductIndex >= 0) {
         // Nếu sản phẩm đã tồn tại trong giỏ, cộng thêm số lượng
-        console.log(
-          "Current quantity:",
-          prevCart[existingProductIndex].quantity
-        );
+        // console.log(
+        //   "Current quantity:",
+        //   prevCart[existingProductIndex].quantity
+        // );
         const updatedCart = [...prevCart];
         updatedCart[existingProductIndex].quantity += quantities;
-        console.log(
-          "Updated quantity:",
-          updatedCart[existingProductIndex].quantity
-        );
+        // console.log(
+        //   "Updated quantity:",
+        //   updatedCart[existingProductIndex].quantity
+        // );
         return updatedCart;
       } else {
         // Nếu sản phẩm chưa có trong giỏ, thêm mới
@@ -122,7 +133,6 @@ const App: React.FC = () => {
       }
     });
     setIsAddingToCart(true); // Đánh dấu cần gọi API
-    message.success("Thêm vào giỏ hàng thành công!");
   };
 
   useEffect(() => {
@@ -130,7 +140,7 @@ const App: React.FC = () => {
 
     const addProductToCart = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/cart/add`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/cart-add`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -139,11 +149,15 @@ const App: React.FC = () => {
           // body: JSON.stringify(cart[cart.length - 1]),
           body: JSON.stringify(cartItem),
         });
+        // const data = await response.json();
+        console.log(response);
 
         if (!response.ok) {
           const errorData = await response.json();
           console.error("API Error:", errorData);
           return;
+        } else if (response.ok) {
+          message.success("Thêm vào giỏ hàng thành công! ");
         }
 
         console.log("Product added to cart:", cart[cart.length - 1]);
@@ -207,13 +221,18 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="" element={<Layout q={cart.length} />}>
           <Route index element={<Home />} />
           <Route path="products" element={<Products />} />
+          {/* <Route
+            path="product/:id"
+            element={<ProductDetail addToCart={addToCart} />}
+          /> */}
           <Route
             path="products/:id"
-            element={<ProductDetail addToCart={addToCart} />}
+            element={<ProductDetail2 addToCart={addToCart} />}
           />
           <Route path="carts" element={<Carts />} />
           <Route path="category" element={<CategoryPage />} />
@@ -224,6 +243,7 @@ const App: React.FC = () => {
           />
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
+          <Route path="blogs/:id" element={<BlogDetail />} />
           <Route path="payments" element={<PaymentPage />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="404" element={<NotFound />} />
@@ -232,10 +252,16 @@ const App: React.FC = () => {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/update-password" element={<UpdatePass />} />
           <Route path="/adrress" element={<Adrress />} />
+          {/* <Route path="/adrress" element={<Adrress />} /> */}
           <Route path="/wishlist" element={<WishList />} />
           <Route path="/comment" element={<Comment />} />
           <Route path="/order-list" element={<OrderList />} />
           <Route path="/voucher" element={<Voucher />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/vnpay" element={<VNPayForm />} />
+          <Route path="/resetpassemail" element={<ResetPassEmail />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/reset-pass" element={<ResetPass />} />
         </Route>
 
         {/* Route cho phần admin */}
@@ -243,7 +269,7 @@ const App: React.FC = () => {
         <Route path="register" element={<RegisterAdmin />} />
 
         <Route path="/admin" element={<AdminLayout />}>
-        <Route path="login" element={<LoginAdmin />} />
+          <Route path="login" element={<LoginAdmin />} />
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="blogs" element={<AdminBlogs />} />
@@ -252,7 +278,6 @@ const App: React.FC = () => {
           <Route path="product-variants" element={<ProductVariants />} />
           <Route path="products" element={<Product />} />
           <Route path="orders" element={<Orders />} />
-
           <Route path="users" element={<User />} />
         </Route>
       </Routes>

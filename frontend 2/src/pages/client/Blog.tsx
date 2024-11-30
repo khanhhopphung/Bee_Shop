@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../components/Layout";
 
 type Blog = {
   id: number;
@@ -11,7 +10,9 @@ type Blog = {
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const blogsPerPage = 3; // Số blog hiển thị mỗi trang
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -31,7 +32,19 @@ const Blogs = () => {
     };
     fetchBlogs();
   }, []);
+  const filteredBlogs = blogs.filter((blog) =>
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
+  // Phân trang
+  const indexOfLastBlog = currentPage * blogsPerPage;
+  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
   return (
     <div>
       {/* Title page */}
@@ -52,10 +65,10 @@ const Blogs = () => {
             {/* Blog Content */}
             <div className="col-md-8 col-lg-9 p-b-80">
               <div className="p-r-45 p-r-0-lg">
-                {blogs.map((blog) => (
+                {currentBlogs.map((blog) => (
                   <div className="p-b-63" key={blog.id}>
                     <a
-                      href="blog-detail.html"
+                      href={`/blogs/${blog.id}`}
                       className="hov-img0 how-pos5-parent"
                     >
                       <img
@@ -66,7 +79,7 @@ const Blogs = () => {
                     <div className="p-t-32">
                       <h4 className="p-b-15">
                         <a
-                          href="blog-detail.html"
+                          href={`/blogs/${blog.id}`}
                           className="ltext-108 cl2 hov-cl1 trans-04"
                         >
                           {blog.title}
@@ -78,7 +91,7 @@ const Blogs = () => {
                           : blog.content}
                         {blog.content.length > 100 && (
                           <a
-                            href="#"
+                            href={`/blogs/${blog.id}`}
                             className="mtext-102 cl2 hov-cl1 trans-04"
                           >
                             Xem thêm
@@ -108,18 +121,21 @@ const Blogs = () => {
                 ))}
                 {/* Pagination */}
                 <div className="flex-l-m flex-w w-full p-t-10 m-lr--7">
-                  <a
-                    href="#"
-                    className="flex-c-m how-pagination1 trans-04 m-all-7 active-pagination1"
-                  >
-                    1
-                  </a>
-                  <a
-                    href="#"
-                    className="flex-c-m how-pagination1 trans-04 m-all-7"
-                  >
-                    2
-                  </a>
+                  {[...Array(totalPages)].map((_, index) => (
+                    <a
+                      key={index}
+                      href="#"
+                      className={`flex-c-m how-pagination1 trans-04 m-all-7 ${
+                        currentPage === index + 1 ? "active-pagination1" : ""
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(index + 1);
+                      }}
+                    >
+                      {index + 1}
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
@@ -132,6 +148,8 @@ const Blogs = () => {
                     type="text"
                     name="search"
                     placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <button className="flex-c-m size-122 ab-t-r fs-18 cl4 hov-cl1 trans-04">
                     <i className="zmdi zmdi-search"></i>

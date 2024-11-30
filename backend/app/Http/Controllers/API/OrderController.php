@@ -56,6 +56,7 @@ class OrderController extends Controller
             if (!$address) {
                 return response()->json(['error' => 'Address not found'], 404);
             }
+            $addressF = $address->address_line."-".$address->state."-".$address->city;
 
             // Create the order
             $order = Order::create([
@@ -70,6 +71,7 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
+                'address'=> $addressF
          
             ]);
 
@@ -163,8 +165,8 @@ class OrderController extends Controller
                 return response()->json(['error' => 'User not authenticated.'], 401);
             }
 
-            $orders = $user->orders()->with(['address', 'promotion', 'orderDetails'])->get();
-            return response()->json(['orders' => $orders], 200);
+            $orders = $user->orders()->with(['address', 'promotion', 'orderDetails.products','orderDetails.product_variants'])->get();
+            return BaseController::success($orders);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch orders. Please try again later.',
@@ -172,4 +174,37 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+
+    public function cancel(Order $order)
+    {
+        try {
+            if ($order->status == 'pending') {
+                $order->status = 'cancel';
+                $order->save();
+            } else {
+                return response()->json([
+                    'message' => 'Order cannot be cancelled. Please contact support.',
+                ], 400);
+            }
+
+            return response()->json([
+                'message' => 'Order cancelled successfully!',
+                'order' => $order,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error' => 'Could not cancel order. Please try again later.',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'code' => $e->getCode(),
+            ], 500);
+        }
+    }
+   
+    
+    
+
 }
+

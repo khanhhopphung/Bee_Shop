@@ -4,6 +4,16 @@ import Layout from "../../components/Layout";
 import { Link } from "react-router-dom";
 import Heart from "../../components/Heart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Carousel } from "antd";
+import {
+  FiTruck,
+  FiLock,
+  FiCheckSquare,
+  FiGift,
+  FiPercent,
+} from "react-icons/fi";
+
+// import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 type Blog = {
   id: number;
   title: string;
@@ -11,9 +21,50 @@ type Blog = {
   created_at: string;
   image: { image_url: string };
 };
+const features = [
+  {
+    icon: <FiTruck />,
+    title: "Free delivery",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiLock />,
+    title: "100% secure payment",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiCheckSquare />,
+    title: "Quality guarantee",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiPercent />,
+    title: "Guaranteed savings",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiGift />,
+    title: "Daily offers",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+];
+
 const Home: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
+  const [bestproducts, setBestProducts] = useState<any[]>([]);
+  const [badproducts, setBadProducts] = useState<any[]>([]);
+  const chunkSize = 4; // Số sản phẩm hiển thị mỗi lần
+  const bestproductChunks = []; // Mảng chứa các nhóm sản phẩm
+  const badproductChunks = []; // Mảng chứa các nhóm sản phẩm
 
+  // Chia các sản phẩm thành các nhóm 4 sản phẩm
+  for (let i = 0; i < bestproducts.length; i += chunkSize) {
+    bestproductChunks.push(bestproducts.slice(i, i + chunkSize));
+  }
+  // Chia các sản phẩm thành các nhóm 4 sản phẩm
+  for (let i = 0; i < badproducts.length; i += chunkSize) {
+    badproductChunks.push(badproducts.slice(i, i + chunkSize));
+  }
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -66,17 +117,100 @@ const Home: React.FC = () => {
 
     fetchBlogs();
   }, []);
+
+  // call api sản phẩm bán chạy
+  useEffect(() => {
+    const fetchBestProducts = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/best-products`);
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Kiểm tra nếu có dữ liệu và gán vào state categories
+        if (result && result.data && Array.isArray(result.data)) {
+          setBestProducts(result.data);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching best products:", error);
+      }
+    };
+
+    fetchBestProducts();
+  }, []);
+  // call api sản phẩm giảm giá
+  useEffect(() => {
+    const fetchBadProducts = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/bad-products`);
+
+        // Kiểm tra nếu phản hồi từ server là thành công
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // In ra kết quả để kiểm tra cấu trúc dữ liệu trả về
+        console.log("API response:", result); // In ra để kiểm tra cấu trúc dữ liệu
+
+        // Kiểm tra nếu có dữ liệu và gán vào state badProducts
+        if (result && result.data && Array.isArray(result.data)) {
+          setBadProducts(result.data); // Cập nhật state với dữ liệu hợp lệ
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching bad products:", error);
+      }
+    };
+
+    fetchBadProducts();
+  }, []);
+
   return (
     // <Layout q={10}>
     <div>
       <div className="main-content">
         {/* Slider */}
         <section className="section-slide">
-          <div className="wrap-slick1 rs1-slick1">
+          {/* <div className="wrap-slick1 rs1-slick1">
             <div className="slick1">
               <div
                 className="item-slick1"
-                style={{ backgroundImage: "url(images/slide-03.jpg)" }}
+                style={{ backgroundImage: "url(images/slide-04.jpg)" }}
+                > 
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> */}
+
+          <Carousel arrows infinite={false} autoplay autoplaySpeed={800}>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-04.jpg)" }}
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
@@ -87,23 +221,90 @@ const Home: React.FC = () => {
                       New arrivals
                     </h2>
                     <a
-                      href="/"
+                      href="/products"
                       className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
                     >
-                      Shop Now
+                      Mua Ngay
                     </a>
                   </div>
                 </div>
               </div>
-              {/* Thêm các mục slider khác nếu cần */}
             </div>
-          </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-03.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      hello Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-02.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-01.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Carousel>
         </section>
 
         {/* Banner */}
         <div className="sec-banner bg0">
           <div className="flex-w flex-c-m">
-            {/* Phần tử 1 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-04.jpg" alt="IMG-BANNER" />
@@ -128,7 +329,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Phần tử 2 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-05.jpg" alt="IMG-BANNER" />
@@ -153,7 +353,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Phần tử 3 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-06.jpg" alt="IMG-BANNER" />
@@ -179,121 +378,262 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "16px",
+            // maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "20px",
+          }}
+        >
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              style={{
+                border: "1px solid #ddd",
+                padding: "16px",
+                borderRadius: "8px",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ fontSize: "24px", marginBottom: "12px" }}>
+                {feature.icon}
+              </div>
+              <h3
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                }}
+              >
+                {feature.title}
+              </h3>
+              <p style={{ fontSize: "14px", color: "#666" }}>
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
 
         <section className="sec-product bg0 p-t-100 p-b-50">
           <div className="container">
-            <div className="p-b-32">
-              <h3 className="ltext-105 cl5 txt-center respon1">Tổng quan</h3>
-            </div>
-
             {/* Tab sản phẩm */}
             <div className="tab01">
-              <ul className="nav nav-tabs" role="tablist">
-                <li className="nav-item p-b-10">
-                  <a
-                    className="nav-link active"
-                    data-toggle="tab"
-                    href="#best-seller"
-                    role="tab"
-                  >
-                    Bán chạy
-                  </a>
-                </li>
-                <li className="nav-item p-b-10">
-                  <a
-                    className="nav-link"
-                    data-toggle="tab"
-                    href="#featured"
-                    role="tab"
-                  >
-                    Nổi bật
-                  </a>
-                </li>
-                <li className="nav-item p-b-10">
-                  <a
-                    className="nav-link"
-                    data-toggle="tab"
-                    href="#sale"
-                    role="tab"
-                  >
-                    Giảm giá
-                  </a>
-                </li>
-              </ul>
-
-              {/* Nội dung các tab */}
               <div className="tab-content p-t-50">
+                <div className="p-b-32">
+                  <h5
+                    className="ltext-105 cl5 txt-center respon1"
+                    style={{ marginBottom: "-10px", marginTop: "-110px" }}
+                  >
+                    Sản Phẩm Bán Chạy
+                  </h5>
+                </div>
                 <div
                   className="tab-pane fade show active"
                   id="best-seller"
                   role="tabpanel"
                 >
                   <div className="wrap-slick2">
-                    <div className="slick2">
-                      {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
-
-                      <div className="flex-w flex-sb-m p-l-15 p-r-15">
-                        {/* Sản phẩm  */}
-                        {products.map((product) => (
-                          <div
-                            key={product.id}
-                            className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
-                            style={{ width: "25%" }}
-                          >
-                            <div className="block2">
-                              <div className="block2-pic hov-img0">
-                                <Link to={`/products/${product.id}`}>
-                                  {product.image && (
-                                    <img
-                                      // src={product.image}
-                                      src={`http://127.0.0.1:8000/storage/${product.image.image_url}`}
-                                      alt={product.name}
-                                      style={{
-                                        width: "100%",
-                                        height: "auto",
-                                      }}
-                                    />
-                                  )}
-                                </Link>
-                                <Link
-                                  to={`/products/${product.id}`}
-                                  className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
-                                >
-                                  Mua Ngay
-                                </Link>
-                              </div>
-                              <div className="block2-txt flex-w flex-t p-t-14">
-                                <div className="block2-txt-child1 flex-col-l">
-                                  <Link
-                                    to={`/products/${product.id}`}
-                                    className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
-                                  >
-                                    {product.name}
-                                  </Link>
-                                  <span className="stext-105 cl3">
-                                    ${product.price}
-                                  </span>
+                    <Carousel
+                      arrows
+                      autoplay={false}
+                      prevArrow={
+                        <div>
+                          <i
+                            style={{
+                              fontSize: "30px",
+                              color: "gray", // Màu sắc của mũi tên
+                              marginTop: "-80px",
+                            }}
+                            className="fa-solid fa-chevron-left" // Font Awesome icon
+                          />
+                        </div>
+                      }
+                      nextArrow={
+                        <div
+                          style={{
+                            // backgroundColor: "gray",
+                            zIndex: 1000, // Đảm bảo nút sẽ không bị che khuất
+                          }}
+                        >
+                          <i
+                            style={{
+                              fontSize: "30px",
+                              color: "gray",
+                              marginTop: "-80px",
+                            }}
+                            className="fa-solid fa-chevron-right"
+                          />
+                        </div>
+                      }
+                    >
+                      {/* Các slide của Carousel */}
+                      {bestproductChunks.map((chunk, index) => (
+                        <div key={index} className="carousel-slide">
+                          <div className="flex-w flex-sb-m p-l-15 p-r-15">
+                            {chunk.map((bestproduct) => (
+                              <div
+                                key={bestproduct.id}
+                                className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
+                                style={{ width: "25%" }}
+                              >
+                                <div className="block2">
+                                  <div className="block2-pic hov-img0">
+                                    <Link to={`/products/${bestproduct.id}`}>
+                                      <img
+                                        src={`http://127.0.0.1:8000/storage/${bestproduct.image_url}`}
+                                        alt={bestproduct.name}
+                                        style={{
+                                          width: "100%",
+                                          height: "auto",
+                                        }}
+                                      />
+                                    </Link>
+                                    <Link
+                                      to={`/products/${bestproduct.id}`}
+                                      className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
+                                    >
+                                      Mua Ngay
+                                    </Link>
+                                  </div>
+                                  <div className="block2-txt flex-w flex-t p-t-14">
+                                    <div className="block2-txt-child1 flex-col-l">
+                                      <Link
+                                        to={`/products/${bestproduct.id}`}
+                                        className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                                      >
+                                        {bestproduct.name}
+                                      </Link>
+                                      <span className="stext-105 cl3">
+                                        {Number(
+                                          bestproduct.price_min
+                                        ).toLocaleString("vi-VN")}
+                                        ₫
+                                      </span>
+                                    </div>
+                                    <Heart product_id={bestproduct.id} />
+                                  </div>
                                 </div>
-                                <Heart product_id={product.id} />
                               </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </Carousel>
+                  </div>
+                </div>
+              </div>
+              <div className="tab01">
+                {/* Nội dung các tab */}{" "}
+                <div
+                  className="tab-content p-t-50"
+                  style={{ marginTop: "100px" }}
+                >
+                  <div className="p-b-32">
+                    <h5
+                      className="ltext-105 cl5 txt-center respon1"
+                      style={{ marginBottom: "-10px", marginTop: "-110px" }}
+                    >
+                      Sản Phẩm Giá Tốt
+                    </h5>
+                  </div>
+                  <div
+                    className="tab-pane fade show active"
+                    id="best-seller"
+                    role="tabpanel"
+                  >
+                    <div className="wrap-slick2">
+                      <Carousel
+                        arrows
+                        autoplay={false}
+                        prevArrow={
+                          <div>
+                            <i
+                              style={{
+                                fontSize: "30px",
+                                color: "gray", // Màu sắc của mũi tên
+                                marginTop: "-80px",
+                              }}
+                              className="fa-solid fa-chevron-left" // Font Awesome icon
+                            />
+                          </div>
+                        }
+                        nextArrow={
+                          <div
+                            style={{
+                              // backgroundColor: "gray",
+                              zIndex: 1000, // Đảm bảo nút sẽ không bị che khuất
+                            }}
+                          >
+                            <i
+                              style={{
+                                fontSize: "30px",
+                                color: "gray",
+                                marginTop: "-80px",
+                              }}
+                              className="fa-solid fa-chevron-right"
+                            />
+                          </div>
+                        }
+                      >
+                        {/* Các slide của Carousel */}
+                        {badproductChunks.map((chunks, item) => (
+                          <div key={item} className="carousel-slide">
+                            <div className="flex-w flex-sb-m p-l-15 p-r-15">
+                              {chunks.map((badproduct) => (
+                                <div
+                                  key={badproduct.id}
+                                  className="item-slick2 p-l-15 p-r-15 p-t-15 p-b-15"
+                                  style={{ width: "25%" }}
+                                >
+                                  <div className="block2">
+                                    <div className="block2-pic hov-img0">
+                                      <Link to={`/products/${badproduct.id}`}>
+                                        <img
+                                          src={`http://127.0.0.1:8000/storage/${badproduct.image_url}`}
+                                          alt={badproduct.name}
+                                          style={{
+                                            width: "100%",
+                                            height: "auto",
+                                          }}
+                                        />
+                                      </Link>
+                                      <Link
+                                        to={`/products/${badproduct.id}`}
+                                        className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1"
+                                      >
+                                        Mua Ngay
+                                      </Link>
+                                    </div>
+                                    <div className="block2-txt flex-w flex-t p-t-14">
+                                      <div className="block2-txt-child1 flex-col-l">
+                                        <Link
+                                          to={`/products/${badproduct.id}`}
+                                          className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                                        >
+                                          {badproduct.name}
+                                        </Link>
+                                        <span className="stext-105 cl3">
+                                          {Number(
+                                            badproduct.price_min
+                                          ).toLocaleString("vi-VN")}
+                                          ₫
+                                        </span>
+                                      </div>
+                                      <Heart product_id={badproduct.id} />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         ))}
-                      </div>
-
-                      {/* Thêm các sản phẩm khác nếu cần */}
+                      </Carousel>
                     </div>
                   </div>
                 </div>
-                {/* Các tab khác */}
-              </div>
-              <div className="flex-c-m flex-w w-full p-t-45">
-                <a
-                  href="/products"
-                  className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
-                >
-                  Xem tất cả
-                </a>
               </div>
             </div>
           </div>
@@ -302,18 +642,20 @@ const Home: React.FC = () => {
         <section className="sec-blog bg0 p-t-60 p-b-90">
           <div className="container">
             <div className="p-b-66">
-              <h3 className="ltext-105 cl5 txt-center">
+              <h3
+                className="ltext-105 cl5 txt-center"
+                style={{ marginTop: "-60px", marginBottom: "-20px" }}
+              >
                 Bài viết của chúng tôi
               </h3>
             </div>
-
             <div className="row">
               {/* Bài blog 1 */}
               {blogs.slice(0, 3).map((blog, index) => (
                 <div key={index} className="col-sm-6 col-md-4 p-b-40">
                   <div className="blog-item">
                     <div className="hov-img0">
-                      <a href="/blogs">
+                      <a href={`/blogs/${blog.id}`}>
                         <img
                           style={{ width: "520px", height: "300px" }}
                           src={`http://127.0.0.1:8000/storage/${blog.image}`}
@@ -323,7 +665,10 @@ const Home: React.FC = () => {
                     </div>
                     <div className="p-t-15">
                       <h4 className="p-b-5">
-                        <a href="/" className="mtext-101 cl2 hov-cl1 trans-04">
+                        <a
+                          href={`/blogs/${blog.id}`}
+                          className="mtext-101 cl2 hov-cl1 trans-04"
+                        >
                           {blog.title}
                         </a>
                       </h4>
@@ -341,7 +686,7 @@ const Home: React.FC = () => {
                           : blog.content}
                         {blog.content.length > 100 && (
                           <a
-                            href="#"
+                            href={`/blogs/${blog.id}`}
                             className="mtext-102 cl2 hov-cl1 trans-04"
                           >
                             Xem thêm
@@ -355,8 +700,9 @@ const Home: React.FC = () => {
             </div>
             <div className="flex-c-m flex-w w-full p-t-45">
               <a
-                href="/products"
+                href="/blogs"
                 className="flex-c-m stext-101 cl5 size-103 bg2 bor1 hov-btn1 p-lr-15 trans-04"
+                style={{ marginTop: "-50px" }}
               >
                 Xem tất cả
               </a>

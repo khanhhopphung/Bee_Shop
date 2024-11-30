@@ -3,13 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
-type LoginProps = {
-  updateUserName: (name: string) => void;
-};
-
-const Login: React.FC<LoginProps> = ({ updateUserName }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const ResetPassEmail: React.FC = () => {
+  const [email, setEmail] = useState(""); // Thay đổi từ username thành email
   const [loading, setLoading] = useState(false); // Trạng thái loading
   const navigate = useNavigate();
 
@@ -18,18 +13,20 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
     const accessToken = localStorage.getItem("access_token");
     const roleId = localStorage.getItem("role_id");
 
-    // if (accessToken && roleId) {
-    //   // Điều hướng dựa trên role_id
-    //   if (roleId == "2") {
-    //     navigate("/admin/statistics");
-    //   } else {
-    //     navigate("/"); // Điều hướng đến trang client
+    if (accessToken && roleId) {
+      // Điều hướng dựa trên role_id
+      if (roleId == "2") {
+        navigate("/admin/statistics");
+      } else {
+        navigate("/"); // Điều hướng đến trang client
+      }
+    }
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !password) {
+    if (!email) {
       message.error("Vui lòng điền đầy đủ thông tin.");
       return;
     }
@@ -37,40 +34,32 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
     setLoading(true); // Bắt đầu loading
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/login`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/send-otp`, {
+        // Sửa lại endpoint thành send-otp
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email }), // Gửi email thay vì username và password
       });
 
       setLoading(false); // Kết thúc loading
 
       if (!response.ok) {
         const errorData = await response.json();
-        message.error(
-          errorData.message || "Thông tin đăng nhập không chính xác."
-        );
+        message.error(errorData.message || "Đã xảy ra lỗi khi gửi mã OTP.");
         return;
       }
 
       const data = await response.json();
-      message.success("Đăng nhập thành công!");
+      message.success("Mã OTP đã được gửi đến email của bạn.");
 
-      // Lưu thông tin vào localStorage
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user_name", data.user_name);
-      localStorage.setItem("role_id", data.role_id); // Lưu role_id
-
-      // console.log(localStorage.getItem("user_name"));
-      updateUserName(data.user_name);
-
-      navigate("/"); // Đến trang client
+      // Điều hướng đến trang xác nhận mã OTP
+      navigate("/verify-otp", { state: { email } });
     } catch (error) {
       setLoading(false); // Kết thúc loading nếu có lỗi
       message.error("Có lỗi xảy ra. Vui lòng thử lại.");
-      console.error("Error during login:", error);
+      console.error("Error during sending OTP:", error);
     }
   };
 
@@ -80,7 +69,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       indicator={
         <LoadingOutlined style={{ fontSize: 24, color: "green" }} spin />
       }
-      tip={<span style={{ color: "green" }}>Đang đăng nhập...</span>}
+      tip={<span style={{ color: "green" }}>Đang gửi mã OTP...</span>}
     >
       <div className="app app-login p-0">
         <div className="row g-0 app-auth-wrapper">
@@ -94,55 +83,31 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                 <div className="app-auth-branding mb-4">
                   <p>BEE STORE</p>
                 </div>
-                <h2 className="auth-heading text-center mb-5">Đăng nhập</h2>
+                <h2 className="auth-heading text-center mb-5">Quên mật khẩu</h2>
                 <div className="auth-form-container text-start">
                   <form
                     className="auth-form login-form"
                     onSubmit={handleSubmit}
                   >
-                    <div className="username mb-3">
+                    <div className="email mb-3">
                       <input
-                        type="text"
+                        type="email" // Sửa lại thành input email
                         className="form-control signup-name"
-                        placeholder="Username :"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Email:"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
-                    <div className="password mb-3">
-                      <input
-                        type="password"
-                        className="form-control signin-password"
-                        placeholder="Password"
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete="current-password"
-                      />
-                    </div>
+
                     <div className="text-center">
                       <button
                         type="submit"
                         className="btn app-btn-primary w-100 theme-btn mx-auto"
                       >
-                        Đăng nhập
+                        Gửi mã OTP
                       </button>
                     </div>
                   </form>
-                  <div
-                    className="text-center"
-                    style={{ marginTop: "10px", fontSize: "1rem" }}
-                  >
-                    <a href="/resetpassemail">Quên mật khẩu ?</a>
-                  </div>
-                  <div
-                    className="auth-option text-center"
-                    style={{ marginBottom: "10px" }}
-                  >
-                    Bạn chưa có tài khoản?{" "}
-                    <a className="text-link" href="/register">
-                      Đăng ký ở đây
-                    </a>
-                    .
-                  </div>
                 </div>
               </div>
               <footer className="app-auth-footer">
@@ -156,4 +121,4 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
   );
 };
 
-export default Login;
+export default ResetPassEmail;

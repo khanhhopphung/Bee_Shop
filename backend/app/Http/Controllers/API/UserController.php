@@ -4,57 +4,69 @@ namespace App\Http\Controllers\API;
 
 
 use App\Http\Controllers\BaseController;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\Order;
 use App\Models\ShippingAddress;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class UserController extends BaseController
 {
-    function allAddressesUser(){
+    function allAddressesUser() {
         $user = Auth::user();
-        $address = $user->addresses;
-        return $this->success($address);
-
-    }
-
-    public function updateDefaultAddressesUser(Request $request)
-{
-    // Lấy thông tin người dùng đã đăng nhập
-    $user = Auth::user();
     
-    // Tìm địa chỉ cần cập nhật
-    $addressToUpdate = $user->addresses()->find($request->id);  // Sử dụng () để gọi phương thức query builder
-
-    if ($addressToUpdate) {
-        // Bắt đầu một giao dịch để đảm bảo tính toàn vẹn của dữ liệu
+        // Lấy danh sách địa chỉ, sắp xếp theo `is_default` để đảm bảo địa chỉ mặc định ở trên cùng
+        $addresses = $user->addresses()->orderByDesc('is_default')->get();
+    
+        return response()->json([
+            'success' => true,
+            'data' => $addresses,
+        ]);
+    }
+  
+    public function updateDefaultAddressesUser(Request $request, string $id) {
+        $user = Auth::user();
+    
+        // Tìm địa chỉ cần cập nhật
+        $addressToUpdate = $user->addresses()->find($id);
+    
+        if (!$addressToUpdate) {
+            return response()->json(['message' => 'Address not found'], 404);
+        }
+    
+        // Bắt đầu giao dịch
         DB::beginTransaction();
-
+    
         try {
-            // Cập nhật địa chỉ hiện tại thành mặc định (is_default = 1)
+            // Đặt địa chỉ này thành mặc định
             $addressToUpdate->is_default = 1;
             $addressToUpdate->save();
-
-            // Cập nhật tất cả các địa chỉ khác của người dùng thành không mặc định (is_default = 0)
-            $user->addresses()->where('id', '!=', $request->id)->update(['is_default' => 0]);
-
-            // Commit giao dịch nếu tất cả đều thành công
+    
+            // Đặt các địa chỉ khác thành không mặc định
+            $user->addresses()->where('id', '!=', $id)->update(['is_default' => 0]);
+    
+            // Commit giao dịch
             DB::commit();
-
-            // Trả về thông báo thành công
-            return $this->success('Update default address successfully');
+    
+            // Trả về danh sách địa chỉ mới sau khi cập nhật
+            $updatedAddresses = $user->addresses()->orderByDesc('is_default')->get();
+    
+            return response()->json([
+                'message' => 'Update default address successfully',
+                'data' => $updatedAddresses,
+            ], 200);
         } catch (\Exception $e) {
-            // Nếu có lỗi, hoàn tác giao dịch
+            // Rollback nếu có lỗi
             DB::rollBack();
-            return $this->error('Failed to update default address');
+            return response()->json([
+                'message' => 'Failed to update default address',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
-
-    return $this->error('Address not found');
-}
-
 
     // Lấy danh sách người dùng
     public function index()
@@ -101,12 +113,7 @@ class UserController extends BaseController
         return response()->json($user, 200);
     }
 
-    // // Xóa người dùng
-    // public function destroy($id)
-    // {
-    //     User::destroy($id);
-    //     return response()->json(null, 204);
-    // }
+  
     public function destroy(user $user )
     {
         $user -> update( ["is_active"=>false]);
@@ -180,7 +187,55 @@ class UserController extends BaseController
             return $this->error('Failed to add address: ' . $e->getMessage());
         }
     }
+    public function updateAddress(Request $request, string $id)
+{
+    $user = Auth::user();
     
+    // Tìm địa chỉ cụ thể của người dùng
+    $address = $user->addresses()->find($id);
+
+    if (!$address) {
+        return response()->json(['message' => 'Address not found'], 404);
+    }
+
+    // Cập nhật thông tin địa chỉ từ request
+    $address->update([
+        'recipient_name' => $request->recipient_name,
+        'phone' => $request->phone,
+        'address_line' => $request->address_line,
+        'city' => $request->city,
+        'state' => $request->state,
+    ]);
+
+    return response()->json(['message' => 'Address updated successfully', 'data' => $address], 200);
+    }
+    public function updatePhone(UpdateUserRequest $request,string $id)
+{
+  
+   try{
+ // Kiểm tra xem số điện thoại mới có bị trùng không
+ $existingUser = User::where('phone', $request->phone)->where('id', '!=', $id)->first();
+
+ if ($existingUser) {
+     return response()->json(['message' => 'Số điện thoại này đã được sử dụng'], 400);
+ }
+
+ // Tìm người dùng theo ID
+ $user = User::findOrFail($id);
+
+ // Cập nhật số điện thoại của người dùng
+ $user->update([
+     'phone' => $request->phone, // Chỉ cập nhật trường 'phone'
+ ]);
+
+ // Trả về thông tin người dùng đã cập nhật
+ return response()->json($user, 200);
+   }catch (Throwable $e) {
+    DB::rollback();
+    return $this->error($e->getMessage());
+}
+}
+
 
 }
 

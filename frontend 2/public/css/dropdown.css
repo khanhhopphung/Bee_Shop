@@ -1,7 +1,7 @@
 .position-dropdown {
   position: absolute;
   top: 100%;
-  right: 0;
+  right: 83%;
   z-index: 50; /* Đảm bảo dropdown ở trên các phần tử khác */
   display: none; /* Đảm bảo dropdown ẩn khi không nhấn */
 }

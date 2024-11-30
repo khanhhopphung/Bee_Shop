@@ -16,13 +16,12 @@ class Product extends Model
         'description',
         'category_id',
         'stock',
-        'price',
+        // 'price',
         'is_active',
         'created_at',
         'updated_at',
         'deleted_at',
-        'size_id',
-        'color_id',
+        
         
     ];
 
@@ -50,6 +49,11 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+
+    public function productvariants(){
+        return $this->hasMany(ProductVariant::class);
+    }
+
     public function size()
     {
         return $this->hasMany(Size::class);
@@ -59,6 +63,7 @@ class Product extends Model
     {
         return $this->hasMany(Color::class);
     }
+
 
 
 }

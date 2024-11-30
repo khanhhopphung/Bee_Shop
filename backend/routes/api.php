@@ -13,11 +13,7 @@ use App\Http\Controllers\API\SizeController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\OrderController;
-
-
-
-
-
+use App\Http\Controllers\API\PaymentController;
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -68,16 +64,35 @@ Route::get('get-reviews-by-product/{productId}', [ReviewController::class,'getAl
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/get-adrress-user', [UserController::class,'allAddressesUser']);
-    Route::put('/update-address-user', [UserController::class,'updateDefaultAddressesUser']);
+    Route::put('/update-default-address-user/{id}', [UserController::class,'updateDefaultAddressesUser']);
+    Route::put('/update-address/{id}', [UserController::class, 'updateAddress']);
     Route::delete('/delete-address-user/{id}', [UserController::class,'deleteAddress']);
     Route::post('/post-address-user', [UserController::class,'addAddress']);
     Route::get('/show-user', [UserController::class,'showUser']);
     Route::post('/check', [PromotionController::class,'check']);
 
-
-
 });
 
+Route::middleware('auth:api')->group(function () {
+    Route::put('/update-phone/{id}', [UserController::class, 'updatePhone']);
+});
+
+// Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
+// Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+// Gửi mã OTP để thay đổi mật khẩu
 Route::post('/send-otp', [AuthController::class, 'sendOtp'])->name('auth.sendOtp');
+
+// Xác minh mã OTP và thay đổi mật khẩu
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.verifyOtp');
+
+// Thay đổi mật khẩu sau khi xác minh mã OTP
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.resetPassword');
+
+//Thanh toán vn pay
+Route::post('/payment-vnpay', [PaymentController::class, 'vnPay']);
+Route::get('/vnpay-return', [PaymentController::class, 'paymentReturn']);
+// Route::post('/payment-vnpay-callback', [PaymentController::class, 'paymentVnpayCallback']);
+// Route::post('/payment-vnpay-cancel', [PaymentController::class, 'paymentVnpayCancel']);
+// Route::post('/payment-vnpay-return', [PaymentController::class, 'paymentVnpayReturn']);
+// Route::post('/payment-vnpay-success', [PaymentController::class, 'paymentVnpaySuccess']);
 

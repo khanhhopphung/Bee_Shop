@@ -3,13 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { message, Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
-type LoginProps = {
-  updateUserName: (name: string) => void;
-};
-
-const Login: React.FC<LoginProps> = ({ updateUserName }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const VerifyOtp: React.FC = () => {
+  const [email, setEmail] = useState(""); // Thay đổi từ username thành email
+  const [token, setToken] = useState(""); // Thêm state để lưu mã OTP
   const [loading, setLoading] = useState(false); // Trạng thái loading
   const navigate = useNavigate();
 
@@ -18,18 +14,20 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
     const accessToken = localStorage.getItem("access_token");
     const roleId = localStorage.getItem("role_id");
 
-    // if (accessToken && roleId) {
-    //   // Điều hướng dựa trên role_id
-    //   if (roleId == "2") {
-    //     navigate("/admin/statistics");
-    //   } else {
-    //     navigate("/"); // Điều hướng đến trang client
+    if (accessToken && roleId) {
+      // Điều hướng dựa trên role_id
+      if (roleId == "2") {
+        navigate("/admin/statistics");
+      } else {
+        navigate("/"); // Điều hướng đến trang client
+      }
+    }
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username || !password) {
+    if (!email || !token) {
       message.error("Vui lòng điền đầy đủ thông tin.");
       return;
     }
@@ -37,12 +35,12 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
     setLoading(true); // Bắt đầu loading
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/login`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, token }), // Gửi email và token
       });
 
       setLoading(false); // Kết thúc loading
@@ -50,27 +48,20 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       if (!response.ok) {
         const errorData = await response.json();
         message.error(
-          errorData.message || "Thông tin đăng nhập không chính xác."
+          errorData.message || "Đã xảy ra lỗi khi xác minh mã OTP."
         );
         return;
       }
 
       const data = await response.json();
-      message.success("Đăng nhập thành công!");
+      message.success("Mã OTP xác minh thành công.");
 
-      // Lưu thông tin vào localStorage
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user_name", data.user_name);
-      localStorage.setItem("role_id", data.role_id); // Lưu role_id
-
-      // console.log(localStorage.getItem("user_name"));
-      updateUserName(data.user_name);
-
-      navigate("/"); // Đến trang client
+      // Điều hướng đến trang đặt lại mật khẩu
+      navigate("/reset-pass", { state: { email } });
     } catch (error) {
       setLoading(false); // Kết thúc loading nếu có lỗi
       message.error("Có lỗi xảy ra. Vui lòng thử lại.");
-      console.error("Error during login:", error);
+      console.error("Error during OTP verification:", error);
     }
   };
 
@@ -80,7 +71,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
       indicator={
         <LoadingOutlined style={{ fontSize: 24, color: "green" }} spin />
       }
-      tip={<span style={{ color: "green" }}>Đang đăng nhập...</span>}
+      tip={<span style={{ color: "green" }}>Đang xác minh mã OTP...</span>}
     >
       <div className="app app-login p-0">
         <div className="row g-0 app-auth-wrapper">
@@ -94,55 +85,43 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                 <div className="app-auth-branding mb-4">
                   <p>BEE STORE</p>
                 </div>
-                <h2 className="auth-heading text-center mb-5">Đăng nhập</h2>
+                <h2 className="auth-heading text-center mb-5">
+                  Xác minh Email
+                </h2>
                 <div className="auth-form-container text-start">
                   <form
                     className="auth-form login-form"
                     onSubmit={handleSubmit}
                   >
-                    <div className="username mb-3">
+                    <div className="email mb-3">
                       <input
-                        type="text"
+                        type="email" // Input cho email
                         className="form-control signup-name"
-                        placeholder="Username :"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Email:"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                     </div>
-                    <div className="password mb-3">
+
+                    <div className="otp mb-3">
                       <input
-                        type="password"
-                        className="form-control signin-password"
-                        placeholder="Password"
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete="current-password"
+                        type="text" // Input cho mã OTP
+                        className="form-control signup-name"
+                        placeholder="Mã OTP"
+                        value={token}
+                        onChange={(e) => setToken(e.target.value)} // Thay đổi state cho mã OTP
                       />
                     </div>
+
                     <div className="text-center">
                       <button
                         type="submit"
                         className="btn app-btn-primary w-100 theme-btn mx-auto"
                       >
-                        Đăng nhập
+                        Xác minh mã OTP
                       </button>
                     </div>
                   </form>
-                  <div
-                    className="text-center"
-                    style={{ marginTop: "10px", fontSize: "1rem" }}
-                  >
-                    <a href="/resetpassemail">Quên mật khẩu ?</a>
-                  </div>
-                  <div
-                    className="auth-option text-center"
-                    style={{ marginBottom: "10px" }}
-                  >
-                    Bạn chưa có tài khoản?{" "}
-                    <a className="text-link" href="/register">
-                      Đăng ký ở đây
-                    </a>
-                    .
-                  </div>
                 </div>
               </div>
               <footer className="app-auth-footer">
@@ -156,4 +135,4 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
   );
 };
 
-export default Login;
+export default VerifyOtp;

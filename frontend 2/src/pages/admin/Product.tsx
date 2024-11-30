@@ -20,7 +20,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType } from "antd/es/table";
 
 interface Product {
   id: number;
@@ -29,7 +29,7 @@ interface Product {
   description: string;
   category_id: number;
   stock: number;
-  price: number;
+  // price: number;
   is_active: boolean;
   image: { image_url: string };
   size_id: number;
@@ -95,20 +95,20 @@ const Products: React.FC = () => {
   const fetchProducts = async () => {
     try {
       const accessToken = localStorage.getItem("access_token");
-  
+
       // Kiểm tra nếu token không tồn tại
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return; // Dừng việc tải dữ liệu nếu chưa có token
       }
-  
+
       // Thêm token vào headers nếu có
       const response = await axios.get("http://127.0.0.1:8000/api/products", {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-  
+
       setProducts(response.data.data || []);
       setFilteredProducts(response.data.data || []);
     } catch (error) {
@@ -117,7 +117,6 @@ const Products: React.FC = () => {
       setFilteredProducts([]);
     }
   };
-  
 
   useEffect(() => {
     fetchCategories();
@@ -132,7 +131,8 @@ const Products: React.FC = () => {
 
     const filtered = products.filter(
       (product) =>
-        product.name.toLowerCase().includes(value.toLowerCase()) || product.sku.toLowerCase().includes(value.toLowerCase()) ||
+        product.name.toLowerCase().includes(value.toLowerCase()) ||
+        product.sku.toLowerCase().includes(value.toLowerCase()) ||
         product.description.toLowerCase().includes(value.toLowerCase())
     );
     setFilteredProducts(filtered);
@@ -150,7 +150,7 @@ const Products: React.FC = () => {
     setIsModalVisible(true);
     form.setFieldsValue({
       ...product,
-      image_url: undefined, 
+      image_url: undefined,
       is_active: product.is_active,
     });
     setImageFile(null); // Reset image file, no preview shown
@@ -203,99 +203,92 @@ const Products: React.FC = () => {
 
   const columns: ColumnsType<Product> = [
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
-      dataIndex: 'id',
-      key: 'id',
+      title: <span style={{ fontSize: "18px", fontWeight: "bold" }}>STT</span>,
+      dataIndex: "id",
+      key: "id",
       render: (text: any, record: Product, index: number) => (
-        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
       ),
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên sản phẩm</span>,
-      dataIndex: 'name',
-      key: 'name',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Tên sản phẩm
+        </span>
+      ),
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hình ảnh</span>,
-      dataIndex: 'image_url',
-      key: 'image',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Hình ảnh</span>
+      ),
+      dataIndex: "image_url",
+      key: "image",
       render: (image: string, record: Product) => (
         <img
-          src={record.image?.image_url ? `http://127.0.0.1:8000/storage/${record.image.image_url}` : 'http://127.0.0.1:8000/storage/default-image.jpg'}
+          src={
+            record.image?.image_url
+              ? `http://127.0.0.1:8000/storage/${record.image.image_url}`
+              : "http://127.0.0.1:8000/storage/default-image.jpg"
+          }
           alt="Ảnh sản phẩm"
-          style={{ width: '100px', height: 'auto' }}
+          style={{ width: "100px", height: "auto" }}
         />
       ),
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã sản phẩm</span>,
-      dataIndex: 'sku',
-      key: 'sku',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Mã sản phẩm
+        </span>
+      ),
+      dataIndex: "sku",
+      key: "sku",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mô tả</span>,
-      dataIndex: 'description',
-      key: 'description',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Mô tả</span>
+      ),
+      dataIndex: "description",
+      key: "description",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Danh mục</span>,
-      dataIndex: 'category_id',
-      key: 'category_id',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Danh mục</span>
+      ),
+      dataIndex: "category_id",
+      key: "category_id",
       render: (categoryId: number) => {
         const category = categories.find((cat) => cat.id === categoryId);
-        return category ? category.name : 'N/A';
+        return category ? category.name : "N/A";
       },
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Số lượng</span>,
-      dataIndex: 'stock',
-      key: 'stock',
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Giá</span>,
-      dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => (
-        <strong style={{ fontSize: '16px' }}>{price.toLocaleString()}₫</strong>
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Trạng thái hoạt động
+        </span>
       ),
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Kích thước</span>,
-      dataIndex: 'size_id',
-      key: 'size_id',
-      render: (sizeId: number) => {
-        const size = sizes.find((s) => s.id === sizeId);
-        return size ? size.size_name : 'N/A';
-      },
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Màu sắc</span>,
-      dataIndex: 'color_id',
-      key: 'color_id',
-      render: (colorId: number) => {
-        const color = colors.find((c) => c.id === colorId);
-        return color ? color.color_name : 'N/A';
-      },
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái hoạt động</span>,
-      dataIndex: 'is_active',
-      key: 'is_active',
+      dataIndex: "is_active",
+      key: "is_active",
       render: (active: boolean) => (
         <span
           style={{
-            fontSize: '16px',
-            color: active ? '#3f8600' : '#cf1322',
-            fontWeight: 'bold',
+            fontSize: "16px",
+            color: active ? "#3f8600" : "#cf1322",
+            fontWeight: "bold",
           }}
         >
-          {active ? 'Hoạt động' : 'Ngừng hoạt động'}
+          {active ? "Hoạt động" : "Ngừng hoạt động"}
         </span>
       ),
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Thao tác</span>,
-      key: 'actions',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Thao tác</span>
+      ),
+      key: "actions",
       render: (record: Product) => (
         <Space>
           <Button
@@ -313,37 +306,37 @@ const Products: React.FC = () => {
           />
         </Space>
       ),
-      align: 'center',
+      align: "center",
     },
   ];
 
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div
         style={{
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px 24px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px",
           }}
         >
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
+            style={{ fontSize: "16px", height: "40px" }}
           >
             Thêm sản phẩm
           </Button>
-          
+
           <Input.Search
             value={searchText}
             onChange={handleSearchChange}
@@ -351,14 +344,12 @@ const Products: React.FC = () => {
             allowClear
             placeholder="Tìm kiếm theo tên, SKU, hoặc mô tả"
             enterButton={<SearchOutlined />}
-
             style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
+              maxWidth: "600px",
+              borderRadius: "8px",
+              height: "48px",
             }}
           />
-
         </div>
         <hr />
         <Table
@@ -366,18 +357,22 @@ const Products: React.FC = () => {
           dataSource={filteredProducts}
           rowKey="id"
           bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
+          pagination={{ position: ["bottomCenter"], showSizeChanger: true }}
+          scroll={{ x: "800" }}
           style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
+            fontSize: "16px",
+            borderRadius: "8px",
+            width: "100%",
           }}
         />
       </div>
       <Modal
         open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</span>}
+        title={
+          <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+            {currentProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
+          </span>
+        }
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         centered
@@ -417,42 +412,6 @@ const Products: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item label="Kích thước" name="size_id">
-            <Select>
-              {sizes.map((size) => (
-                <Select.Option key={size.id} value={size.id}>
-                  {size.size_name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="Màu sắc" name="color_id">
-            <Select>
-              {colors.map((color) => (
-                <Select.Option key={color.id} value={color.id}>
-                  {color.color_name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Số lượng"
-            name="stock"
-            rules={[{ required: true, message: "Vui lòng nhập số lượng!" }]}
-          >
-            <Input type="number" />
-          </Form.Item>
-
-          <Form.Item
-            label="Giá"
-            name="price"
-            rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
-          >
-            <Input type="number" />
-          </Form.Item>
-
           <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
             <Switch />
           </Form.Item>
@@ -467,23 +426,23 @@ const Products: React.FC = () => {
               fileList={
                 imageFile
                   ? [
-                    {
-                      uid: '-1', // Mã định danh duy nhất
-                      name: imageFile.name,
-                      status: 'done',
-                      url: URL.createObjectURL(imageFile), // Hiển thị ảnh đã chọn
-                    },
-                  ]
-                  : currentProduct?.image // Hiển thị ảnh đã lưu khi chỉnh sửa
-                    ? [
                       {
-                        uid: '-2',
-                        name: 'Current Image',
-                        status: 'done',
+                        uid: "-1", // Mã định danh duy nhất
+                        name: imageFile.name,
+                        status: "done",
+                        url: URL.createObjectURL(imageFile), // Hiển thị ảnh đã chọn
+                      },
+                    ]
+                  : currentProduct?.image // Hiển thị ảnh đã lưu khi chỉnh sửa
+                  ? [
+                      {
+                        uid: "-2",
+                        name: "Current Image",
+                        status: "done",
                         url: `http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`,
                       },
                     ]
-                    : []
+                  : []
               }
               showUploadList={{
                 showRemoveIcon: false,
@@ -499,9 +458,7 @@ const Products: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-
       </Modal>
-
     </div>
   );
 };

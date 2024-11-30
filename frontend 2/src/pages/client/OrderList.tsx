@@ -1,6 +1,6 @@
 import { EditOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Rate, Input, Upload, message } from "antd";
+import { Modal, Button, Rate, Input, Upload, message, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 interface Order {
   order_date: string;
@@ -25,8 +25,19 @@ interface Order {
 const OrderList = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showCancelForm, setShowCancelForm] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<string>("");
   const token = localStorage.getItem("access_token");
-
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const cancelReasons = [
+    "Tôi muốn cập nhật địa chỉ/số điện thoại nhận hàng.",
+    "Tôi muốn thêm/thay đổi mã giảm giá.",
+    "Tôi muốn thay đổi sản phẩm (kích thước, màu sắc, số lượng…).",
+    "Thủ tục thanh toán rắc rối.",
+    "Tôi tìm thấy chỗ mua khác tốt hơn (Rẻ hơn, uy tín hơn, giao nhanh hơn…).",
+    "Tôi không có nhu cầu mua nữa.",
+    "Tôi không tìm thấy lý do hủy phù hợp.",
+  ];
   const [review, setReview] = useState({
     rating: 0,
     comment: "",
@@ -86,6 +97,37 @@ const OrderList = () => {
       });
     }
   };
+
+  const handleCancelSubmit = () => {
+    if (!selectedReason) {
+      message.warning("Vui lòng chọn lý do hủy đơn hàng!");
+      return;
+    }
+    // Xử lý logic hủy đơn hàng tại đây
+    console.log("Lý do hủy:", selectedReason);
+    setShowCancelForm(false);
+    message.success("Hủy đơn hàng thành công!");
+  };
+
+  const filteredOrders = Array.isArray(orders)
+    ? orders.filter((order) => {
+        const searchLower = searchTerm.toLowerCase();
+
+        // Kiểm tra tên sản phẩm trong mảng order_details
+        const productMatches = Array.isArray(order.order_details)
+          ? order.order_details.some((detail) =>
+              detail.name?.toLowerCase().includes(searchLower)
+            )
+          : false;
+
+        // Kiểm tra mã đơn hàng
+        const codeMatches = order.order_code
+          ?.toLowerCase()
+          .includes(searchLower);
+
+        return productMatches || codeMatches;
+      })
+    : [];
 
   return (
     <div className="account-page">
@@ -161,13 +203,15 @@ const OrderList = () => {
             </div>
             <div
               className="bor17 of-hidden pos-relative"
-              style={{ marginBottom: "20px" }}
+              style={{ background: "red" }}
             >
               <input
                 className="stext-103 cl2 plh4 size-116 p-l-28 p-r-55"
                 type="text"
                 name="search"
-                placeholder="Search"
+                placeholder="Tìm kiếm tên hoặc mã đơn hàng"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <button className="flex-c-m size-122 ab-t-r fs-18 cl4 hov-cl1 trans-04">
                 <i className="zmdi zmdi-search"></i>
@@ -181,7 +225,7 @@ const OrderList = () => {
               }}
             >
               {Array.isArray(orders) &&
-                orders.map((order, index) => (
+                filteredOrders.map((order, index) => (
                   <div
                     key={index}
                     // style={{
@@ -190,6 +234,7 @@ const OrderList = () => {
                     //   width: "100%",
                     // }}
                   >
+                    <>{console.log(order)}</>
                     {Array.isArray(order.order_details) &&
                       order.order_details.map((detail, detailIndex) => (
                         <div key={detailIndex} className="order-item">
@@ -243,8 +288,11 @@ const OrderList = () => {
                             >
                               Đánh giá
                             </button>
-                            <button className="order-btn order-btn-detail">
-                              Xem Chi Tiết Hủy Đơn
+                            <button
+                              className="order-btn order-btn-detail"
+                              onClick={() => setShowCancelForm(true)}
+                            >
+                              Hủy đơn hàng
                             </button>
                           </div>
                         </div>
@@ -302,6 +350,39 @@ const OrderList = () => {
               </div>
             </Upload>
           </div>
+        </Modal>
+        {/* Modal hủy đơn hàng */}
+        <Modal
+          title="Lý Do Hủy"
+          visible={showCancelForm}
+          onCancel={() => setShowCancelForm(false)}
+          footer={[
+            // <Button key="cancel" onClick={() => setShowCancelForm(false)}>
+            //   KHÔNG PHẢI BÂY GIỜ
+            // </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              onClick={handleCancelSubmit}
+              disabled={!selectedReason} // Vô hiệu hóa nếu chưa chọn lý do
+            >
+              Hủy Đơn Hàng
+            </Button>,
+          ]}
+        >
+          <div style={{ marginBottom: "15px", color: "#FF8800" }}>
+            <em>Chọn lý do hủy phù hợp nhất với bạn nhé!</em>
+          </div>
+          <Radio.Group
+            onChange={(e) => setSelectedReason(e.target.value)}
+            value={selectedReason}
+          >
+            {cancelReasons.map((reason, index) => (
+              <Radio key={index} value={reason}>
+                {reason}
+              </Radio>
+            ))}
+          </Radio.Group>
         </Modal>
       </div>
     </div>

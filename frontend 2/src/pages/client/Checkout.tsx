@@ -20,7 +20,7 @@ interface Cart {
     description: string;
     category_id: number;
     stock: number;
-    price: number;
+    // price: number;
     is_active: number;
     image: {
       id: number;
@@ -69,6 +69,7 @@ interface Order {
 
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
+
   const [isFirstPage, setIsFirstPage] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const cartDetailIdsRedux = useSelector(
@@ -252,6 +253,22 @@ const PaymentPage: React.FC = () => {
     if (!paymentMethod) {
       message.error("Vui lòng chọn phương thức thanh toán");
       return;
+    }
+    if (paymentMethod === "vnpay") {
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/payment-vnpay",
+          {
+            amount: totalAmount,
+            bank_code: "NCB",
+          }
+        );
+        window.location.href = response.data.data;
+        console.log(response.data.data);
+      } catch (error) {
+        console.error("Error creating payment:", error);
+        return;
+      }
     }
     const orderData: Order = {
       total_amount: totalAmount,
@@ -487,20 +504,22 @@ const PaymentPage: React.FC = () => {
 
                     {/* Modal hiển thị danh sách mã giảm giá */}
                     <Modal
-                      title="Danh sách mã giảm giá"
-                      visible={isDiscountModalVisible}
-                      onCancel={handleCancelDiscount}
-                      footer={null}
+                      title="Mã giảm giá"
+                      visible={isModalVisible}
+                      onCancel={handleCancel}
+                      footer={null} // Không hiển thị các nút "OK" và "Cancel"
                     >
-                      <List
-                        bordered
-                        dataSource={discountCodes}
-                        renderItem={(item) => (
-                          <List.Item>
-                            <strong>{item.code}</strong>: {item.description}
-                          </List.Item>
+                      <ul>
+                        {discountCodes.length > 0 ? (
+                          discountCodes.map((discount, index) => (
+                            <li key={index}>
+                              {discount.code} - {discount.description}
+                            </li>
+                          ))
+                        ) : (
+                          <p>Không có mã giảm giá nào.</p>
                         )}
-                      />
+                      </ul>
                     </Modal>
                   </div>
                 </div>

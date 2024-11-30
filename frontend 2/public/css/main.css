@@ -265,6 +265,7 @@
   display: flex;
   align-items: center;
   background-color: transparent;
+  border: 1px solid #e6e6e6;
 }
 
 /*------------------------------------------------------------------
@@ -585,9 +586,9 @@
 }
 
 /*---------------------------------------------*/
-.main-menu > li.active-menu > a {
+/* .main-menu > li.active-menu > a {
   color: #6c7ae0;
-}
+} */
 
 /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 [ Header Mobile ]*/
@@ -1180,7 +1181,7 @@
 }
 
 .item-slick1 {
-  height: calc(100vh - 40px);
+  height: calc(100vh - 100px);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
@@ -1911,11 +1912,13 @@ button.mfp-close {
 /*//////////////////////////////////////////////////////////////////
 [ Num Product ]*/
 .wrap-num-product {
+  display: flex;
   width: 140px;
   height: 45px;
   border: 1px solid #e6e6e6;
   border-radius: 3px;
   overflow: hidden;
+  margin-left: 32px;
 }
 
 .btn-num-product-up,
@@ -2906,6 +2909,12 @@ input.num-product::-webkit-inner-spin-button {
 .bor5 {
   border-left: 1px solid #e5e5e5;
   border-right: 1px solid #e5e5e5;
+}
+.bor-acc {
+  border-left: 1px solid #e5e5e5;
+  border-right: 1px solid #e5e5e5;
+  /* background-color: red; */
+  width: 110px;
 }
 
 .bor6 {
@@ -4052,4 +4061,169 @@ strong {
 
 .order-btn-detail:hover {
   background-color: #ccc;
+}
+.blog-detail-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  /* border-radius: 8px; */
+  background-color: #fff;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+  font-family: "Arial", sans-serif;
+}
+
+.blog-detail-container h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.blog-detail-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 20px 0;
+  border-radius: 8px;
+}
+
+.blog-detail-container p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.blog-detail-container p:last-of-type {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #888;
+}
+body {
+  background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+}
+
+.payment-form {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 50px auto;
+}
+
+.payment-form h2 {
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ant-input,
+.ant-input-number {
+  height: 40px;
+  border-radius: 6px;
+}
+
+.ant-btn {
+  height: 40px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+/* Container for all options */
+.product-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Style for color selector */
+.color-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-selector span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Style for size selector */
+.size-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.size-selector span {
+  font-size: 16px;
+  font-weight: bold;
+}
+.stock-selector {
+  font-size: 16px;
+  font-weight: bold;
+  display: flex; /* Kích hoạt flexbox */
+  justify-self: center; /* Căn giữa ngang */
+  align-items: center; /* Căn giữa dọc */
+  white-space: nowrap; /* Ngăn chữ xuống dòng */
+}
+
+/* Đặt kích thước cố định cho các nút */
+.color-button,
+.size-button {
+  padding: 10px;
+  width: 80px; /* Đặt chiều rộng cố định */
+  height: 40px; /* Đặt chiều cao cố định */
+  text-align: center;
+  border: 2px solid #ddd;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hiệu ứng hover */
+.color-button:hover,
+.size-button:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+}
+
+/* Trạng thái khi nút được chọn */
+.color-button.selected,
+.size-button.selected {
+  background-color: #717fe0;
+  color: white;
+  border-color: #717fe0;
+}
+
+/* Trạng thái không khả dụng */
+.color-button:disabled,
+.size-button:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+/* Căn chỉnh các nút theo hàng ngang */
+.color-selector,
+.size-selector {
+  display: flex;
+  gap: 10px; /* Khoảng cách giữa các nút */
+  flex-wrap: wrap; /* Để các nút xuống dòng nếu không đủ không gian */
+  margin-top: 10px;
+}
+
+.color-selector span,
+.size-selector span {
+  margin-right: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
 }
