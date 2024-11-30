@@ -234,6 +234,7 @@ const OrderList = () => {
                     //   width: "100%",
                     // }}
                   >
+                    <>{console.log(order)}</>
                     {Array.isArray(order.order_details) &&
                       order.order_details.map((detail, detailIndex) => (
                         <div key={detailIndex} className="order-item">

@@ -66,8 +66,7 @@ const AddAddress: React.FC<AddAddressProps> = ({ onAddSuccess }) => {
           fontWeight: "600",
           backgroundColor: "#666",
           color: "white",
-          transition: "background-color 0.3s ease",
-          marginTop: "15px",
+          // transition: "background-color 0.3s ease",
         }}
         onMouseEnter={(e) => {
           const target = e.target as HTMLButtonElement;
@@ -75,7 +74,7 @@ const AddAddress: React.FC<AddAddressProps> = ({ onAddSuccess }) => {
         }}
         onMouseLeave={(e) => {
           const target = e.target as HTMLButtonElement;
-          target.style.backgroundColor = "#666";
+          // target.style.backgroundColor = "#666";
         }}
         onClick={() => setIsModalOpen(true)}
       >

@@ -142,7 +142,7 @@ public function addToCart(Request $request)
                 $cart->cartDetails()->create([
                     'product_id' => $request->product_id,
                     'quantity' => $request->quantity,
-                    'product_price' => $product->price,
+                    'product_price' => $variant->price,
                     'variant_id' => $variant->id,
                     'discount_value' => $request->discount_value ?? 0,
                 ]);

@@ -15,7 +15,7 @@ interface List {
     description: string | null;
     category_id: number;
     stock: number;
-    price: number;
+    // price: number;
     image: { image_url: string };
   };
 }
@@ -90,7 +90,7 @@ const WishList: React.FC = () => {
                     {item.product.name}
                   </a>
                   <span className="stext-105 cl3">
-                    {item.product.price.toLocaleString()}₫
+                    {/* {item.product.price.toLocaleString()}₫ */}
                   </span>
                 </div>
                 {/* <div className="block2-txt-child2 flex-r p-t-3">

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Spin, message } from "antd";
 import { useNavigate } from "react-router-dom";
-type RegisterResponse = {
+interface RegisterResponse {
   status: string;
+  message: string;
   errors?: {
-    [key: string]: string[]; // Mỗi lỗi có một mảng thông báo lỗi
+    [field: string]: string[]; // Mỗi trường sẽ có một mảng các thông báo lỗi
   };
-};
+}
 
 const Register: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -28,6 +29,7 @@ const Register: React.FC = () => {
 
     setLoading(true); // Bắt đầu loading
     setError(null); // Xóa lỗi nếu có
+
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/register`, {
         method: "POST",
@@ -36,29 +38,28 @@ const Register: React.FC = () => {
         },
         body: JSON.stringify({ username, email, password_hash, phone }),
       });
-      const data: RegisterResponse = await response.json();
-      if (data.status === "error") {
-        if (data.errors) {
-          // Duyệt qua các lỗi và hiển thị chúng
-          const errorMessages = Object.entries(data.errors)
-            .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
-            .join("\n");
-          message.error(`Lỗi đăng ký:\n${errorMessages}`);
-        }
-      }
+
+      const data: RegisterResponse = await response.json(); // Đọc dữ liệu chỉ một lần
+
       if (response.ok) {
-        const data = await response.json();
         message.success(
           "Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác nhận."
         ); // Hiển thị thông báo thành công
         navigate("/verify");
       } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Đăng ký thất bại, vui lòng thử lại.");
+        // Hiển thị thông báo lỗi nếu có
+        if (data.status === "error" && data.errors) {
+          const errorMessages = Object.entries(data.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+            .join("\n");
+          message.error(`Lỗi đăng ký:\n${errorMessages}`);
+        } else {
+          setError(data.message || "Đăng ký thất bại, vui lòng thử lại.");
+        }
       }
     } catch (error) {
       console.error("Lỗi khi gửi yêu cầu:", error);
-      // setError("Đã xảy ra lỗi khi kết nối với server.");
+      setError("Đã xảy ra lỗi khi kết nối với server.");
     } finally {
       setLoading(false); // Kết thúc loading
     }
@@ -103,7 +104,7 @@ const Register: React.FC = () => {
                       name="signup-name"
                       type="text"
                       className="form-control signup-name"
-                      placeholder="Họ và tên :"
+                      placeholder="Username :"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required

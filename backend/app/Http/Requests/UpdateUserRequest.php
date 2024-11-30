@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Response;
 class UpdateUserRequest extends FormRequest
 {
     /**
@@ -11,7 +13,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +23,23 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->route('id'); // Lấy ID người dùng từ route
         return [
-            //
+            'phone' => [
+                // 'required',       
+                'string',         // Kiểu chuỗi
+                'min:10',         // Tối thiểu 10 ký tự
+                'max:20',         // Tối đa 20 ký tự
+                "unique:users,phone,{$userId}", // Không trùng lặp ngoại trừ ID hiện tại
+            ],
         ];
+    }
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

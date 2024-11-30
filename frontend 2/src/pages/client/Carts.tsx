@@ -32,7 +32,7 @@ interface Cart {
     description: string;
     category_id: number;
     stock: number;
-    price: number;
+    // price: number;
     is_active: number;
     image: {
       id: number;

@@ -5,6 +5,14 @@ import { Link } from "react-router-dom";
 import Heart from "../../components/Heart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Carousel } from "antd";
+import {
+  FiTruck,
+  FiLock,
+  FiCheckSquare,
+  FiGift,
+  FiPercent,
+} from "react-icons/fi";
+
 // import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 type Blog = {
   id: number;
@@ -13,6 +21,34 @@ type Blog = {
   created_at: string;
   image: { image_url: string };
 };
+const features = [
+  {
+    icon: <FiTruck />,
+    title: "Free delivery",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiLock />,
+    title: "100% secure payment",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiCheckSquare />,
+    title: "Quality guarantee",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiPercent />,
+    title: "Guaranteed savings",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+  {
+    icon: <FiGift />,
+    title: "Daily offers",
+    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+  },
+];
+
 const Home: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [bestproducts, setBestProducts] = useState<any[]>([]);
@@ -144,8 +180,34 @@ const Home: React.FC = () => {
       <div className="main-content">
         {/* Slider */}
         <section className="section-slide">
-          <div className="wrap-slick1 rs1-slick1">
+          {/* <div className="wrap-slick1 rs1-slick1">
             <div className="slick1">
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-04.jpg)" }}
+                > 
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> */}
+
+          <Carousel arrows infinite={false} autoplay autoplaySpeed={800}>
+            <div>
               <div
                 className="item-slick1"
                 style={{ backgroundImage: "url(images/slide-04.jpg)" }}
@@ -167,15 +229,82 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-              {/* Thêm các mục slider khác nếu cần */}
             </div>
-          </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-03.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      hello Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-02.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div
+                className="item-slick1"
+                style={{ backgroundImage: "url(images/slide-01.jpg)" }}
+              >
+                <div className="container h-full">
+                  <div className="flex-col-l-m h-full p-t-100 p-b-30">
+                    <span className="ltext-202 cl2 respon2">
+                      Men Collection 2018
+                    </span>
+                    <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
+                      New arrivals
+                    </h2>
+                    <a
+                      href="/products"
+                      className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04"
+                    >
+                      Mua Ngay
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Carousel>
         </section>
 
         {/* Banner */}
         <div className="sec-banner bg0">
           <div className="flex-w flex-c-m">
-            {/* Phần tử 1 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-04.jpg" alt="IMG-BANNER" />
@@ -200,7 +329,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Phần tử 2 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-05.jpg" alt="IMG-BANNER" />
@@ -225,7 +353,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Phần tử 3 */}
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
                 <img src="images/banner-06.jpg" alt="IMG-BANNER" />
@@ -250,6 +377,44 @@ const Home: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "16px",
+            // maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "20px",
+          }}
+        >
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              style={{
+                border: "1px solid #ddd",
+                padding: "16px",
+                borderRadius: "8px",
+                textAlign: "left",
+              }}
+            >
+              <div style={{ fontSize: "24px", marginBottom: "12px" }}>
+                {feature.icon}
+              </div>
+              <h3
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  marginBottom: "8px",
+                }}
+              >
+                {feature.title}
+              </h3>
+              <p style={{ fontSize: "14px", color: "#666" }}>
+                {feature.description}
+              </p>
+            </div>
+          ))}
         </div>
 
         <section className="sec-product bg0 p-t-100 p-b-50">
@@ -343,7 +508,7 @@ const Home: React.FC = () => {
                                       </Link>
                                       <span className="stext-105 cl3">
                                         {Number(
-                                          bestproduct.price
+                                          bestproduct.price_min
                                         ).toLocaleString("vi-VN")}
                                         ₫
                                       </span>
@@ -452,7 +617,7 @@ const Home: React.FC = () => {
                                         </Link>
                                         <span className="stext-105 cl3">
                                           {Number(
-                                            badproduct.price
+                                            badproduct.price_min
                                           ).toLocaleString("vi-VN")}
                                           ₫
                                         </span>

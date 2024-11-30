@@ -26,18 +26,19 @@ class StoreUserRequest extends FormRequest
         return [
             'username' => 'required|string|max:255|unique:users,username',
             'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|min:10|max:20',
         ];
     }
 
     public function messages()
     {
         return [
-            'username.required' => 'Username is required.',
+            'username.required' => 'Phải nhập tên đăng nhập',
             'username.unique' => 'Tên đăng nhập đã tồn tại',
-            'email.required' => 'Email is required.',
+            'email.required' => 'Phải nhập Email',
             'email.unique' => 'Email đã tồn tại',
-            'phone.required' => 'Phone number is required.',
+            'phone.required' => 'Phải nhập số điện thoại',
+            'phone.unique' => 'Số điện thoại đã tồn tại',
             
         ];
     }

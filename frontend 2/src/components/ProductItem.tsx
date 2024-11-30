@@ -9,12 +9,14 @@ import Heart from "./Heart";
 type Props = {
   id: number;
   name: string;
-  price: string;
-  image: { image_url: string };
+  price_max: number;
+  price_min: number;
+  image_url: string;
+  category_id: number;
 };
 
 const ProductItem = (props: Props) => {
-  const { id, name, price, image } = props;
+  const { id, name, price_max, price_min, image_url } = props;
   const dispatch = useDispatch<AppDispatch>();
 
   const favoriteItems = useSelector(
@@ -38,7 +40,7 @@ const ProductItem = (props: Props) => {
         <Link to={`/products/${id}`}>
           <div className="block2-pic hov-img0">
             <img
-              src={`http://127.0.0.1:8000/storage/${image.image_url}`}
+              src={`http://127.0.0.1:8000/storage/${image_url}`}
               alt={`Product: ${name}`}
             />
             <a
@@ -55,7 +57,11 @@ const ProductItem = (props: Props) => {
               {name}
             </a>
 
-            <span className="stext-105 cl3">{price.toLocaleString()}₫</span>
+            <span className="stext-105 cl3">
+              {price_min && !isNaN(price_min)
+                ? Number(price_min).toLocaleString() + "₫"
+                : "N/A"}
+            </span>
           </div>
 
           <div className="block2-txt-child2 flex-r p-t-3">

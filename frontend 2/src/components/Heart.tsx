@@ -21,7 +21,7 @@ const Heart: React.FC<Props> = ({ product_id }) => {
   const ids = useSelector((state: RootState) => state.favorites.items);
   const token = localStorage.getItem("access_token");
   const isFavorite = ids.includes(product_id);
-  console.log(ids.length);
+  // console.log(ids.length);
 
   const toggleHeart = async (id: number) => {
     let updatedFavorites = [...ids];

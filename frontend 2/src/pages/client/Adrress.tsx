@@ -11,14 +11,14 @@ import {
   Form,
   Input,
   message,
+  Modal,
   Popconfirm,
   Space,
 } from "antd";
 import React, { useEffect, useState } from "react";
 import AddAddress from "../../components/AddAddress";
-import { Address } from "cluster";
 
-interface Adrress {
+interface Adrresses {
   id: string | number;
   recipient_name: string;
   phone: string;
@@ -28,13 +28,15 @@ interface Adrress {
 }
 
 const Adrress: React.FC = () => {
-  const onChange: CheckboxProps["onChange"] = (e) => {
-    console.log(`checked = ${e.target.checked}`);
-  };
   const [loading, setLoading] = useState<boolean>(true);
-  const [addresses, setAddresses] = useState<Adrress[]>([]);
+  const [addresses, setAddresses] = useState<Adrresses[]>([]);
   const token = localStorage.getItem("access_token");
-  console.log(token);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Adrresses | null>(
+    null
+  );
+  const [form] = Form.useForm();
+
   const handleDeleteAddress = async (id: number) => {
     try {
       setLoading(true);
@@ -46,12 +48,9 @@ const Adrress: React.FC = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`, // Thêm token nếu cần
           },
-          // body: JSON.stringify(address),
         }
       );
-
       const data = await response.json();
-
       if (response.ok) {
         message.success("Xóa địa chỉ thành công!");
         setAddresses(addresses.filter((addr) => addr.id !== id));
@@ -65,23 +64,20 @@ const Adrress: React.FC = () => {
       setLoading(false);
     }
   };
+
   const fetchAddresses = async () => {
     setLoading(true);
     try {
-      // Lấy token từ localStorage hoặc từ Redux store
-
       const response = await fetch(
-        `http://127.0.0.1:8000/api/get-adrress-user`, // Đảm bảo URL API đúng
+        `http://127.0.0.1:8000/api/get-adrress-user`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Thêm token vào header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
-      console.log(response);
-
       if (response.ok) {
         const data = await response.json();
         setAddresses(data.data);
@@ -98,8 +94,50 @@ const Adrress: React.FC = () => {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
   const submit = async () => {
     fetchAddresses();
+  };
+
+  // Show Modal and populate with selected address data
+  const showModal = (address: Adrresses) => {
+    setSelectedAddress(address); // Set the selected address
+    form.setFieldsValue(address); // Populate form fields with address data
+    setIsModalOpen(true);
+  };
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields(); // Validate form fields
+      if (selectedAddress) {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/update-address/${selectedAddress.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(values), // Send updated data
+          }
+        );
+        const data = await response.json();
+        if (response.ok) {
+          message.success("Cập nhật địa chỉ thành công!");
+          setIsModalOpen(false); // Close modal
+          fetchAddresses(); // Refresh address list
+        } else {
+          message.error(data.message || "Cập nhật địa chỉ thất bại!");
+        }
+      }
+    } catch (error) {
+      message.error("Đã xảy ra lỗi khi cập nhật địa chỉ!");
+      console.error(error);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false); // Close modal if user cancels
   };
 
   return (
@@ -113,9 +151,7 @@ const Adrress: React.FC = () => {
             ></i>
             <div className="profile-details" style={{ marginLeft: "10px" }}>
               <h3>Username</h3>
-
               <p>
-                {" "}
                 <EditOutlined /> Sửa hồ sơ
               </p>
             </div>
@@ -194,7 +230,94 @@ const Adrress: React.FC = () => {
                           className="adrs-actions"
                           style={{ display: "flex" }}
                         >
-                          <Button type="link">Cập nhật</Button>
+                          <Button
+                            type="link"
+                            onClick={() => showModal(address)}
+                          >
+                            Cập nhật
+                          </Button>
+                          <Modal
+                            title="Cập nhật địa chỉ"
+                            open={isModalOpen}
+                            onOk={handleOk}
+                            onCancel={handleCancel}
+                            okText="Lưu"
+                            cancelText="Hủy"
+                          >
+                            <Form
+                              form={form}
+                              layout="vertical"
+                              initialValues={{
+                                recipient_name: "",
+                                phone: "",
+                                address_line: "",
+                                state: "",
+                                city: "",
+                              }}
+                            >
+                              <Form.Item
+                                name="recipient_name"
+                                label="Họ và Tên"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Vui lòng nhập họ và tên!",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Nhập họ và tên" />
+                              </Form.Item>
+                              <Form.Item
+                                name="phone"
+                                label="Số Điện Thoại"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Vui lòng nhập số điện thoại!",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Nhập số điện thoại" />
+                              </Form.Item>
+                              <Form.Item
+                                name="address_line"
+                                label="Địa Chỉ Chi Tiết"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Vui lòng nhập địa chỉ!",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Nhập địa chỉ" />
+                              </Form.Item>
+
+                              <Form.Item
+                                name="state"
+                                label="Quận/Huyện"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Vui lòng nhập quận/huyện!",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Nhập quận/huyện" />
+                              </Form.Item>
+                              <Form.Item
+                                name="city"
+                                label="Thành Phố"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Vui lòng nhập thành phố!",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Nhập thành phố" />
+                              </Form.Item>
+                            </Form>
+                          </Modal>
                           <Popconfirm
                             title="Xóa sản phẩm"
                             description="Bạn có chắc muốn xóa sản phẩm này không?"

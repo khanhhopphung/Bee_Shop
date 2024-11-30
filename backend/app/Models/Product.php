@@ -16,13 +16,12 @@ class Product extends Model
         'description',
         'category_id',
         'stock',
-        'price',
+        // 'price',
         'is_active',
         'created_at',
         'updated_at',
         'deleted_at',
-        'size_id',
-        'color_id',
+        
         
     ];
 

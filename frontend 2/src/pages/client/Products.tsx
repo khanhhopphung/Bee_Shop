@@ -12,10 +12,10 @@ import CategoryPage from "./CategoryPage";
 interface Product {
   id: number;
   name: string;
-  price: string;
-  image: { image_url: string };
+  price_max: number;
+  price_min: number;
+  image_url: string;
   category_id: number;
-  category: string;
 }
 interface Category {
   id: number;
@@ -69,7 +69,7 @@ const Products: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/products");
+        const response = await fetch("http://127.0.0.1:8000/api/all-products");
 
         // Kiểm tra nếu phản hồi từ server là thành công
         if (!response.ok) {

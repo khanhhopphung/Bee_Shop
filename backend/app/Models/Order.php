@@ -20,7 +20,7 @@ class Order extends Model
         'order_code',
         'name', 
         'phone', 
-        'address_line',
+        'address',
         'is_active',
     ];
     public function users()

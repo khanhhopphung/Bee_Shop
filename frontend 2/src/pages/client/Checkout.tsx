@@ -20,7 +20,7 @@ interface Cart {
     description: string;
     category_id: number;
     stock: number;
-    price: number;
+    // price: number;
     is_active: number;
     image: {
       id: number;
@@ -69,6 +69,7 @@ interface Order {
 
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
+
   const [isFirstPage, setIsFirstPage] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const cartDetailIdsRedux = useSelector(
@@ -503,20 +504,22 @@ const PaymentPage: React.FC = () => {
 
                     {/* Modal hiển thị danh sách mã giảm giá */}
                     <Modal
-                      title="Danh sách mã giảm giá"
-                      visible={isDiscountModalVisible}
-                      onCancel={handleCancelDiscount}
-                      footer={null}
+                      title="Mã giảm giá"
+                      visible={isModalVisible}
+                      onCancel={handleCancel}
+                      footer={null} // Không hiển thị các nút "OK" và "Cancel"
                     >
-                      <List
-                        bordered
-                        dataSource={discountCodes}
-                        renderItem={(item) => (
-                          <List.Item>
-                            <strong>{item.code}</strong>: {item.description}
-                          </List.Item>
+                      <ul>
+                        {discountCodes.length > 0 ? (
+                          discountCodes.map((discount, index) => (
+                            <li key={index}>
+                              {discount.code} - {discount.description}
+                            </li>
+                          ))
+                        ) : (
+                          <p>Không có mã giảm giá nào.</p>
                         )}
-                      />
+                      </ul>
                     </Modal>
                   </div>
                 </div>
