@@ -507,16 +507,16 @@ const Orders: React.FC = () => {
             rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
           >
             <Select placeholder="Chọn trạng thái">
-              <Select.Option value="pending">Đang xử lý</Select.Option>
-              <Select.Option value="completed">Hoàn thành</Select.Option>
-              <Select.Option value="canceled">Đã hủy</Select.Option>
+              <Select.Option value="Đang xử lý">Đang xử lý</Select.Option>
+              <Select.Option value="Hoàn thành">Hoàn thành</Select.Option>
+              <Select.Option value="Đã hủy">Đã hủy</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
             name="promotion_id"
             label="Khuyến mãi"
-            rules={[{ required: true, message: 'Vui lòng chọn khuyến mãi!' }]}
+          
           >
             <Select disabled>
               {promotions.map((promo) => (

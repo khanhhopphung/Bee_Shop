@@ -138,7 +138,7 @@ const UserPage: React.FC = () => {
   // Define table columns
   const columns: ColumnsType<User> = [
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ID</span>,
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       dataIndex: "id",
       key: "id",
       render: (text: any) => <span style={{ fontSize: '16px' }}>{text}</span>,
