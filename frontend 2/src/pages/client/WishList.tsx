@@ -8,15 +8,30 @@ interface List {
   id: number;
   user_id: number;
   product_id: number;
+  created_at: string;
+  updated_at: string;
   product: {
     id: number;
     name: string;
     sku: string;
-    description: string | null;
+    description: string;
     category_id: number;
     stock: number;
-    // price: number;
-    image: { image_url: string };
+    price: string | null;
+    is_active: number;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    image: {
+      id: number;
+      product_id: number;
+      variant_id: number | null;
+      alt_text: string | null;
+      image_url: string;
+      is_active: number;
+      created_at: string;
+      updated_at: string;
+    };
   };
 }
 

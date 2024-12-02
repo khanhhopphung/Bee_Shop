@@ -246,6 +246,7 @@ const PaymentPage: React.FC = () => {
   };
 
   const submitOrder = async () => {
+    // Kiểm tra địa chỉ và phương thức thanh toán
     if (!defaultAddress) {
       message.error("Vui lòng chọn địa chỉ nhận hàng");
       return;
@@ -254,23 +255,29 @@ const PaymentPage: React.FC = () => {
       message.error("Vui lòng chọn phương thức thanh toán");
       return;
     }
+
+    // Nếu phương thức thanh toán là VNPAY
     if (paymentMethod === "vnpay") {
       try {
         const response = await axios.post(
           "http://127.0.0.1:8000/api/payment-vnpay",
           {
-            amount: totalAmount,
-            bank_code: "NCB",
+            amount: totalAmount, // Số tiền đơn hàng
+            bank_code: "NCB", // Mã ngân hàng (thay đổi tùy ý)
           }
         );
+
+        // Chuyển hướng người dùng tới trang thanh toán VNPAY
         window.location.href = response.data.data;
-        console.log(response.data.data);
       } catch (error) {
         console.error("Error creating payment:", error);
+        message.error("Có lỗi xảy ra khi thanh toán.");
         return;
       }
     }
-    const orderData: Order = {
+
+    // Tạo dữ liệu đơn hàng
+    const orderData = {
       total_amount: totalAmount,
       promotion_id: idVoucher,
       address_id: defaultAddress.id,
@@ -280,7 +287,7 @@ const PaymentPage: React.FC = () => {
     };
     setOrderdata(orderData);
 
-    // call api order
+    // Gửi yêu cầu tạo đơn hàng
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
         method: "POST",
@@ -295,7 +302,9 @@ const PaymentPage: React.FC = () => {
         const data = await response.json();
         setOrderdata(data);
         message.success("Đặt hàng thành công!");
+        localStorage.setItem("order_id", data.order.id);
 
+        // Chuyển hướng người dùng tới trang thành công
         navigate(`/ordersuccess/${data.order.id}`);
       } else {
         message.error("Đặt hàng thất bại, vui lòng thử lại.");
@@ -505,8 +514,8 @@ const PaymentPage: React.FC = () => {
                     {/* Modal hiển thị danh sách mã giảm giá */}
                     <Modal
                       title="Mã giảm giá"
-                      visible={isModalVisible}
-                      onCancel={handleCancel}
+                      visible={isDiscountModalVisible}
+                      onCancel={handleCancelDiscount}
                       footer={null} // Không hiển thị các nút "OK" và "Cancel"
                     >
                       <ul>
@@ -530,41 +539,75 @@ const PaymentPage: React.FC = () => {
           <div className="col-lg-10 col-xl-7 m-lr-auto m-b-50">
             <div className="bor10 p-lr-40 p-t-30 p-b-40 m-l-63 m-r-40 m-lr-0-xl p-lr-15-sm">
               <div className="flex-w flex-t bor12 p-t-15 p-b-30">
-                <div className="label size-208 w-full-ssm mt-3">
+                <div
+                  className="label size-208 w-full-ssm mt-3"
+                  style={{
+                    width: "80px",
+                    // backgroundColor: "red",
+                  }}
+                >
                   <span
                     className="text-lg text-gray-700 "
                     style={{ fontSize: "15px", fontWeight: "bold" }}
                   >
-                    <i className="fa-solid fa-location-dot"></i> Địa chỉ:
+                    <div style={{ justifyContent: "center" }}>
+                      <i className="fa-solid fa-location-dot"></i> Địa chỉ:
+                    </div>
                   </span>
                 </div>
 
                 <div className="address-card">
-                  <div className="address-content">
-                    <span
-                      className="address-name"
-                      style={{ fontSize: "14px", fontWeight: "bold" }}
+                  <div
+                    className="address-content"
+                    style={{ marginLeft: "34%" }}
+                  >
+                    {/* Tên và số điện thoại hiển thị cùng một dòng */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "10px",
+                      }}
                     >
-                      {defaultAddress?.recipient_name}
-                    </span>{" "}
-                    |
-                    <span
-                      className="address-phone"
-                      style={{ fontSize: "14px", fontWeight: "bold" }}
+                      <span
+                        className="address-name"
+                        style={{ fontSize: "14px", fontWeight: "bold" }}
+                      >
+                        {defaultAddress?.recipient_name}
+                      </span>{" "}
+                      <span style={{ marginLeft: "10px", marginRight: "10px" }}>
+                        |
+                      </span>
+                      <span
+                        className="address-phone"
+                        style={{ fontSize: "14px", fontWeight: "bold" }}
+                      >
+                        {defaultAddress?.phone}
+                      </span>
+                    </div>
+
+                    <hr />
+
+                    {/* Địa chỉ hiển thị riêng một dòng */}
+                    <div style={{ marginBottom: "10px" }}>
+                      <span
+                        className="address-details"
+                        style={{ fontSize: "13px", color: "#666" }}
+                      >
+                        {defaultAddress?.address_line} - {defaultAddress?.state}{" "}
+                        - {defaultAddress?.city}
+                      </span>
+                    </div>
+
+                    {/* Nút thay đổi */}
+                    <Button
+                      style={{
+                        marginLeft: "auto",
+                        width: "90px",
+                        display: "block",
+                      }}
                     >
-                      {" "}
-                      {defaultAddress?.phone}
-                    </span>
-                    <br />
-                    <span
-                      className="address-details"
-                      style={{ marginLeft: "10px" }}
-                    >
-                      {defaultAddress?.address_line}-{defaultAddress?.state}-
-                      {defaultAddress?.city}
-                    </span>
-                    <Button style={{ marginLeft: "220px" }}>
-                      <a href="#" className="change-link" onClick={showModal}>
+                      <a className="change-link" onClick={showModal}>
                         Thay Đổi
                       </a>
                     </Button>

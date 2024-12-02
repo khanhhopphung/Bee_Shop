@@ -42,4 +42,14 @@ class Order extends Model
         return $this->belongsTo(Promotion::class,'promotion_id');
     }
 
+//     pending: Màu vàng hoặc cam (đang chờ xử lý).
+// completed: Màu xanh lá (hoàn tất).
+// cancelled: Màu đỏ (hủy).
+// processing: Màu xanh dương (đang xử lý).
+// shipped: Màu xám hoặc xanh biển đậm (đang vận chuyển).
+// delivered: Màu xanh lá đậm (đã giao).
+// returned: Màu cam nhạt (đã trả lại).
+// refunded: Màu xanh nước biển (đã hoàn tiền).
+// on_hold: Màu xám đậm (đang bị giữ lại).
+
 }

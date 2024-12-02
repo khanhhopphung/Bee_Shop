@@ -206,7 +206,7 @@ const Home: React.FC = () => {
             </div>
           </div> */}
 
-          <Carousel arrows infinite={false} autoplay autoplaySpeed={800}>
+          <Carousel arrows infinite={true} autoplay autoplaySpeed={1300}>
             <div>
               <div
                 className="item-slick1"
@@ -214,11 +214,11 @@ const Home: React.FC = () => {
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
-                    <span className="ltext-202 cl2 respon2">
+                    {/* <span className="ltext-202 cl2 respon2">
                       Men Collection 2018
-                    </span>
+                    </span> */}
                     <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
-                      New arrivals
+                      Sản Phẩm mới
                     </h2>
                     <a
                       href="/products"
@@ -237,11 +237,11 @@ const Home: React.FC = () => {
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
-                    <span className="ltext-202 cl2 respon2">
+                    {/* <span className="ltext-202 cl2 respon2">
                       hello Collection 2018
-                    </span>
+                    </span> */}
                     <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
-                      New arrivals
+                      Tối Giản - Sang Trọng
                     </h2>
                     <a
                       href="/products"
@@ -303,7 +303,7 @@ const Home: React.FC = () => {
         </section>
 
         {/* Banner */}
-        <div className="sec-banner bg0">
+        {/* <div className="sec-banner bg0">
           <div className="flex-w flex-c-m">
             <div className="size-202 m-lr-auto respon4">
               <div className="block1 wrap-pic-w">
@@ -377,7 +377,7 @@ const Home: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div
           style={{
             display: "grid",

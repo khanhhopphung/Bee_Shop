@@ -43,9 +43,19 @@ const Header: React.FC<Props> = ({ quantity }) => {
   };
 
   const handleLogout = async () => {
+    const loadingKey = "logout"; // Unique key for loading message
+    message.loading({
+      content: "Đang đăng xuất...",
+      key: loadingKey,
+    });
+
     try {
       if (!token) {
         console.error("No access token found");
+        message.error({
+          content: "Đăng xuất thất bại: Không tìm thấy token!",
+          key: loadingKey,
+        });
         return;
       }
 
@@ -58,22 +68,28 @@ const Header: React.FC<Props> = ({ quantity }) => {
         credentials: "include",
       });
 
-      const responseText = await response.text();
-
       if (response.ok) {
         localStorage.removeItem("access_token");
         setUserName(null);
-        message.success("Đăng xuất thành công");
-        navigate("/"); // Thông báo thành công
+        message.success({
+          content: "Đăng xuất thành công!",
+          key: loadingKey,
+        });
+        navigate("/"); // Điều hướng về trang chủ
       } else {
-        console.error("Logout error:", {
-          status: response.status,
-          statusText: response.statusText,
-          response: responseText,
+        const errorMessage = await response.text();
+        console.error("Logout error:", errorMessage);
+        message.error({
+          content: "Đăng xuất thất bại. Vui lòng thử lại!",
+          key: loadingKey,
         });
       }
     } catch (error) {
       console.error("An error occurred during logout:", error);
+      message.error({
+        content: "Có lỗi xảy ra khi đăng xuất!",
+        key: loadingKey,
+      });
     }
   };
 

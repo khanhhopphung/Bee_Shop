@@ -18,6 +18,7 @@ import PaymentPage from "./pages/client/Checkout";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
+import OrderSuccess2 from "./pages/client/OrderSuccess";
 import OrderSuccess from "./pages/client/OrderSuccess";
 import NotFound from "./components/404";
 import PrivacyPolicy from "./components/PrivacyPolicy";
@@ -246,6 +247,7 @@ const App: React.FC = () => {
           <Route path="blogs/:id" element={<BlogDetail />} />
           <Route path="payments" element={<PaymentPage />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
+          <Route path="ordersuccess" element={<OrderSuccess2 />} />
           <Route path="404" element={<NotFound />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/order-detail/:id" element={<OrderDetail />} />
