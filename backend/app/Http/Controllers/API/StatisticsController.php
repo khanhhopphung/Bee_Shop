@@ -58,7 +58,25 @@ class StatisticsController extends Controller
 
         $lowStockCount = $lowStockProducts->count();
 
+        $soldProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
+        ->join('products', 'order_details.product_id', '=', 'products.id')
+        ->select('products.name', 'products.sku', DB::raw('SUM(order_details.quantity) as total_sold'), DB::raw('SUM(order_details.quantity * order_details.price) as total_revenue'))
+        ->whereBetween('orders.order_date', [$startDate, $endDate])
+        ->groupBy('products.id')
+        ->orderByDesc('total_sold')
+        ->get();
 
+    
+
+$lowStockCount = $lowStockProducts->count();
+
+$unsoldProducts = Product::whereNotIn('id', function($query) use ($startDate, $endDate) {
+    $query->select('product_id')
+          ->from('order_details')
+          ->join('orders', 'order_details.order_id', '=', 'orders.id')
+          ->whereBetween('orders.order_date', [$startDate, $endDate]);
+})->get();
+  
         // Thống kê phương thức thanh toán
         $paymentMethodStats = Order::select('payment_method', DB::raw('count(*) as count'))
             ->groupBy('payment_method')
@@ -80,19 +98,21 @@ class StatisticsController extends Controller
             ->groupBy('status')
             ->get();
 
-        return response()->json([
-            'total_revenue' => $totalRevenue,
-            'total_orders' => $totalOrders,
-            'new_customers' => $newCustomers,
-            'top_selling_products' => $topSellingProducts,
-            'low_stock_products' => [
-                'count' => $lowStockCount,
-                'products' => $lowStockProducts,
-            ],
-            'payment_method_stats' => $paymentMethodStats,
-            'promotion_usage_stats' => $promotionUsageStats,
-            'promotion_revenue_growth' => $promotionRevenueGrowth,
-            'shipping_stats' => $shippingStats,
-        ]);
+            return response()->json([
+                'total_revenue' => $totalRevenue,
+                'sold_products' => $soldProducts,
+                'total_orders' => $totalOrders,
+                'new_customers' => $newCustomers,
+                'top_selling_products' => $topSellingProducts,
+                'low_stock_products' => [
+                    'count' => $lowStockCount,
+                    'products' => $lowStockProducts,
+                ],
+                'unsold_products' => $unsoldProducts,  // Thêm thống kê sản phẩm không bán được
+                'payment_method_stats' => $paymentMethodStats,
+                'promotion_usage_stats' => $promotionUsageStats,
+                'promotion_revenue_growth' => $promotionRevenueGrowth,
+                'shipping_stats' => $shippingStats,
+            ]);
     }
 }

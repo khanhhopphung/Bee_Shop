@@ -20,6 +20,12 @@ class ProductVariant extends Model
         'deleted_at'
     ];
     protected $table = 'product_variants';
+    protected $casts = [
+        'price' => 'integer',
+        'is_available' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function product()
     {

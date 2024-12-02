@@ -447,6 +447,7 @@ const Products: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
       <Modal
         open={isVariantModalVisible}
         title="Biến thể sản phẩm"
@@ -482,6 +483,8 @@ const Products: React.FC = () => {
                 return size ? size.size_name : "N/A";
               },
             },
+            { title: "price", dataIndex: "price", key: "price" },
+
             { title: "Stock", dataIndex: "stock", key: "stock" },
             {
               title: "Image",

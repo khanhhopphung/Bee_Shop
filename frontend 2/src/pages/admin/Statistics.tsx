@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, Card, Spin, Row, Col, Statistic, message, Typography, DatePicker, Button } from 'antd';
+import { Table, Card, Spin, Row, Col, Statistic, message, Typography, DatePicker, Button, Modal } from 'antd';
 import { DollarCircleOutlined, ShoppingCartOutlined, UserOutlined, AlertOutlined, PoweroffOutlined } from '@ant-design/icons';
 import { Pie, Column } from '@ant-design/charts';
 import dayjs from 'dayjs';
@@ -12,6 +12,8 @@ const Statistics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState<any>(null);
   const [endDate, setEndDate] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false); // State for controlling modal visibility
+  const [modalContent, setModalContent] = useState<any>(null); // State to store modal content
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -20,6 +22,7 @@ const Statistics: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(value);
   };
+  
 
   const fetchStatistics = async () => {
     setLoading(true);
@@ -58,6 +61,27 @@ const Statistics: React.FC = () => {
     window.location.reload(); // Reload the page to reflect logout
   };
 
+  const handleCardClick = (type: string) => {
+    // Show the modal with corresponding content based on the card clicked
+    switch (type) {
+      case 'revenue':
+        setModalContent(`Tổng doanh thu: ${formatCurrency(statistics.total_revenue)}`);
+        break;
+      case 'orders':
+        setModalContent(`Tổng đơn hàng: ${statistics.total_orders}`);
+        break;
+      case 'new_customers':
+        setModalContent(`Người dùng mới: ${statistics.new_customers}`);
+        break;
+      case 'low_stock':
+        setModalContent(`Sản phẩm sắp hết hàng: ${statistics.low_stock_products.count}`);
+        break;
+      default:
+        setModalContent('');
+    }
+    setModalVisible(true);
+  };
+
   useEffect(() => {
     fetchStatistics();
   }, [startDate, endDate]);
@@ -80,6 +104,11 @@ const Statistics: React.FC = () => {
   const promotionColumns = [
     { title: 'Tên khuyến mãi', dataIndex: 'code', key: 'code' },
     { title: 'Lượt sử dụng', dataIndex: 'usage_count', key: 'usage_count' },
+  ];
+
+  const unsoldProducts = [
+    { title: 'Tên sản phẩm ', dataIndex: 'name', key: 'name' },
+    { title: 'Mã sản phẩm ', dataIndex: 'sku', key: 'sku' },
   ];
 
   const paymentMethodConfig = {
@@ -175,6 +204,7 @@ const Statistics: React.FC = () => {
           <Card
             hoverable
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            onClick={() => handleCardClick('revenue')}
           >
             <Title level={4} style={{ color: '#2c3e50' }}>Tổng doanh thu</Title>
             <Statistic
@@ -188,6 +218,7 @@ const Statistics: React.FC = () => {
           <Card
             hoverable
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            onClick={() => handleCardClick('orders')}
           >
             <Title level={4} style={{ color: '#2c3e50' }}>Tổng đơn hàng</Title>
             <Statistic
@@ -201,12 +232,13 @@ const Statistics: React.FC = () => {
           <Card
             hoverable
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            onClick={() => handleCardClick('new_customers')}
           >
             <Title level={4} style={{ color: '#2c3e50' }}>Người dùng mới</Title>
             <Statistic
               value={statistics.new_customers}
               prefix={<UserOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#3498db' }}
             />
           </Card>
         </Col>
@@ -214,16 +246,27 @@ const Statistics: React.FC = () => {
           <Card
             hoverable
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            onClick={() => handleCardClick('low_stock')}
           >
             <Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm sắp hết hàng</Title>
             <Statistic
               value={statistics.low_stock_products.count}
               prefix={<AlertOutlined />}
-              valueStyle={{ color: '#ff4d4f' }}
+              valueStyle={{ color: '#e74c3c' }}
             />
           </Card>
         </Col>
       </Row>
+
+      {/* Modal for showing detail */}
+      <Modal
+        title="Thông tin chi tiết"
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+      >
+        <p>{modalContent}</p>
+      </Modal>
 
       {/* Top Selling Products and Promotions */}
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
@@ -238,7 +281,7 @@ const Statistics: React.FC = () => {
               pagination={false}
               rowKey="id"
               size="small"
-            />
+            />Thông tin chi tiết
           </Card>
         </Col>
         <Col xs={24} sm={8} md={8}>
@@ -252,6 +295,20 @@ const Statistics: React.FC = () => {
               pagination={{ pageSize: 3 }}
               rowKey="code"
               bordered
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8} md={8}>
+          <Card
+            title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm không bán được </Title>}
+            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+          >
+            <Table
+              columns={unsoldProducts}
+              dataSource={statistics.unsold_products}
+              pagination={{ pageSize: 5 }}
+              rowKey="id"
+              size="small"
             />
           </Card>
         </Col>

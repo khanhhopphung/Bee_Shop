@@ -138,10 +138,12 @@ const UserPage: React.FC = () => {
   // Define table columns
   const columns: ColumnsType<User> = [
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
-      dataIndex: "id",
-      key: "id",
-      render: (text: any) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      title: <span style={{ fontSize: "18px"}}>STT</span>,
+      key: "stt",
+      render: (_: any, __: any, index: number) => (
+        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
+      ),
+      align: "center",
     },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người dùng</span>,
@@ -202,13 +204,13 @@ const UserPage: React.FC = () => {
       key: "actions",
       render: (user: User) => (
         <Space>
-          <Button
+          {/* <Button
             type="primary"
             size="large"
             icon={<EditOutlined />}
             onClick={() => handleEdit(user)}
             style={{ marginRight: 8 }}
-          />
+          /> */}
           <Button
             type="primary"
             danger
@@ -237,9 +239,10 @@ const UserPage: React.FC = () => {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             alignItems: 'center',
             marginBottom: '16px',
+            textAlign : 'right'
           }}
         >
          
@@ -255,6 +258,7 @@ const UserPage: React.FC = () => {
               maxWidth: '600px',
               borderRadius: '8px',
               height: '48px',
+          
             }}
           />
         </div>
@@ -273,7 +277,7 @@ const UserPage: React.FC = () => {
           }}
         />
       </div>
-      <Modal
+      {/* <Modal
         open={isModalVisible}
         title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}</span>}
 
@@ -341,7 +345,7 @@ const UserPage: React.FC = () => {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };
