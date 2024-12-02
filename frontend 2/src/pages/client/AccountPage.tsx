@@ -15,6 +15,15 @@ const AccountPage: React.FC = () => {
   const [user, setUser] = useState<User>(); // State thông tin người dùng
   const [isLoading, setIsLoading] = useState(false); // State cho loading
   const token = localStorage.getItem("access_token");
+  const obfuscateEmail = (email: string | undefined): string => {
+    if (!email || !email.includes("@")) return "N/A";
+    const [localPart, domain] = email.split("@");
+    if (localPart.length <= 2) {
+      return `${localPart[0]}***@${domain}`;
+    }
+    const hiddenPart = "*".repeat(localPart.length - 2);
+    return `${localPart[0]}${hiddenPart}${localPart.slice(-1)}@${domain}`;
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -162,7 +171,7 @@ const AccountPage: React.FC = () => {
             </div>
             <div className="info-section">
               <h3>Email</h3>
-              <p>{user?.email}</p>
+              <p>{obfuscateEmail(user?.email)}</p>
               <button className="edit-button">Thay đổi</button>
             </div>
             <div className="info-section">

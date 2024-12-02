@@ -151,7 +151,7 @@ const Products: React.FC = () => {
 
           {/* Tìm kiếm sản phẩm */}
           <div className="dis-flex m-tb-10">
-            <div className="bor8 dis-flex p-l-15 align-center">
+            {/* <div className="bor8 dis-flex p-l-15 align-center">
               <button
                 style={{ width: "200px" }}
                 className="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04 "
@@ -159,7 +159,7 @@ const Products: React.FC = () => {
               >
                 <i className="fa-solid fa-arrow-up-a-z pr-3"> </i>Lọc sản phẩm
               </button>
-            </div>
+            </div> */}
 
             {/* Thêm khoảng cách 2cm ở đây */}
             <div className="ml-8">

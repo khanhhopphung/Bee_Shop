@@ -34,7 +34,7 @@ interface Variant {
   color_id: number;
   price: number;
   stock: number;
-  image_url: string;
+  image: { image_url: string }[];
 }
 
 interface Review {
@@ -130,6 +130,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
           setColor(result.data.color);
           setFilteredSizes(result.data.size);
           setFilteredColors(result.data.color);
+          console.log(result.data);
         } else {
           console.error("Data is not valid:", result);
         }
@@ -187,6 +188,31 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
       setPrice(null);
     }
   }, [selectedSizeId, selectedColorId, products]);
+
+  useEffect(() => {
+    if (products && selectedColorId !== null) {
+      const matchingVariant = products.product_variants.find(
+        (variant) =>
+          variant.color_id === selectedColorId &&
+          (selectedSizeId === null || variant.size_id === selectedSizeId)
+      );
+
+      console.log("Matching Variant:", matchingVariant);
+
+      if (matchingVariant) {
+        console.log(matchingVariant.image);
+        // Lấy image_url từ phần tử đầu tiên của mảng images
+        const imageUrl = matchingVariant.image?.[0]?.image_url || "";
+        console.log("Image URL:", imageUrl);
+        setImageUrl(imageUrl);
+      } else {
+        setImageUrl("");
+      }
+    } else {
+      setImageUrl("");
+    }
+  }, [selectedColorId, selectedSizeId, products]);
+
   // call api review
   useEffect(() => {
     const fetchReviews = async () => {
@@ -239,7 +265,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
         }
 
         const result = await response.json();
-        console.log(result);
+        console.log(result.data);
 
         if (result?.data && Array.isArray(result.data)) {
           setProductRelated(result.data.slice(0, 4)); // Lấy tối đa 4 sản phẩm
@@ -288,24 +314,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
       );
     }
   };
-  useEffect(() => {
-    if (products && selectedColorId !== null) {
-      // Find the matching variant
-      const matchingVariant = products.product_variants.find(
-        (variant) =>
-          variant.color_id === selectedColorId &&
-          (selectedSizeId === null || variant.size_id === selectedSizeId)
-      );
-
-      if (matchingVariant) {
-        setImageUrl(matchingVariant.image_url);
-      } else {
-        setImageUrl("");
-      }
-    } else {
-      setImageUrl("");
-    }
-  }, [selectedColorId, selectedSizeId, products]);
+  console.log(imageUrl);
   return (
     <div className="container">
       {/* bread-crumb */}
@@ -343,52 +352,44 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                         style={{ display: "flex" }}
                       >
                         <div className="slick3 gallery-lb">
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-01.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              {/* <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              /> */}
-                            </div>
-                          </div>
-
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-02.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              {/* <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              /> */}
-                            </div>
-                          </div>
-
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-03.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              {/* <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              /> */}
-                            </div>
-                          </div>
+                          {products?.product_variants
+                            ?.filter(
+                              (variant, index, self) =>
+                                self.findIndex(
+                                  (v) => v.color_id === variant.color_id
+                                ) === index
+                            )
+                            .map((variant, index) => (
+                              <div
+                                className="item-slick3"
+                                data-thumb="images/product-detail-01.jpg"
+                                key={index}
+                              >
+                                <div className="wrap-pic-w pos-relative">
+                                  <img
+                                    src={`http://127.0.0.1:8000/storage/${variant?.image?.[0]?.image_url}`}
+                                    alt={`product variant ${index}`}
+                                    style={{
+                                      width: "120px",
+                                      marginRight: "10px",
+                                      marginBottom: "10px",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
                         </div>
+                        {/* <>
+                          {console.log(
+                            `http://127.0.0.1:8000/storage/${imageUrl}`
+                          )}
+                        </> */}
                         <img
-                          src={`http://127.0.0.1:8000/storage/${
-                            products?.image_url || "default-image.jpg"
-                          }`}
+                          src={
+                            imageUrl
+                              ? `http://127.0.0.1:8000/storage/${imageUrl}`
+                              : `http://127.0.0.1:8000/storage/${products?.image_url}`
+                          }
                           alt="IMG-PRODUCT"
                         />
                       </div>
@@ -443,50 +444,63 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                             gap: "10px",
                           }}
                         >
-                          {filteredColors.map((color) => (
-                            <button
-                              key={color.id}
-                              className={`color-button ${
-                                selectedColorId === color.id ? "selected" : ""
-                              }`}
-                              onClick={() =>
-                                setSelectedColorId((prev) =>
-                                  prev === color.id ? null : color.id
-                                )
-                              }
-                              style={{
-                                backgroundColor:
-                                  selectedColorId === color.id ? "#717fe0" : "",
-                              }}
-                            >
-                              {color.name}
-                            </button>
-                          ))}
+                          {filteredColors.length > 0 ? (
+                            filteredColors.map((color) => (
+                              <button
+                                key={color.id}
+                                className={`color-button ${
+                                  selectedColorId === color.id ? "selected" : ""
+                                }`}
+                                onClick={() =>
+                                  setSelectedColorId((prev) =>
+                                    prev === color.id ? null : color.id
+                                  )
+                                }
+                                style={{
+                                  backgroundColor:
+                                    selectedColorId === color.id
+                                      ? "#717fe0"
+                                      : "",
+                                }}
+                              >
+                                {color.name}
+                              </button>
+                            ))
+                          ) : (
+                            <p>Không có màu nào khả dụng.</p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="color-selector">
+                      <div className="size-selector">
                         <span>Kích Thước </span>
-                        {filteredSizes.map((size) => (
-                          <button
-                            key={size.id}
-                            className={`size-button ${
-                              selectedSizeId === size.id ? "selected" : ""
-                            }`}
-                            onClick={() =>
-                              setSelectedSizeId((prev) =>
-                                prev === size.id ? null : size.id
-                              )
-                            }
-                            style={{
-                              backgroundColor:
-                                selectedSizeId === size.id ? "#717fe0" : "",
-                            }}
-                          >
-                            {size.name}
-                          </button>
-                        ))}
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          {filteredSizes.length > 0 ? (
+                            filteredSizes.map((size) => (
+                              <button
+                                key={size.id}
+                                className={`size-button ${
+                                  selectedSizeId === size.id ? "selected" : ""
+                                }`}
+                                onClick={() =>
+                                  setSelectedSizeId((prev) =>
+                                    prev === size.id ? null : size.id
+                                  )
+                                }
+                                style={{
+                                  backgroundColor:
+                                    selectedSizeId === size.id ? "#717fe0" : "",
+                                }}
+                              >
+                                {size.name}
+                              </button>
+                            ))
+                          ) : (
+                            <p>Không có kích thước nào khả dụng.</p>
+                          )}
+                        </div>
                       </div>
+
                       {/* <div>
                         <h3>Hình ảnh biến thể:</h3>
                         {imageUrl ? (
@@ -650,19 +664,16 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                   </div>
                 </div>
 
-                <div
+                {/* <div
                   className="tab-pane fade"
                   id="information"
                   role="tabpanel"
-                ></div>
+                ></div> */}
 
                 <div className="tab-pane fade" id="reviews" role="tabpanel">
-                  <div style={{ padding: "5px" }}>
-                    {/* Hiển thị trung bình sao */}
-                    <strong>
-                      <strong>{rating.average_rating} trên 5</strong>
-                    </strong>
-                    <div style={{ display: "flex" }}>
+                  <div className="rating-summary">
+                    <strong>{rating.average_rating} trên 5</strong>
+                    <div className="stars">
                       {Array.from({ length: 5 }).map((_, index) => (
                         <span
                           key={index}
@@ -670,104 +681,55 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                             color:
                               index < Math.round(rating.average_rating)
                                 ? "orange"
-                                : "lightgray", // Vàng cho các sao đã đạt, xám cho sao chưa đạt
+                                : "lightgray",
                           }}
                         >
                           ⭐
                         </span>
                       ))}
                     </div>
-                    <br />
-
-                    {/* Hiển thị số lượng đánh giá */}
-                    <span>{rating.rating_count} Bình luận</span>
+                    <span>({rating.rating_count} Bình luận)</span>
                   </div>
 
                   {reviews?.map((review, index) => (
-                    <div
-                      key={index}
-                      className="rowww"
-                      // style={{ height: "200px" }}
-                    >
-                      <div
-                        className="comments"
-                        style={{ marginRight: "600px" }}
-                      >
-                        <div
-                          className="avatar"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            display: "flex",
-                          }}
-                        >
+                    <div key={index} className="rowww">
+                      <div className="comments">
+                        <div className="avatar">
                           <img
                             src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
                             alt="avt"
                           />
-                          <div
-                            className="review"
-                            style={{ marginLeft: "15px" }}
-                          >
-                            <div
-                              className="username"
-                              style={{ display: "inline-block", gap: "10px" }}
-                            >
-                              <span
-                                className="mtext-106 cl2"
-                                style={{ marginRight: "5px" }}
-                              >
-                                {review.user.username}
-                              </span>
-
-                              {review.review_date
-                                ? new Date(
-                                    review.review_date
-                                  ).toLocaleDateString()
-                                : "Invalid Date"}
-                            </div>
-
-                            <div className="star">
-                              <div className="wrap-rating flex-m p-t-6">
-                                <div>
-                                  {Array.from({ length: review.rating }).map(
-                                    (_, index) => (
-                                      <span
-                                        key={index}
-                                        style={{ color: "gold" }}
-                                      >
-                                        ⭐
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                              <p
-                                className="comment"
-                                style={{
-                                  marginTop: "10px",
-                                  whiteSpace: "pre-wrap", // Giúp văn bản tự động xuống dòng nếu dài
-                                  overflowWrap: "break-word", // Giúp văn bản dài không bị tràn
-                                }}
-                              >
-                                {review.comment}
-                                <img
-                                  style={{ width: "50px", height: "50px" }}
-                                  src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
-                                  alt=""
-                                />
-                              </p>
+                        </div>
+                        <div className="review">
+                          <div className="username">
+                            <span>{review.user.username}</span>
+                            {review.review_date
+                              ? new Date(
+                                  review.review_date
+                                ).toLocaleDateString()
+                              : "Invalid Date"}
+                          </div>
+                          <div className="star">
+                            <div className="wrap-rating">
+                              {Array.from({ length: review.rating }).map(
+                                (_, index) => (
+                                  <span key={index}>⭐</span>
+                                )
+                              )}
                             </div>
                           </div>
+                          <p className="comment">
+                            {review.comment}
+                            <div>
+                              <img
+                                src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
+                                alt=""
+                              />
+                            </div>
+                          </p>
                         </div>
                       </div>
-                      <hr
-                        style={{
-                          margin: "20px 0",
-                          borderColor: "#ccc",
-                          borderWidth: "1px",
-                        }}
-                      />
+                      <hr />
                     </div>
                   ))}
                 </div>

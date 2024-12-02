@@ -166,29 +166,73 @@ class OrderController extends Controller
      * Get all orders by user.
      */
     public function getAllOrderByUser()
-    {
-        try {
-            $user = Auth::user();
-            if (!$user) {
-                return response()->json(['error' => 'User not authenticated.'], 401);
-            }
-
-            $orders = $user->orders()->with(['address', 'promotion', 'orderDetails.products','orderDetails.product_variants'])->get();
-            return BaseController::success($orders);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Could not fetch orders. Please try again later.',
-                'message' => $e->getMessage(),
-            ], 500);
+{
+    try {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated.'], 401);
         }
+
+        // Sử dụng eager loading
+        $orders = $user->orders()->with([
+            'address',
+            'promotion',
+            'orderDetails.product',
+            'orderDetails.product_variant',
+            'orderDetails.product_variant.images',
+            'orderDetails.product_variant.color',
+            'orderDetails.product_variant.size',
+            // 'orderDetails.product_variant.brand',
+            // 'orderDetails.product_variant.product',
+            // 'orderDetails.product_variant.product.category',
+            // 'orderDetails.product_variant.product.category.parent_category',
+        ])->latest('id')->get();
+
+        return BaseController::success($orders);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Could not fetch orders. Please try again later.',
+            'message' => $e->getMessage(),
+        ], 500);
     }
+}
+public function getOneOrderByUser(string $id)
+{
+    try {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated.'], 401);
+        }
+
+        // Tìm đơn hàng cụ thể theo ID và sử dụng eager loading
+        $order = Order::with([
+            'address',
+            'promotion',
+            'orderDetails.product',
+            'orderDetails.product_variant',
+            'orderDetails.product_variant.images',
+            'orderDetails.product_variant.color',
+            'orderDetails.product_variant.size',
+        ])->findOrFail($id);  // Find the order by ID, or throw an exception if not found
+
+        return BaseController::success($order);  // Trả về đơn hàng tìm được
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Could not fetch order. Please try again later.',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
 
 
     public function cancel(Order $order)
     {
         try {
             if ($order->status == 'pending') {
-                $order->status = 'cancel';
+                $order->status = 'cancelled';
                 $order->save();
             } else {
                 return response()->json([

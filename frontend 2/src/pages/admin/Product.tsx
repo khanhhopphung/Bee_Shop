@@ -134,15 +134,15 @@ const Products: React.FC = () => {
 
   const fetchVariants = async (productId: number) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/products/${productId}/variants
+      const response =
+        await axios.get(`http://127.0.0.1:8000/api/products/${productId}/variants
         `);
       let formattedVariants: any[] = [];
 
-     
       if (Array.isArray(response.data.data)) {
         formattedVariants = response.data.data;
       } else if (response.data.data) {
-        formattedVariants = [response.data.data]; 
+        formattedVariants = [response.data.data];
       }
 
       if (formattedVariants.length === 0) {
@@ -156,9 +156,8 @@ const Products: React.FC = () => {
     }
   };
 
-
   const handleViewDetails = (product: Product) => {
-    fetchVariants(product.id); 
+    fetchVariants(product.id);
   };
 
   useEffect(() => {
@@ -286,7 +285,9 @@ const Products: React.FC = () => {
       dataIndex: "is_active",
       key: "is_active",
       render: (active: boolean) => (
-        <span style={{ color: active ? "#3f8600" : "#cf1322", fontWeight: "bold" }}>
+        <span
+          style={{ color: active ? "#3f8600" : "#cf1322", fontWeight: "bold" }}
+        >
           {active ? "Hoạt động" : "Ngừng hoạt động"}
         </span>
       ),
@@ -335,11 +336,7 @@ const Products: React.FC = () => {
             marginBottom: "16px",
           }}
         >
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Thêm sản phẩm
           </Button>
 
@@ -450,71 +447,67 @@ const Products: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-     <Modal
-  open={isVariantModalVisible}
-  title="Biến thể sản phẩm"
-  onCancel={() => setIsVariantModalVisible(false)}
-  footer={null}
-  centered
->
-  <Table
-    columns={[
-      
-      {
-        title: <span style={{ fontSize: "18px"}}>STT</span>,
-        key: "stt",
-        render: (_: any, __: any, index: number) => (
-          <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
-        ),
-        align: "center",
-      },
-      {
-        title: "Color",
-        dataIndex: "color_id",
-        key: "color_id",
-        render: (colorId) => {
-          const color = colors.find((c) => c.id === colorId);
-          return color ? color.color_name : "N/A";
-        },
-      },
-      {
-        title: "size",
-        dataIndex: "size_id",
-        key: "size_id",
-        render: (sizeId) => {
-          const size = sizes.find((s) => s.id === sizeId);
-          return size ? size.size_name : "N/A";
-        },
-      },
-      { title: "price", dataIndex: "price", key: "price" },
-      
-      
-      { title: "Stock", dataIndex: "stock", key: "stock" },
-      {
-        title: "Image",
-        dataIndex: "image_url",
-        key: "image_url",
-        render: (imageUrl, image) => (
-          <img
-            src={
-              imageUrl
-                ? `http://127.0.0.1:8000/storage/${image.image_url}`
-                : "http://127.0.0.1:8000/storage/default-image.jpg"
-            }
-            alt="Variants"
-            style={{ width: "50px", height: "50px", objectFit: "cover" }}
-          />
-          
-        ),
-      },
-    ]}
-    dataSource={variants}
-    rowKey="id"
-    pagination={{ position: ["bottomCenter"] }}
-  />
-</Modal>
 
+      <Modal
+        open={isVariantModalVisible}
+        title="Biến thể sản phẩm"
+        onCancel={() => setIsVariantModalVisible(false)}
+        footer={null}
+        centered
+      >
+        <Table
+          columns={[
+            {
+              title: <span style={{ fontSize: "18px" }}>STT</span>,
+              key: "stt",
+              render: (_: any, __: any, index: number) => (
+                <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
+              ),
+              align: "center",
+            },
+            {
+              title: "Color",
+              dataIndex: "color_id",
+              key: "color_id",
+              render: (colorId) => {
+                const color = colors.find((c) => c.id === colorId);
+                return color ? color.color_name : "N/A";
+              },
+            },
+            {
+              title: "size",
+              dataIndex: "size_id",
+              key: "size_id",
+              render: (sizeId) => {
+                const size = sizes.find((s) => s.id === sizeId);
+                return size ? size.size_name : "N/A";
+              },
+            },
+            { title: "price", dataIndex: "price", key: "price" },
 
+            { title: "Stock", dataIndex: "stock", key: "stock" },
+            {
+              title: "Image",
+              dataIndex: "image_url",
+              key: "image_url",
+              render: (imageUrl, image) => (
+                <img
+                  src={
+                    imageUrl
+                      ? `http://127.0.0.1:8000/storage/${image.image_url}`
+                      : "http://127.0.0.1:8000/storage/default-image.jpg"
+                  }
+                  alt="Variants"
+                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                />
+              ),
+            },
+          ]}
+          dataSource={variants}
+          rowKey="id"
+          pagination={{ position: ["bottomCenter"] }}
+        />
+      </Modal>
     </div>
   );
 };

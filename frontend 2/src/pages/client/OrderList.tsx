@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Rate, Input, Upload, message, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 interface Order {
+  id: number;
   order_date: string;
   total_amount: number;
   status: string;
@@ -20,13 +21,47 @@ interface Order {
     color_name: string;
     size_name: string;
     price_variant: string;
+    product: Product;
+    product_variant: ProductVariant;
+    images: Image[];
+    color: Color;
+    size: Size;
   };
+}
+
+interface Product {
+  id: number;
+  name: string;
+  sku: string;
+  description: string;
+  category_id: string;
+}
+
+interface ProductVariant {
+  price: number;
+}
+
+interface Image {
+  id: number;
+  image_url: string;
+  alt_text: string;
+}
+
+interface Color {
+  id: number;
+  color_name: string;
+}
+
+interface Size {
+  id: number;
+  size_name: string;
 }
 const OrderList = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string>("");
+  const [cancelOrder, setCanceldOrder] = useState<number>();
   const token = localStorage.getItem("access_token");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const cancelReasons = [
@@ -43,38 +78,39 @@ const OrderList = () => {
     comment: "",
     images: [] as string[], // Lưu ảnh đã chọn
   });
+  const fectOrders = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/get-all-order-by-user`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data.data);
+        console.log(data.data);
+      } else {
+        message.error("Lấy đơn hàng thất bại!");
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
 
   useEffect(() => {
-    const fectOrders = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/get-all-order-by-user`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data.data);
-          console.log(data.data);
-        } else {
-          message.error("Lấy đơn hàng thất bại!");
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      }
-    };
     fectOrders();
   }, []);
-  console.log(orders);
-  useEffect(() => {
-    console.log(orders);
-  }, [orders]);
+
+  // useEffect(() => {
+  //   console.log(orders);
+  // }, [orders]);
+
   const handleReviewSubmit = () => {
     console.log("Đánh giá đã được gửi:", review);
     setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
@@ -97,16 +133,44 @@ const OrderList = () => {
       });
     }
   };
+  const cancel = async () => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/cancel-order/${cancelOrder}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.ok) {
+        message.success("Hủy đơn hàng thành công!");
+        // Xóa đơn hàng đã hủy kh��i danh sách
+        // setOrders(orders.filter((order) => order.id !== selectedOrder.id));
+      } else {
+        message.error("Hủy đơn hàng thất bại!");
+      }
+    } catch (error) {
+      console.error("Error canceling order:", error);
+    }
+    setShowCancelForm(false);
+  };
 
-  const handleCancelSubmit = () => {
+  const handleCancelSubmit = async () => {
     if (!selectedReason) {
       message.warning("Vui lòng chọn lý do hủy đơn hàng!");
       return;
     }
     // Xử lý logic hủy đơn hàng tại đây
-    console.log("Lý do hủy:", selectedReason);
+    // console.log("Lý do hủy:", selectedReason);
+    await cancel();
+
     setShowCancelForm(false);
-    message.success("Hủy đơn hàng thành công!");
+    await fectOrders();
+
+    // message.success("Hủy đơn hàng thành công!");
   };
 
   const filteredOrders = Array.isArray(orders)
@@ -226,32 +290,49 @@ const OrderList = () => {
             >
               {Array.isArray(orders) &&
                 filteredOrders.map((order, index) => (
-                  <div
-                    key={index}
-                    // style={{
-                    //   overflow: "auto",
-                    //   height: "60vh",
-                    //   width: "100%",
-                    // }}
-                  >
+                  <div key={index}>
                     <>{console.log(order)}</>
                     {Array.isArray(order.order_details) &&
                       order.order_details.map((detail, detailIndex) => (
                         <div key={detailIndex} className="order-item">
                           {/* <>{console.log(order)}</> */}
+                          <div style={{ textAlign: "right" }}>
+                            <div
+                              style={{
+                                borderBottom: "1px solid #ddd",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: "20px",
+                                  // fontWeight: "bold",
+                                  color: "red",
+                                  textTransform: "capitalize",
+                                  padding: "5px 10px",
+                                  backgroundColor: "#f0f0f0",
+
+                                  display: "inline-block",
+                                }}
+                              >
+                                {order.status}
+                              </span>
+                            </div>
+                          </div>
+
                           <div className="order-product">
                             <img
-                              src="link_image_a.jpg"
+                              src={`http://127.0.0.1:8000/storage/${detail.product_variant.images[0].image_url}`}
                               alt="Sản phẩm A"
                               className="order-product-image"
                             />
                             <div className="order-product-info">
                               <p className="order-product-name">
-                                {detail.name}
+                                {detail.product.name}
                               </p>
                               <p className="order-product-variant">
-                                Phân loại: {detail.color_name},
-                                {detail.size_name}
+                                Phân loại:{" "}
+                                {detail.product_variant.size.size_name},
+                                {detail.product_variant.color.color_name}
                               </p>
                               <p className="order-product-quantity">
                                 Số lượng: {detail.quantity}
@@ -260,7 +341,7 @@ const OrderList = () => {
                             <p className="order-product-price">
                               <p className="order-product-price">
                                 {parseFloat(
-                                  detail.price_variant
+                                  detail.product_variant.price
                                 ).toLocaleString()}
                                 ₫
                               </p>
@@ -276,24 +357,52 @@ const OrderList = () => {
                                 style: "currency",
                                 currency: "VND",
                               }).format(
-                                Number(detail.price_variant) * detail.quantity
+                                Number(detail.product_variant.price) *
+                                  detail.quantity
                               )}
                             </span>
                           </div>
 
                           <div className="order-item-actions">
-                            <button
-                              className="order-btn order-btn-reorder"
-                              onClick={() => setShowReviewForm(true)}
-                            >
-                              Đánh giá
-                            </button>
-                            <button
-                              className="order-btn order-btn-detail"
-                              onClick={() => setShowCancelForm(true)}
-                            >
-                              Hủy đơn hàng
-                            </button>
+                            {order.status == "pending" && (
+                              <div>
+                                <button
+                                  className="order-btn order-btn-detail"
+                                  onClick={() => {
+                                    setShowCancelForm(true); // Hiển thị form hủy đơn
+                                    setCanceldOrder(order.id); // Cập nhật ID đơn hàng cần hủy
+                                  }}
+                                >
+                                  Hủy đơn hàng
+                                </button>
+
+                                <button
+                                  className="order-btn order-btn-detail"
+                                  onClick={() => {
+                                    // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
+                                    window.location.href = `/order-detail/${order.id}`;
+                                  }}
+                                >
+                                  Xem chi tiết đơn hàng
+                                </button>
+                              </div>
+                            )}
+                            {order.status == "delivered" && (
+                              <button
+                                className="order-btn order-btn-reorder"
+                                onClick={() => setShowReviewForm(true)}
+                              >
+                                Đánh giá
+                              </button>
+                            )}
+                            {order.status == "cancelled" && (
+                              <button
+                                className="order-btn order-btn-reorder"
+                                // onClick={() => setShowReviewForm(true)}
+                              >
+                                Mua Lại
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
