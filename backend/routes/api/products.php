@@ -28,6 +28,7 @@ Route::get('bad-products',[ProductController::class, 'badProduct']);
 Route::get('all-products',[ProductController::class, 'indexClient']);
 Route::get('products/category/{category?}', [ProductController::class, 'filter'])->name('products.category');
 
+Route::get('products/{id}/variants', [ProductController::class, 'getVariants']);
 
 
 Route::apiResource('products', ProductController::class);

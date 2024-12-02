@@ -23,6 +23,13 @@ class Order extends Model
         'address',
         'is_active',
     ];
+    protected $casts = [
+        'total_amount' => 'integer',
+        'shipping_cost' => 'integer',
+        'is_available' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
     public function users()
     {
         return $this->belongsTo(User::class);

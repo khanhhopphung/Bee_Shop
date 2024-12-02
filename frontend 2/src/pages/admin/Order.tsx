@@ -25,6 +25,7 @@ interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  products: Product[];
 }
 
 interface Promotion {
@@ -41,6 +42,14 @@ interface Address {
   id: number;
   address_line: string;
 }
+
+type Product = {
+  id: number;
+  image_url: string;
+  name: string;
+  price: number;
+  // Các trường khác của sản phẩm
+};
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -210,10 +219,13 @@ const Orders: React.FC = () => {
       message.error("Cập nhật thất bại");
     }
   };
-
   const handleViewDetails = (orderId: number) => {
     const order = orders.find((order) => order.id === orderId);
     if (order) {
+      
+      const product = order.products?.[0]; // Assuming you want to show the first product's image
+      const image_url = product ? product.image_url : null;
+  
       Modal.info({
         title: "Order Details",
         content: (
@@ -229,22 +241,39 @@ const Orders: React.FC = () => {
             <p>Payment Method: {order.payment_method}</p>
             {order.promotion_id && (
               <p>
-                Promotion:{order.promotion_id  }
-                
-              </p>
-            )}
-           {order.promotion_id && (
-              <p>
-                Promotion:{order.promotion_id  }
-                
+                Promotion: {order.promotion_id}
               </p>
             )}
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
+  
+            {/* Display product image */}
+            {product ? (
+              <div>
+                <p>Product Image:</p>
+                <img
+                  src={`http://127.0.0.1:8000/storage/${product.image_url || "default-image.jpg"}`} // If no image, use default
+                  alt="Product"
+                  style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                />
+              </div>
+            ) : (
+              <div>
+                <p>Product Image:</p>
+                <img
+                  src="path_to_default_image.jpg"  // Đường dẫn đến hình ảnh mặc định nếu không có sản phẩm
+                  alt="Default Product"
+                  style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                />
+              </div>
+            )}
           </div>
         ),
       });
     }
   };
+  
+  
+  
 
   const columns: ColumnsType<Order> = [
     {
@@ -290,7 +319,7 @@ const Orders: React.FC = () => {
       dataIndex: 'total_amount',
       key: 'total_amount',
       render: (totalAmount: number) => (
-        <span style={{ fontSize: '16px' }}>{totalAmount || 'N/A'}</span>
+        <strong style={{ fontSize: '16px' }}>{totalAmount.toLocaleString()}₫</strong>
       ),
       align: 'left',
     },
@@ -308,7 +337,7 @@ const Orders: React.FC = () => {
       dataIndex: 'shipping_cost',
       key: 'shipping_cost',
       render: (shippingCost: number) => (
-        <span style={{ fontSize: '16px' }}>{shippingCost || 'N/A'}</span>
+        <strong style={{ fontSize: '16px' }}>{shippingCost.toLocaleString()}₫</strong>
       ),
       align: 'left',
     },

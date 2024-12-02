@@ -181,11 +181,12 @@ const Promotions: React.FC = () => {
 
   const columns: ColumnsType<Promotion> = [
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>ID</span>,
-      dataIndex: 'id',
-      key: 'id',
-      render: (text: number) => <strong style={{ fontSize: '16px' }}>{text}</strong>,
-      align: 'center',
+      title: <span style={{ fontSize: "18px"}}>STT</span>,
+      key: "stt",
+      render: (_: any, __: any, index: number) => (
+        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
+      ),
+      align: "center",
     },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên mã giảm giá</span>,

@@ -109,7 +109,15 @@ class OrderController extends Controller
         try {
             // Load relationships including order_code
             $order->load(['address', 'promotion', 'orderDetails']);
-            return response()->json(['order' => $order], 200);
+            return response()->json([
+                'message' => 'Order created successfully',
+                'order' => $order->load([
+                    'address',
+                    'promotion',
+                    'orderDetails.product' // Thêm quan hệ product để lấy ảnh
+                ]),
+            ], 201);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch order. Please try again later.',

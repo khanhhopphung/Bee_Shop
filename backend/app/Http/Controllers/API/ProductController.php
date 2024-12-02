@@ -26,6 +26,26 @@ class ProductController extends BaseController
     {
         $this->model = Product::class;
     }
+    public function getVariants($id)
+{
+    try {
+        // Kiểm tra sản phẩm tồn tại
+        $product = Product::findOrFail($id);
+
+        // Lấy biến thể của sản phẩm
+        $productVariants = $product->productVariants; 
+       
+        return response()->json([
+            'success' => true,
+            'data' => $productVariants,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Không thể lấy biến thể sản phẩm.',
+        ], 500);
+    }
+}
 
     public function bestProduct()
 {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Row, Col } from 'antd';
 import { Table, Button, Modal, Form, Input, message, Space } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
@@ -156,35 +157,35 @@ const Reviews: React.FC = () => {
       key: 'review_date',
       render: (date: string) => <span style={{ fontSize: '16px' }}>{date}</span>,
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hoạt động</span>,
-      dataIndex: 'is_verified',
-      key: 'is_verified',
-      render: (is_verified: boolean) => (
-        <span
-          style={{
-            fontSize: '16px',
-            color: is_verified ? '#3f8600' : '#cf1322',
-            fontWeight: 'bold',
-          }}
-        >
-          {is_verified ? 'Hoạt động' : 'Ngừng hoạt động'}
-        </span>
-      ),
-      align: 'center',
-    },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hoạt động</span>,
+    //   dataIndex: 'is_verified',
+    //   key: 'is_verified',
+    //   render: (is_verified: boolean) => (
+    //     <span
+    //       style={{
+    //         fontSize: '16px',
+    //         color: is_verified ? '#3f8600' : '#cf1322',
+    //         fontWeight: 'bold',
+    //       }}
+    //     >
+    //       {is_verified ? 'Hoạt động' : 'Ngừng hoạt động'}
+    //     </span>
+    //   ),
+    //   align: 'center',
+    // },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
       key: 'actions',
       render: (record: Review) => (
         <Space>
-          <Button
+          {/* <Button
             type="primary"
             size="large"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             style={{ marginRight: 8 }}
-          />
+          /> */}
           <Button
             type="primary"
             danger
@@ -212,34 +213,40 @@ const Reviews: React.FC = () => {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             alignItems: 'center',
             marginBottom: '16px',
           }}
         >
-          <Button
+          {/* <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAdd}
             style={{ fontSize: '16px', height: '40px' }}
           >
             Thêm Review
-          </Button>
+          </Button> */}
 
-          <Input.Search
-            placeholder="Tìm kiếm theo bình luận, xếp hạng hoặc ngày"
-            allowClear
-            enterButton={<SearchOutlined />}
-            size="large"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onSearch={(value) => setSearchTerm(value)}
-            style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
-            }}
-          />
+<Row>
+  <Col span={24} style={{ textAlign: 'right' }}>
+    <Input.Search
+      placeholder="Tìm kiếm theo bình luận, xếp hạng hoặc ngày"
+      allowClear
+      enterButton={<SearchOutlined />}
+      size="large"
+      value={searchTerm}
+      onChange={handleSearchChange}
+      onSearch={(value) => setSearchTerm(value)}
+      style={{
+        maxWidth: '600px',
+        borderRadius: '8px',
+        height: '48px',
+      }}
+    />
+  </Col>
+</Row>
+
+
         </div>
         <hr />
         <Table
@@ -257,7 +264,7 @@ const Reviews: React.FC = () => {
         />
       </div>
 
-      <Modal
+      {/* <Modal
         open={isModalVisible}
         title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentReview ? 'Chỉnh sửa đánh giá' : 'Thêm đánh giá'}</span>}
         onCancel={() => setIsModalVisible(false)}
@@ -292,7 +299,7 @@ const Reviews: React.FC = () => {
           </Button>
         </Form>
 
-      </Modal>
+      </Modal> */}
     </div>
   );
 };
