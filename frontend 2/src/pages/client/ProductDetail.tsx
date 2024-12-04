@@ -425,7 +425,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                               type="number"
                               name="num-product"
                               min="1"
-                              max="10"
+                              max={
+                                products.product_variants.stock
+                                  ? products.product_variants.stock
+                                  : 1
+                              }
                               value={quantity}
                               onChange={handle}
                             />
@@ -434,7 +438,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                               className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
                               onClick={() =>
                                 setQuantity((preQuantity) =>
-                                  Math.min(preQuantity + 1, 10)
+                                  Math.min(
+                                    preQuantity + 1,
+                                    products.product_variants.stock
+                                  )
                                 )
                               }
                             >

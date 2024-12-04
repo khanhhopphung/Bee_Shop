@@ -2,6 +2,20 @@ import { EditOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Rate, Input, Upload, message, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import { Link, useNavigate } from "react-router-dom";
+interface CartItem {
+  product_id: any;
+  color_id: any;
+  size_id: any;
+  quantity: any;
+  price: number | null;
+}
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  phone: string;
+}
 interface Order {
   id: number;
   order_date: string;
@@ -16,7 +30,7 @@ interface Order {
   is_active: number;
   order_details: {
     quantity: number;
-    price: string;
+    price: number;
     name: string;
     color_name: string;
     size_name: string;
@@ -26,7 +40,7 @@ interface Order {
     images: Image[];
     color: Color;
     size: Size;
-  };
+  }[];
 }
 
 interface Product {
@@ -39,11 +53,14 @@ interface Product {
 
 interface ProductVariant {
   price: number;
+  size: Size; // Thêm vào
+  color: Color;
+  images: Image[];
 }
 
 interface Image {
   id: number;
-  image_url: string;
+  image_url: any;
   alt_text: string;
 }
 
@@ -60,10 +77,15 @@ const OrderList = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showCancelForm, setShowCancelForm] = useState(false);
+  const [showRefundForm, setShowRefundForm] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [cancelOrder, setCanceldOrder] = useState<number>();
+  const [refundOrder, setRefunddOrder] = useState<number>();
   const token = localStorage.getItem("access_token");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User>();
+
   const cancelReasons = [
     "Tôi muốn cập nhật địa chỉ/số điện thoại nhận hàng.",
     "Tôi muốn thêm/thay đổi mã giảm giá.",
@@ -71,6 +93,13 @@ const OrderList = () => {
     "Thủ tục thanh toán rắc rối.",
     "Tôi tìm thấy chỗ mua khác tốt hơn (Rẻ hơn, uy tín hơn, giao nhanh hơn…).",
     "Tôi không có nhu cầu mua nữa.",
+    "Tôi không tìm thấy lý do hủy phù hợp.",
+  ];
+
+  const refundReasons = [
+    "Tôi muốn thay đổi sản phẩm (kích thước, màu sắc, số lượng…).",
+    "Thủ tục thanh toán rắc rối.",
+    "Tôi tìm thấy chỗ mua khác tốt hơn (Rẻ hơn, uy tín hơn, giao nhanh hơn…).",
     "Tôi không tìm thấy lý do hủy phù hợp.",
   ];
   const [review, setReview] = useState({
@@ -173,25 +202,129 @@ const OrderList = () => {
     // message.success("Hủy đơn hàng thành công!");
   };
 
-  const filteredOrders = Array.isArray(orders)
-    ? orders.filter((order) => {
-        const searchLower = searchTerm.toLowerCase();
+  const handleRufundSubmit = async () => {
+    if (!selectedReason) {
+      message.warning("Vui lòng chọn lý do trả hàng!");
+      return;
+    }
 
-        // Kiểm tra tên sản phẩm trong mảng order_details
-        const productMatches = Array.isArray(order.order_details)
-          ? order.order_details.some((detail) =>
-              detail.name?.toLowerCase().includes(searchLower)
-            )
-          : false;
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/orders/${refundOrder}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: "returned" }),
+        }
+      );
+      if (response.ok) {
+        message.success("Trả đơn hàng thành công!");
+      } else {
+        message.error("Trả đơn hàng thất bại!");
+      }
+    } catch (error) {
+      console.error("Error canceling order:", error);
+    }
 
-        // Kiểm tra mã đơn hàng
-        const codeMatches = order.order_code
-          ?.toLowerCase()
-          .includes(searchLower);
+    setShowRefundForm(false);
+    await fectOrders();
 
-        return productMatches || codeMatches;
-      })
-    : [];
+    // message.success("Hủy đơn hàng thành công!");
+  };
+
+  // const filteredOrders = Array.isArray(orders)
+  //   ? orders.filter((order) => {
+  //       const searchLower = searchTerm.toLowerCase();
+
+  //       // Kiểm tra tên sản phẩm trong mảng order_details
+  //       const productMatches = Array.isArray(order.order_details)
+  //         ? order.order_details.some((detail) =>
+  //             detail.name?.toLowerCase().includes(searchLower)
+  //           )
+  //         : false;
+
+  //       // Kiểm tra mã đơn hàng
+  //       const codeMatches = order.order_code
+  //         ?.toLowerCase()
+  //         .includes(searchLower);
+
+  //       // const statusOrder = order.status === selectedStatus;
+
+  //       return productMatches || codeMatches;
+  //     })
+  //   : [];
+
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
+  const handleTabClick = (status: string | null) => {
+    setSelectedStatus(status);
+  };
+
+  let filteredOrders = selectedStatus
+    ? orders.filter((order) => order.status === selectedStatus)
+    : orders;
+
+  const handleReorder = async (orderId: number) => {
+    const order = orders.filter((order) => order.id === orderId)[0];
+    console.log(order);
+
+    const cartItems: CartItem[] = order.order_details.map((detail) => ({
+      product_id: detail.product.id,
+      color_id: detail.product_variant.color.id,
+      size_id: detail.product_variant.size.id,
+      quantity: detail.quantity,
+      price: detail.product_variant.price,
+    }));
+
+    try {
+      for (const cartItem of cartItems) {
+        const response = await fetch(`http://127.0.0.1:8000/api/cart-add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(cartItem),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to add item to cart: ${cartItem.product_id}`);
+        }
+      }
+      navigate("/carts");
+      // alert("Mua lại thành công. Các sản phẩm đã được thêm vào giỏ hàng!");
+      message.success("Sản phẩm được thêm vào giỏ hàng!");
+    } catch (error) {
+      console.error(error);
+      alert("Đã xảy ra lỗi khi mua lại. Vui lòng thử lại.");
+    }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/show-user`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Lỗi khi lấy thông tin người dùng");
+        }
+        const data = await response.json();
+        console.log(data.data);
+        setUser(data.data);
+      } catch (e) {
+        console.error("L��i khi lấy thông tin người dùng", e);
+      }
+    };
+    fetchUser();
+  }, []);
 
   return (
     <div className="account-page">
@@ -203,7 +336,7 @@ const OrderList = () => {
               style={{ marginLeft: "5px", fontSize: "40px" }}
             ></i>
             <div className="profile-details" style={{ marginLeft: "10px" }}>
-              <h3>Username</h3>
+              <h3>{user?.username}</h3>
               <p>
                 {" "}
                 <EditOutlined /> Sửa hồ sơ
@@ -257,13 +390,68 @@ const OrderList = () => {
         <div className="account-info" style={{}}>
           <div className="order-info">
             <div className="order-tabs">
-              <button className="order-tab active">Tất cả</button>
-              <button className="order-tab">Chờ thanh toán</button>
-              <button className="order-tab">Vận chuyển</button>
-              <button className="order-tab">Chờ giao hàng</button>
-              <button className="order-tab">Hoàn thành</button>
-              <button className="order-tab">Đã hủy</button>
-              <button className="order-tab">Trả hàng/Hoàn tiền</button>
+              <button
+                className={`order-tab ${!selectedStatus ? "active" : ""}`}
+                onClick={() => handleTabClick(null)}
+              >
+                Tất cả
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "pending" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("pending")}
+              >
+                Đang chờ xử lý
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "shipped" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("shipped")}
+              >
+                Vận chuyển
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "delivered" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("delivered")}
+              >
+                Đã giao hàng
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "completed" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("completed")}
+              >
+                Hoàn thành
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "cancelled" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("cancelled")}
+              >
+                Đã hủy
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "returned" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("returned")}
+              >
+                Trả hàng/Hoàn tiền
+              </button>
+              <button
+                className={`order-tab ${
+                  selectedStatus === "refunded" ? "active" : ""
+                }`}
+                onClick={() => handleTabClick("refunded")}
+              >
+                Đã Hoàn tiền
+              </button>
             </div>
             <div
               className="bor17 of-hidden pos-relative"
@@ -283,6 +471,7 @@ const OrderList = () => {
             </div>
             <div
               style={{
+                marginTop: "10px",
                 overflow: "auto",
                 height: "60vh",
                 width: "100%",
@@ -290,38 +479,51 @@ const OrderList = () => {
             >
               {Array.isArray(orders) &&
                 filteredOrders.map((order, index) => (
-                  <div key={index}>
-                    <>{console.log(order)}</>
+                  <div
+                    key={index}
+                    style={{ border: "solid red 0.1px" }}
+                    className="order-item"
+                  >
+                    <>{console.log(order.id)}</>
+                    <div
+                      style={{
+                        textAlign: "right",
+                      }}
+                    >
+                      <div
+                        style={{
+                          borderBottom: "1px solid #ddd",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "20px",
+                            // fontWeight: "bold",
+                            color: "red",
+                            textTransform: "capitalize",
+                            padding: "5px 10px",
+                            backgroundColor: "#f0f0f0",
+
+                            display: "inline-block",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
                     {Array.isArray(order.order_details) &&
                       order.order_details.map((detail, detailIndex) => (
-                        <div key={detailIndex} className="order-item">
-                          {/* <>{console.log(order)}</> */}
-                          <div style={{ textAlign: "right" }}>
-                            <div
-                              style={{
-                                borderBottom: "1px solid #ddd",
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: "20px",
-                                  // fontWeight: "bold",
-                                  color: "red",
-                                  textTransform: "capitalize",
-                                  padding: "5px 10px",
-                                  backgroundColor: "#f0f0f0",
-
-                                  display: "inline-block",
-                                }}
-                              >
-                                {order.status}
-                              </span>
-                            </div>
-                          </div>
+                        <div key={detailIndex}>
+                          <>
+                            {console.log(
+                              detail.product_variant?.images[0].image_url
+                            )}
+                          </>
 
                           <div className="order-product">
                             <img
-                              src={`http://127.0.0.1:8000/storage/${detail.product_variant.images[0].image_url}`}
+                              src={`http://127.0.0.1:8000/storage/${detail.product_variant?.images[0].image_url}`}
                               alt="Sản phẩm A"
                               className="order-product-image"
                             />
@@ -339,73 +541,133 @@ const OrderList = () => {
                               </p>
                             </div>
                             <p className="order-product-price">
-                              <p className="order-product-price">
-                                {parseFloat(
-                                  detail.product_variant.price
-                                ).toLocaleString()}
-                                ₫
-                              </p>
-                            </p>
-                          </div>
-
-                          <div className="order-item-footer">
-                            <span className="order-total-label">
-                              Thành tiền:
-                            </span>
-                            <span className="order-total-price">
-                              {new Intl.NumberFormat("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                              }).format(
-                                Number(detail.product_variant.price) *
-                                  detail.quantity
+                              {parseFloat(
+                                detail.product_variant.price
+                                  .toString()
+                                  .toLowerCase()
                               )}
-                            </span>
-                          </div>
-
-                          <div className="order-item-actions">
-                            {order.status == "pending" && (
-                              <div>
-                                <button
-                                  className="order-btn order-btn-detail"
-                                  onClick={() => {
-                                    setShowCancelForm(true); // Hiển thị form hủy đơn
-                                    setCanceldOrder(order.id); // Cập nhật ID đơn hàng cần hủy
-                                  }}
-                                >
-                                  Hủy đơn hàng
-                                </button>
-
-                                <button
-                                  className="order-btn order-btn-detail"
-                                  onClick={() => {
-                                    // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
-                                    window.location.href = `/order-detail/${order.id}`;
-                                  }}
-                                >
-                                  Xem chi tiết đơn hàng
-                                </button>
-                              </div>
-                            )}
-                            {order.status == "delivered" && (
-                              <button
-                                className="order-btn order-btn-reorder"
-                                onClick={() => setShowReviewForm(true)}
-                              >
-                                Đánh giá
-                              </button>
-                            )}
-                            {order.status == "cancelled" && (
-                              <button
-                                className="order-btn order-btn-reorder"
-                                // onClick={() => setShowReviewForm(true)}
-                              >
-                                Mua Lại
-                              </button>
-                            )}
+                              ₫
+                            </p>
                           </div>
                         </div>
                       ))}
+                    <div className="order-item-footer">
+                      <span className="order-total-label">Thành tiền:</span>
+                      <span className="order-total-price">
+                        {new Intl.NumberFormat("vi-VN", {
+                          style: "currency",
+                          currency: "VND",
+                        }).format(Number(order.total_amount))}
+                      </span>
+                    </div>
+
+                    <div className="order-item-actions">
+                      {order.status == "pending" && (
+                        <div>
+                          <button
+                            className="order-btn order-btn-detail"
+                            onClick={() => {
+                              setShowCancelForm(true); // Hiển thị form hủy đơn
+                              setCanceldOrder(order.id); // Cập nhật ID đơn hàng cần hủy
+                            }}
+                          >
+                            Hủy đơn hàng
+                          </button>
+
+                          <button
+                            style={{
+                              backgroundColor: "red",
+                              margin: "5px",
+                              color: "white",
+                            }}
+                            className="order-btn order-btn-detail"
+                            onClick={() => {
+                              // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
+                              window.location.href = `/order-detail/${order.id}`;
+                            }}
+                          >
+                            Xem chi tiết đơn hàng
+                          </button>
+                        </div>
+                      )}
+                      {order.status == "delivered" && (
+                        <div>
+                          <button
+                            className="order-btn order-btn-detail"
+                            onClick={() => {
+                              setShowRefundForm(true); // Hiển thị form hủy đơn
+                              setRefunddOrder(order.id); // Cập nhật ID đơn hàng cần hủy
+                            }}
+                          >
+                            Trả Hàng
+                          </button>
+
+                          <button
+                            style={{
+                              backgroundColor: "red",
+                              margin: "5px",
+                              color: "white",
+                            }}
+                            className="order-btn order-btn-reorder"
+                            onClick={() => setShowReviewForm(true)}
+                          >
+                            Đánh giá
+                          </button>
+                        </div>
+                      )}
+                      {order.status == "shipped" && (
+                        <button
+                          style={{
+                            backgroundColor: "red",
+                            margin: "5px",
+                            color: "white",
+                          }}
+                          className="order-btn order-btn-detail"
+                          onClick={() => {
+                            // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
+                            window.location.href = `/order-detail/${order.id}`;
+                          }}
+                        >
+                          Xem chi tiết đơn hàng
+                        </button>
+                      )}
+                      {order.status == "completed" && (
+                        // <Link to={`/products/${order.pro}`}>
+                        <button
+                          className="order-btn order-btn-reorder"
+                          // onClick={() => setShowReviewForm(true)}
+                          onClick={() => handleReorder(order.id)}
+                        >
+                          Mua Lại
+                        </button>
+                        // </Link>
+                      )}
+                      {order.status == "refunded" && (
+                        <button
+                          className="order-btn order-btn-reorder"
+                          onClick={() => handleReorder(order.id)}
+                        >
+                          Mua Lại
+                        </button>
+                      )}
+
+                      {order.status == "returned" && (
+                        <button
+                          className="order-btn order-btn-reorder"
+                          onClick={() => handleReorder(order.id)}
+                        >
+                          Mua Lại
+                        </button>
+                      )}
+                      {order.status == "cancelled" && (
+                        <button
+                          className="order-btn order-btn-reorder"
+                          onClick={() => handleReorder(order.id)}
+                        >
+                          Mua Lại
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -487,6 +749,40 @@ const OrderList = () => {
             value={selectedReason}
           >
             {cancelReasons.map((reason, index) => (
+              <Radio key={index} value={reason}>
+                {reason}
+              </Radio>
+            ))}
+          </Radio.Group>
+        </Modal>
+
+        {/* Modal Trả đơn hàng */}
+        <Modal
+          title="Lý Do Trả"
+          visible={showRefundForm}
+          onCancel={() => setShowRefundForm(false)}
+          footer={[
+            // <Button key="cancel" onClick={() => setShowCancelForm(false)}>
+            //   KHÔNG PHẢI BÂY GIỜ
+            // </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              onClick={handleRufundSubmit}
+              disabled={!selectedReason} // Vô hiệu hóa nếu chưa chọn lý do
+            >
+              Hủy Đơn Hàng
+            </Button>,
+          ]}
+        >
+          <div style={{ marginBottom: "15px", color: "#FF8800" }}>
+            <em>Chọn lý do hủy phù hợp nhất với bạn nhé!</em>
+          </div>
+          <Radio.Group
+            onChange={(e) => setSelectedReason(e.target.value)}
+            value={selectedReason}
+          >
+            {refundReasons.map((reason, index) => (
               <Radio key={index} value={reason}>
                 {reason}
               </Radio>

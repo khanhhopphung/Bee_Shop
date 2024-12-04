@@ -16,6 +16,7 @@ Route::get('all-products',[ProductController::class, 'indexClient']);
 Route::get('products/category/{category?}', [ProductController::class, 'filter'])->name('products.category');
 
 Route::get('products/{id}/variants', [ProductController::class, 'getVariants']);
+Route::get('latest-products', [ProductController::class, 'latestProducts']);
 
 
 Route::apiResource('products', ProductController::class);

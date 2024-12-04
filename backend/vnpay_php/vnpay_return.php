@@ -9,15 +9,16 @@
         <meta name="author" content="">
         <title>VNPAY RESPONSE</title>
         <!-- Bootstrap core CSS -->
-        <link href="/vnpay_php/assets/bootstrap.min.css" rel="stylesheet"/>
+        <link href="http://localhost/Bee_Shop/backend/vnpay_php/assets/bootstrap.min.css" rel="stylesheet"/>
         <!-- Custom styles for this template -->
-        <link href="/vnpay_php/assets/jumbotron-narrow.css" rel="stylesheet">         
-        <script src="/vnpay_php/assets/jquery-1.11.3.min.js"></script>
+        <link href="http://localhost/Bee_Shop/backend/vnpay_php/assets/jumbotron-narrow.css" rel="stylesheet">         
+        <script src="http://localhost/Bee_Shop/backend/vnpay_php/assets/jquery-1.11.3.min.js"></script>
     </head>
     <body>
         <?php
-        require_once("./config.php");
+        // require_once("./config.php");
         $vnp_SecureHash = $_GET['vnp_SecureHash'];
+        // $vnp_SecureHash = "55TYK0C9CIEB0Q8MU57B3XCUGEFT9J0C";
         $inputData = array();
         foreach ($_GET as $key => $value) {
             if (substr($key, 0, 4) == "vnp_") {
@@ -78,6 +79,8 @@
                 </div> 
                 <div class="form-group">
                     <label >Kết quả:</label>
+                    <p><?php echo $secureHash ?></p>
+                    <p><?php echo $vnp_SecureHash ?></p>
                     <label>
                         <?php
                         if ($secureHash == $vnp_SecureHash) {
