@@ -483,7 +483,13 @@ const Products: React.FC = () => {
                 return size ? size.size_name : "N/A";
               },
             },
-            { title: "price", dataIndex: "price", key: "price" },
+            {
+              title: "Price",
+              dataIndex: "price",
+              key: "price",
+              render: (text) => `${text} đ`
+            },
+            
 
             { title: "Stock", dataIndex: "stock", key: "stock" },
             {

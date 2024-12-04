@@ -130,25 +130,38 @@ class OrderController extends Controller
      * Update the specified resource in storage.
      */
     public function update(UpdateOrderRequest $request, Order $order)
-    {
-        // Update the order's fields, including order_code
+{
+    // Update the order's fields if new values are provided
+    if ($request->filled('status')) {
         $order->status = $request->status;
-        $order->payment_method = $request->payment_method;
-        $order->shipping_cost = $request->shipping_cost;
-        $order->address_id = $request->address_id; // Ensure you're using the correct address_id
-        $order->order_code = $request->order_code; // Allow updating order_code
-
-        // Update 'is_active' if present in the request
-        if ($request->has('is_active')) {
-            $order->is_active = $request->is_active;
-        }
-
-        $order->save();
-        return response()->json([
-            'message' => 'Order updated successfully!',
-            'order' => $order->load('address', 'promotion', 'orderDetails'), // Include relationships in response
-        ], 200);
     }
+    if ($request->filled('payment_method')) {
+        $order->payment_method = $request->payment_method;
+    }
+    if ($request->filled('shipping_cost')) {
+        $order->shipping_cost = $request->shipping_cost;
+    }
+    if ($request->filled('address_id')) {
+        $order->address_id = $request->address_id; // Ensure you're using the correct address_id
+    }
+    if ($request->filled('order_code')) {
+        $order->order_code = $request->order_code; // Allow updating order_code
+    }
+
+    // Update 'is_active' if present in the request
+    if ($request->has('is_active')) {
+        $order->is_active = $request->is_active;
+    }
+
+    // Save the updated order
+    $order->save();
+
+    return response()->json([
+        'message' => 'Order updated successfully!',
+        'order' => $order->load('address', 'promotion', 'orderDetails'), // Include relationships in response
+    ], 200);
+}
+
 
     /**
      * Remove the specified resource from storage.

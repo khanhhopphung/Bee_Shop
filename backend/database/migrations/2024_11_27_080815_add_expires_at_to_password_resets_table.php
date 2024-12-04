@@ -13,9 +13,11 @@ class AddExpiresAtToPasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::table('password_resets', function (Blueprint $table) {
-            $table->timestamp('expires_at')->nullable();
-        });
+        if (!Schema::hasColumn('password_resets', 'expires_at')) {
+            Schema::table('password_resets', function (Blueprint $table) {
+                $table->timestamp('expires_at')->nullable();
+            });
+        }
     }
 
     /**
