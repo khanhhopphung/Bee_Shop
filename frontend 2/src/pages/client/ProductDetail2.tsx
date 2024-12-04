@@ -95,7 +95,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
   const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
   const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [stock, setStock] = useState<number>(0);
+  const [stock, setStock] = useState<number | undefined>();
   const [price, setPrice] = useState<number | null>(null);
   const [colors, setColor] = useState<Color[]>([]);
   const [quantity, setQuantity] = useState(1);
@@ -545,7 +545,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                                 type="number"
                                 name="num-product"
                                 min="1"
-                                max={10}
+                                max={stock ? stock : 1}
                                 value={quantity}
                                 onChange={handle}
                               />
@@ -553,7 +553,10 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                                 className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
                                 onClick={() =>
                                   setQuantity((preQuantity) =>
-                                    Math.min(preQuantity + 1, 10)
+                                    Math.min(
+                                      preQuantity + 1,
+                                      stock ? stock - 1 : 1
+                                    )
                                   )
                                 }
                               >

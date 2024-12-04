@@ -104,7 +104,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                       <input
                         type="text"
                         className="form-control signup-name"
-                        placeholder="Username :"
+                        placeholder="Tên đăng nhập hoặc email"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                       />
@@ -113,7 +113,7 @@ const Login: React.FC<LoginProps> = ({ updateUserName }) => {
                       <input
                         type="password"
                         className="form-control signin-password"
-                        placeholder="Password"
+                        placeholder="Mật khẩu"
                         onChange={(e) => setPassword(e.target.value)}
                         autoComplete="current-password"
                       />

@@ -104,7 +104,7 @@ const Register: React.FC = () => {
                       name="signup-name"
                       type="text"
                       className="form-control signup-name"
-                      placeholder="Username :"
+                      placeholder="Tên đăng nhập"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required

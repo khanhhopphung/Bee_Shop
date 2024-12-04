@@ -4325,3 +4325,164 @@ hr {
   border: none;
   border-top: 1px solid #ddd;
 }
+/* Modal Container */
+/* .address-inputs {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.address-card {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.address-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.address-checkbox {
+  margin-right: 15px;
+}
+
+.address-name,
+.address-phone {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.address-content span.separator {
+  margin: 0 10px;
+  color: #999;
+}
+*/
+.address-details {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  flex: 1;
+  margin-left: 20px;
+}
+
+.update.address {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+}
+
+.update.address:hover {
+  background-color: red;
+}
+.add-address-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.add-address-container button {
+  background-color: #007bff;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+/* .add-address-container button:hover {
+  background-color: #0056b3;
+} */
+.sort-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
+  background-color: #f7f7f7;
+  margin-bottom: 12px;
+  /* border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  margin-top: -52px;
+}
+
+.sort-label {
+  font-size: 16px;
+  color: #555;
+}
+
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Thêm khoảng cách giữa các nút */
+  margin-left: 30px;
+}
+
+.sort-option {
+  background-color: white;
+  border: none;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sort-option:hover {
+  background-color: #f0f0f0;
+  /* color: #ff5722;  */
+}
+
+.sort-option.active {
+  background-color: #717fe0;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 160px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  padding: 10px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  color: #555;
+  padding: 8px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: #f0f0f0;
+  /* color: #ff5722; */
+}

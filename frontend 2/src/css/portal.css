@@ -289,10 +289,10 @@ address {
   font-style: normal;
   line-height: inherit;
 }
-ol,
+/* ol,
 ul {
   padding-left: 2rem;
-}
+} */
 ol,
 ul,
 dl {

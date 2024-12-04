@@ -101,14 +101,14 @@ const Adrress: React.FC = () => {
 
   // Show Modal and populate with selected address data
   const showModal = (address: Adrresses) => {
-    setSelectedAddress(address); // Set the selected address
-    form.setFieldsValue(address); // Populate form fields with address data
+    setSelectedAddress(address);
+    form.setFieldsValue(address);
     setIsModalOpen(true);
   };
 
   const handleOk = async () => {
     try {
-      const values = await form.validateFields(); // Validate form fields
+      const values = await form.validateFields();
       if (selectedAddress) {
         const response = await fetch(
           `http://127.0.0.1:8000/api/update-address/${selectedAddress.id}`,
@@ -137,7 +137,7 @@ const Adrress: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false); // Close modal if user cancels
+    setIsModalOpen(false);
   };
 
   return (
@@ -320,7 +320,7 @@ const Adrress: React.FC = () => {
                           </Modal>
                           <Popconfirm
                             title="Xóa sản phẩm"
-                            description="Bạn có chắc muốn xóa sản phẩm này không?"
+                            description="Bạn có chắc muốn xóa địa chỉ này không?"
                             onConfirm={() =>
                               handleDeleteAddress(Number(address.id))
                             }

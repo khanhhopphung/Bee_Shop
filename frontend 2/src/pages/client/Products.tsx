@@ -25,17 +25,20 @@ const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([
     { id: 0, name: "Tất cả sản phẩm" }, // Đối tượng phải nằm trong ngoặc nhọn
   ]);
+  // Khai báo state cho sắp xếp
+  const [selectedSort, setSelectedSort] = useState<string>("related");
+  const [selectedPrice, setSelectedPrice] = useState<string>();
   const dispatch = useDispatch<AppDispatch>();
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("Tất cả sản phẩm");
   const [selectedCategory, setSelectedCategory] = useState(0);
-  const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const key = useSelector((state: RootState) => state.Search.key);
   const [list, setList] = useState([]);
   const [currentPage, setCurrentPage] = useState<number>(1); // Trạng thái cho trang hiện tại
   const productsPerPage = 12;
+  const [productCache, setProductCache] = useState<Product[]>([]);
 
   // call api category
 
@@ -81,6 +84,7 @@ const Products: React.FC = () => {
         // Kiểm tra nếu có dữ liệu và nó là một mảng
         if (result && result.data && Array.isArray(result.data)) {
           setProducts(result.data);
+          setProductCache(result.data);
         } else {
           console.error("Data is not valid:", result);
         }
@@ -92,6 +96,54 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // Sắp xếp sản phẩm theo giá trị đã chọn
+  useEffect(() => {
+    let sortedProducts: Product[] = [...products];
+    if (selectedPrice === "highToLow") {
+      sortedProducts.sort((a, b) => b.price_min - a.price_min);
+    } else if (selectedPrice === "lowToHigh") {
+      sortedProducts.sort((a, b) => a.price_min - b.price_min);
+    }
+    setProducts(sortedProducts);
+  }, [selectedPrice]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      console.log(selectedSort);
+      await selected();
+    };
+    fetchProducts();
+  }, [selectedSort]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      console.log(selectedSort);
+      await selectednewest();
+    };
+    fetchProducts();
+  }, [selectedSort]);
+
+  const selected = async () => {
+    if (selectedSort === "bestSeller") {
+      const response = await fetch("http://127.0.0.1:8000/api/best-products");
+      const result = await response.json();
+      console.log(result);
+      if (result && result.data && Array.isArray(result.data)) {
+        setProducts(result.data);
+      }
+    } else if (selectedSort === "related") {
+      setProducts(productCache);
+    }
+  };
+  const selectednewest = async () => {
+    if (selectedSort === "newest") {
+      const response = await fetch(`http://127.0.0.1:8000/api/latest-products`);
+      const result = await response.json();
+      console.log(result);
+      if (result && result.data && Array.isArray(result.data)) {
+        setProducts(result.data);
+      }
+    }
+  };
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     // setSearch(event.target.value);
     dispatch(setSearchRedux(event.target.value));
@@ -99,7 +151,6 @@ const Products: React.FC = () => {
 
   const handleFilter = (id: number) => {
     setSelectedCategory(id);
-    // setSelectedFilter(filter);
   };
 
   const [isVisible, setIsVisible] = useState(false);
@@ -163,9 +214,8 @@ const Products: React.FC = () => {
 
             {/* Thêm khoảng cách 2cm ở đây */}
             <div className="ml-8">
-              {" "}
-              {/* Bạn có thể thay đổi giá trị này nếu cần */}
-              <div className="bor8 dis-flex p-l-15 align-center">
+              {/* tìm kiếm*/}
+              {/* <div className="bor8 dis-flex p-l-15 align-center">
                 <button className="size-113 flex-c-m fs-16 cl2 hov-cl1 trans-04">
                   <i className="zmdi zmdi-search"></i>
                 </button>
@@ -176,7 +226,7 @@ const Products: React.FC = () => {
                   value={key}
                   onChange={handleSearch}
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -193,47 +243,11 @@ const Products: React.FC = () => {
           }}
         >
           <div className="wrap-filter flex-w bg6 w-full p-lr-40 p-t-27 p-lr-15-sm">
-            <div className="filter-col1 p-r-15 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Lọc theo</div>
-              <ul>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Mặc định
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Mua nhiều
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a
-                    href="#"
-                    className="filter-link stext-106 trans-04 filter-link-active"
-                  >
-                    Mới nhất
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Giá: Thấp đến cao
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Price: Cao đến thấp
-                  </a>
-                </li>
-              </ul>
-            </div>
             <div className="filter-col2 p-r-15 p-b-27">
               <div className="mtext-102 cl2 p-b-15">Giá</div>
               <ul>
                 <li className="p-b-6">
-                  <a
-                    href="#"
-                    className="filter-link stext-106 trans-04 filter-link-active"
-                  >
+                  <a href="#" className="filter-link stext-106 trans-04 ">
                     Tất cả
                   </a>
                 </li>
@@ -259,107 +273,85 @@ const Products: React.FC = () => {
                 </li>
               </ul>
             </div>
-            <div className="filter-col3 p-r-15 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Màu sắc</div>
+            <div className="filter-col2 p-r-15 p-b-27">
+              <div className="mtext-102 cl2 p-b-15">Kích cỡ</div>
               <ul>
                 <li className="p-b-6">
-                  <span className="fs-15 lh-12 m-r-6" style={{ color: "#222" }}>
-                    <i className="zmdi zmdi-circle" />
-                  </span>
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Đen
+                  <a href="#" className="filter-link stext-106 trans-04 ">
+                    Tất cả
                   </a>
                 </li>
                 <li className="p-b-6">
-                  <span
-                    className="fs-15 lh-12 m-r-6"
-                    style={{ color: "#4272d7" }}
-                  >
-                    <i className="zmdi zmdi-circle" />
-                  </span>
-                  <a
-                    href="#"
-                    className="filter-link stext-106 trans-04 filter-link-active"
-                  >
-                    Xanh
+                  <a href="#" className="filter-link stext-106 trans-04">
+                    Size S
                   </a>
                 </li>
                 <li className="p-b-6">
-                  <span
-                    className="fs-15 lh-12 m-r-6"
-                    style={{ color: "#b3b3b3" }}
-                  >
-                    <i className="zmdi zmdi-circle" />
-                  </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Xám
+                    Size M
                   </a>
                 </li>
                 <li className="p-b-6">
-                  <span
-                    className="fs-15 lh-12 m-r-6"
-                    style={{ color: "#00ad5f" }}
-                  >
-                    <i className="zmdi zmdi-circle" />
-                  </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Xánh lá
+                    Size L
                   </a>
                 </li>
                 <li className="p-b-6">
-                  <span
-                    className="fs-15 lh-12 m-r-6"
-                    style={{ color: "#fa4251" }}
-                  >
-                    <i className="zmdi zmdi-circle" />
-                  </span>
                   <a href="#" className="filter-link stext-106 trans-04">
-                    Đỏ
-                  </a>
-                </li>
-                <li className="p-b-6">
-                  <span className="fs-15 lh-12 m-r-6" style={{ color: "#aaa" }}>
-                    <i className="zmdi zmdi-circle-o" />
-                  </span>
-                  <a href="#" className="filter-link stext-106 trans-04">
-                    Trắng
+                    Size XL
                   </a>
                 </li>
               </ul>
             </div>
-            <div className="filter-col4 p-b-27">
-              <div className="mtext-102 cl2 p-b-15">Tags</div>
-              <div className="flex-w p-t-4 m-r--5">
-                <a
-                  href="#"
-                  className="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5"
-                >
-                  Fashion
-                </a>
-                <a
-                  href="#"
-                  className="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5"
-                >
-                  Lifestyle
-                </a>
-                <a
-                  href="#"
-                  className="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5"
-                >
-                  Denim
-                </a>
-                <a
-                  href="#"
-                  className="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5"
-                >
-                  Streetstyle
-                </a>
-                <a
-                  href="#"
-                  className="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5"
-                >
-                  Crafts
-                </a>
+            {/* Nút lọc */}
+            <div>
+              <button onClick={() => console.log("Apply filter")}>Lọc</button>
+            </div>
+          </div>
+        </div>
+        <div className="sort-section">
+          <span className="sort-label">Sắp xếp theo</span>
+          <div className="sort-options">
+            <button
+              className={`sort-option ${
+                selectedSort === "related" ? "active" : ""
+              }`}
+              onClick={() => setSelectedSort("related")}
+            >
+              Mặc định
+            </button>
+            <button
+              className={`sort-option ${
+                selectedSort === "newest" ? "active" : ""
+              }`}
+              onClick={() => setSelectedSort("newest")}
+            >
+              Mới Nhất
+            </button>
+            <button
+              className={`sort-option ${
+                selectedSort === "bestSeller" ? "active" : ""
+              }`}
+              onClick={() => setSelectedSort("bestSeller")}
+            >
+              Bán Chạy
+            </button>
+            <div className="dropdown">
+              <button className="sort-option">
+                {selectedPrice === "lowToHigh"
+                  ? "Giá: Thấp đến Cao"
+                  : selectedPrice === "highToLow"
+                  ? "Giá: Cao đến Thấp"
+                  : "Giá"}{" "}
+                <i className="fa fa-chevron-down"></i>
+              </button>
+              <div className="dropdown-content">
+                <button onClick={() => setSelectedPrice("lowToHigh")}>
+                  Giá: Thấp đến Cao
+                </button>
+                <button onClick={() => setSelectedPrice("highToLow")}>
+                  Giá: Cao đến Thấp
+                </button>
               </div>
             </div>
           </div>

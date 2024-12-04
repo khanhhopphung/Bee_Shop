@@ -22,9 +22,9 @@ use App\Models\ProductVariant;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   public function __construct(){
+    $this->autoUpdateStatus();
+   }
     public function index()
     {
         // Load the necessary relationships and include order_code
@@ -32,6 +32,21 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function autoUpdateStatus() {
+   
+        $orders = Order::where('status', 'delivered')
+            ->where('updated_at', '<=', now()->subDays(7)) // So sánh 'updated_at' với thời gian 7 ngày trước
+            ->get();
+    
+        foreach ($orders as $order) {           
+            $order->status = 'completed';
+            $order->save();
+        }
+    }
+    
+    // Gọi hàm autoUpdateStatus để chạy
+    
+   
     /**
      * Store a newly created resource in storage.
      */
@@ -77,6 +92,11 @@ class OrderController extends Controller
 
             // Create order details and delete cart items
             foreach ($cartDetails as $cartDetail) {
+                $variant = $cartDetail->productVariant()->get();
+                if ($variant) {
+                    $variant->first()->stock -= $cartDetail->quantity;
+                    $variant->first()->save(); // Cập nhật lại số lượng sản phẩm sau mua hàng
+                }
                 OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $cartDetail->product_id,
@@ -132,11 +152,11 @@ class OrderController extends Controller
     public function update(UpdateOrderRequest $request, Order $order)
     {
         // Update the order's fields, including order_code
-        $order->status = $request->status;
-        $order->payment_method = $request->payment_method;
-        $order->shipping_cost = $request->shipping_cost;
-        $order->address_id = $request->address_id; // Ensure you're using the correct address_id
-        $order->order_code = $request->order_code; // Allow updating order_code
+        $order->status = $request->status ?? $order->status;
+        $order->payment_method = $request->payment_method  ?? $order->payment_method;
+        $order->shipping_cost = $request->shipping_cost ?? $order->shipping_cost;
+        $order->address_id = $request->address_id  ?? $order->address_id; // Ensure you're using the correct address_id
+        $order->order_code = $request->order_code ?? $order->order_code; // Allow updating order_code
 
         // Update 'is_active' if present in the request
         if ($request->has('is_active')) {
@@ -232,6 +252,19 @@ public function getOneOrderByUser(string $id)
     {
         try {
             if ($order->status == 'pending') {
+                // cộng lại số lượng biến thể
+                $orderDetails = $order->orderDetails()->get();
+                foreach($orderDetails as $orderDetail){
+                $variant= $orderDetail->product_variant()->first();
+                $variant->stock += $orderDetail->quantity;
+                $variant->save();
+
+
+                }
+                // $variant->stock += $order->orderDetails[0]->quantity;
+                // $variant->save();
+
+                
                 $order->status = 'cancelled';
                 $order->save();
             } else {

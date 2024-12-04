@@ -64,7 +64,7 @@ Route::get('get-reviews-by-product/{productId}', [ReviewController::class,'getAl
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/get-adrress-user', [UserController::class,'allAddressesUser']);
-    Route::put('/update-default-address-user/{id}', [UserController::class,'updateDefaultAddressesUser']);
+    Route::put('/update-default-address-user', [UserController::class,'updateDefaultAddressesUser']);
     Route::put('/update-address/{id}', [UserController::class, 'updateAddress']);
     Route::delete('/delete-address-user/{id}', [UserController::class,'deleteAddress']);
     Route::post('/post-address-user', [UserController::class,'addAddress']);
@@ -90,7 +90,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 
 //Thanh toán vn pay
 Route::post('/payment-vnpay', [PaymentController::class, 'vnPay']);
-Route::get('/vnpay-return', [PaymentController::class, 'paymentReturn']);
+Route::post('/vnpay-return', [PaymentController::class, 'paymentReturn']);
 // Route::post('/payment-vnpay-callback', [PaymentController::class, 'paymentVnpayCallback']);
 // Route::post('/payment-vnpay-cancel', [PaymentController::class, 'paymentVnpayCancel']);
 // Route::post('/payment-vnpay-return', [PaymentController::class, 'paymentVnpayReturn']);
