@@ -1,16 +1,50 @@
-import React from "react";
-import { Layout, Menu } from "antd";
+import React, { useEffect, useState } from "react";
+import { Layout, Menu, Spin } from "antd";
 import {
   ShoppingCartOutlined,
   FileTextOutlined,
   UserOutlined,
   PieChartOutlined,
 } from "@ant-design/icons";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 
 const { Header, Content, Footer, Sider } = Layout;
 
+interface User {
+  role_id: number;
+  // Thêm các thuộc tính khác của user nếu cần
+}
+
 const AdminLayout = () => {
+  const [user, setUser] = useState<User | null>(null); // Lưu thông tin người dùng
+  const [loading, setLoading] = useState<boolean>(true); // Trạng thái loading khi lấy dữ liệu
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      const parsedUser: User = JSON.parse(userData);
+      setUser(parsedUser);
+      setLoading(false); // Dữ liệu người dùng đã được tải, tắt loading
+    } else {
+      setLoading(false); // Nếu không có thông tin người dùng, tắt loading
+      navigate("/login"); // Điều hướng đến trang đăng nhập
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user) {
+      // Kiểm tra quyền truy cập của người dùng
+      if (user.role_id != 2) {
+        navigate("/login"); // Điều hướng nếu người dùng không có quyền admin
+      }
+    }
+  }, [user, navigate]);
+
+  if (loading) {
+    return <Spin tip="Đang tải dữ liệu..." />; // Hiển thị loading khi đang lấy dữ liệu
+  }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider>
@@ -26,12 +60,11 @@ const AdminLayout = () => {
           </Menu.Item>
           <Menu.Item key="4" icon={<ShoppingCartOutlined />}>
             <Link to="/admin/orders">Quản lý đơn hàng</Link>
-          </Menu.Item>      
+          </Menu.Item>
           <Menu.Item key="5" icon={<FileTextOutlined />}>
             <Link to="/admin/reviews">Quản lý bình luận</Link>
           </Menu.Item>
           <Menu.Item key="6" icon={<FileTextOutlined />}>
-
             <Link to="/admin/product-variants">Quản lý biến thể</Link>
           </Menu.Item>
           <Menu.Item key="7" icon={<FileTextOutlined />}>
@@ -43,10 +76,6 @@ const AdminLayout = () => {
           <Menu.Item key="9" icon={<PieChartOutlined />}>
             <Link to="/admin/statistics">Thống kê</Link>
           </Menu.Item>
-          <Menu.Item key="10" icon={<FileTextOutlined />}>
-            <Link to="/Login">Login admin </Link>
-          </Menu.Item>
-  
         </Menu>
       </Sider>
       <Layout>
@@ -63,3 +92,5 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+
+

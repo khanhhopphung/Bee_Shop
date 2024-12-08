@@ -167,6 +167,12 @@ const ProductVariants: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const accessToken = localStorage.getItem("access_token");
+  
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
     const formData = new FormData();
 
     formData.append("product_id", values.product_id);
@@ -493,22 +499,37 @@ const ProductVariants: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-            name="price"
-            label="Giá"
-            rules={[{ required: true, message: "Vui lòng nhập giá" }]}
-          >
-            <Input type="number" placeholder="Nhập giá" />
-          </Form.Item>
+  name="price"
+  label="Giá"
+  rules={[
+    { required: true, message: "Vui lòng nhập giá" },
+    {
+      type: "number",
+      min: 0,
+      message: "Giá không được nhỏ hơn 0",
+      transform: (value) => Number(value),
+    },
+  ]}
+>
+  <Input type="number" placeholder="Nhập giá" />
+</Form.Item>
 
-          <Form.Item
-            name="stock"
-            label="Tồn kho"
-            rules={[
-              { required: true, message: "Vui lòng nhập số lượng tồn kho" },
-            ]}
-          >
-            <Input type="number" placeholder="Nhập tồn kho" />
-          </Form.Item>
+<Form.Item
+  name="stock"
+  label="Tồn kho"
+  rules={[
+    { required: true, message: "Vui lòng nhập số lượng tồn kho" },
+    {
+      type: "number",
+      min: 0,
+      message: "Tồn kho không được nhỏ hơn 0",
+      transform: (value) => Number(value),
+    },
+  ]}
+>
+  <Input type="number" placeholder="Nhập tồn kho" />
+</Form.Item>
+
 
           <Form.Item name="is_active" label="Hoạt động" valuePropName="checked">
             <Switch defaultChecked />

@@ -136,6 +136,12 @@ const Blogs: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const accessToken = localStorage.getItem("access_token");
+  
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
     try {
       const formData = new FormData();
       formData.append('title', values.title);

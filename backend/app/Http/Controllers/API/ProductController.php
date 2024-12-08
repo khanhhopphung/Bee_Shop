@@ -26,26 +26,7 @@ class ProductController extends BaseController
     {
         $this->model = Product::class;
     }
-    public function getVariants($id)
-{
-    try {
-        // Kiểm tra sản phẩm tồn tại
-        $product = Product::findOrFail($id);
 
-        // Lấy biến thể của sản phẩm
-        $productVariants = $product->productVariants; 
-       
-        return response()->json([
-            'success' => true,
-            'data' => $productVariants,
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Không thể lấy biến thể sản phẩm.',
-        ], 500);
-    }
-}
 
     public function bestProduct()
 {
@@ -295,9 +276,6 @@ class ProductController extends BaseController
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
@@ -521,6 +499,60 @@ class ProductController extends BaseController
     });
 
     return BaseController::success($relatedProducts);
+}
+public function getVariants($id)
+{
+    try {
+        // Kiểm tra sản phẩm tồn tại
+        $product = Product::findOrFail($id);
+
+        // Lấy biến thể của sản phẩm và eager load mối quan hệ với 'images'
+        $productVariants = $product->productVariants()
+            ->with('images') // Nạp ảnh liên quan đến biến thể
+            ->get();
+
+        // Trả về dữ liệu thành công
+        return response()->json([
+            'success' => true,
+            'data' => $productVariants,
+        ]);
+    } catch (\Exception $e) {
+        // Trả về lỗi nếu có sự cố
+        return response()->json([
+            'success' => false,
+            'message' => 'Không thể lấy biến thể sản phẩm.',
+        ], 500);
+    }
+}
+
+// Thêm phương thức mới trong ProductController
+
+public function latestProducts()
+{
+    // Lấy các sản phẩm mới nhất (sắp xếp theo ngày tạo giảm dần)
+    $products = Product::with(['productVariants.images'])
+        ->latest('created_at') // Sắp xếp theo ngày tạo giảm dần
+        ->take(10) // Lấy 10 sản phẩm mới nhất
+        ->get();
+
+    // Map các thông tin cần thiết cho mỗi sản phẩm
+    $products->map(function ($product) {
+        // Tính tổng tồn kho của tất cả các biến thể sản phẩm
+        $product['stock'] = $product->productVariants->sum('stock');
+        // Tính giá tối đa và tối thiểu của sản phẩm
+        $product['price_max'] = $product->productVariants->max('price');
+        $product['price_min'] = $product->productVariants->min('price');
+        
+        // Lấy thông tin hình ảnh của sản phẩm (ví dụ: hình ảnh chính)
+        $image = $product->image()->first();
+        $product['image_url'] = $image ? $image->image_url : null;
+        $product['alt_text'] = $image ? $image->alt_text : null;
+
+        return $product;
+    });
+
+    // Trả về danh sách sản phẩm dưới dạng JSON
+    return $this->success($products);
 }
 
 }

@@ -145,7 +145,6 @@ const UpdatePass = () => {
               <h3>{user?.username}</h3>
 
               <p>
-                {" "}
                 <EditOutlined /> Sửa hồ sơ
               </p>
             </div>

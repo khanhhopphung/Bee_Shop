@@ -69,6 +69,7 @@ interface Order {
 
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryParams = new URLSearchParams(window.location.search);
 
   const [isFirstPage, setIsFirstPage] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -80,9 +81,7 @@ const PaymentPage: React.FC = () => {
   const savedCartDetailOrder: number[] = JSON.parse(
     localStorage.getItem("cartDetailOrder") || "[]"
   );
-  const [addressId, setAddressId] = useState<number>();
-  const [address, setAddress] = useState<Address[]>([]);
-  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
+
   const [order, setOrderdata] = useState<Order>();
   const [loading, setLoading] = useState(false); // Thêm trạng thái loading
   const [form] = Form.useForm();
@@ -90,9 +89,12 @@ const PaymentPage: React.FC = () => {
   const [code, setCode] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [idVoucher, setIdVoucher] = useState<number>();
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+
+  const [addressId, setAddressId] = useState<number>();
+  const [address, setAddress] = useState<Address[]>([]);
+  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
+
   useEffect(() => {
     // setTimeout(() => {
     if (address) {
@@ -103,16 +105,91 @@ const PaymentPage: React.FC = () => {
     // }, 200);
   }, [address]);
 
-  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  // Kiểu cho các tham số
+  const checkPrime = (
+    // e: React.ChangeEvent<HTMLInputElement>,
+    addressId: number
+  ) => {
+    // Cập nhật trạng thái của địa chỉ mới được chọn
+    const updatedAddresses = address.map((addr) => {
+      if (addr.id === addressId) {
+        return { ...addr, is_default: 1 };
+      }
+      return { ...addr, is_default: 0 };
+    });
 
-  const checkPrime = (e: any, id: number | string) => {
-    console.log("run");
-    if (e.target.checked) {
-      id = Number(id);
-      setAddressId(id);
+    // Cập nhật lại state của địa chỉ
+    setAddress(updatedAddresses);
+  };
+  // call api update địa chỉ
+  const updateAddress = async () => {
+    // try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/update-default-address-user`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: addressId }), // Đưa body ra ngoài headers
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setAddress(data.addresses);
     }
   };
+  useEffect(() => {
+    if (isFirstPage == false) {
+      console.log("running first page");
+      updateAddress();
+    }
+  }, [addressId]);
+  // call api chi tiết giỏ hàng
 
+  // call api địa chỉ người dùng
+  const get = async () => {
+    const response = await fetch(`http://127.0.0.1:8000/api/get-adrress-user`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setAddress(data.data);
+    }
+  };
+  useEffect(() => {
+    get();
+  }, []);
+  useEffect(() => {
+    const get = async (ids: number[]) => {
+      // try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/carts-detail-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ids }),
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCarts(data.cart_details);
+      }
+    };
+    get(savedCartDetailOrder);
+  }, []);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
   const [discountCodes, setDiscountCodes] = useState<
     { code: string; description: string }[]
   >([]);
@@ -165,77 +242,7 @@ const PaymentPage: React.FC = () => {
       }, 0)
     );
   }, [carts]);
-  // call api update địa chỉ
-  const updateAddress = async () => {
-    // try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/update-address-user`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: addressId }), // Đưa body ra ngoài headers
-      }
-    );
-    if (response.ok) {
-      const data = await response.json();
-      setAddress(data.addresses);
-    }
-  };
-  useEffect(() => {
-    if (isFirstPage == false) {
-      console.log("running first page");
-      updateAddress();
-    }
-    console.log("dont running first page");
-  }, [addressId]);
-  // call api chi tiết giỏ hàng
 
-  // call api địa chỉ người dùng
-  const get = async () => {
-    // try {
-    const response = await fetch(`http://127.0.0.1:8000/api/get-adrress-user`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setAddress(data.data);
-    }
-    // } catch (error) {
-    //   message.error("Đã có lỗi xảy ");
-    // }
-  };
-  useEffect(() => {
-    const get = async (ids: number[]) => {
-      // try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/carts-detail-order`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ids }),
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setCarts(data.cart_details);
-      }
-    };
-    get(savedCartDetailOrder);
-  }, []);
-
-  useEffect(() => {
-    get();
-  }, [addressId]);
   // Hàm mở modal
   const showModal = () => {
     setIsModalVisible(true);
@@ -245,6 +252,74 @@ const PaymentPage: React.FC = () => {
     setIsModalVisible(false);
   };
 
+  // const submitOrder = async () => {
+  //   // Kiểm tra địa chỉ và phương thức thanh toán
+  //   if (!defaultAddress) {
+  //     message.error("Vui lòng chọn địa chỉ nhận hàng");
+  //     return;
+  //   }
+  //   if (!paymentMethod) {
+  //     message.error("Vui lòng chọn phương thức thanh toán");
+  //     return;
+  //   }
+
+  //   // Nếu phương thức thanh toán là VNPAY
+  //   if (paymentMethod === "vnpay") {
+  //     try {
+  //       const response = await axios.post(
+  //         "http://127.0.0.1:8000/api/payment-vnpay",
+  //         {
+  //           amount: totalAmount, // Số tiền đơn hàng
+  //           bank_code: "NCB", // Mã ngân hàng (thay đổi tùy ý)
+  //         }
+  //       );
+
+  //       // Chuyển hướng người dùng tới trang thanh toán VNPAY
+  //       window.location.href = response.data.data;
+  //     } catch (error) {
+  //       console.error("Error creating payment:", error);
+  //       message.error("Có lỗi xảy ra khi thanh toán.");
+  //       return;
+  //     }
+  //   }
+
+  //   // Tạo dữ liệu đơn hàng
+  //   const orderData = {
+  //     total_amount: totalAmount,
+  //     promotion_id: idVoucher,
+  //     address_id: defaultAddress.id,
+  //     payment_method: paymentMethod,
+  //     shipping_cost: 30000,
+  //     carts_detail: savedCartDetailOrder,
+  //   };
+  //   setOrderdata(orderData);
+
+  //   // Gửi yêu cầu tạo đơn hàng
+  //   try {
+  //     const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify(orderData),
+  //     });
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setOrderdata(data);
+  //       message.success("Đặt hàng thành công!");
+  //       localStorage.setItem("order_id", data.order.id);
+
+  //       // Chuyển hướng người dùng tới trang thành công
+  //       navigate(`/ordersuccess/${data.order.id}`);
+  //     } else {
+  //       message.error("Đặt hàng thất bại, vui lòng thử lại.");
+  //     }
+  //   } catch (error) {
+  //     message.error("Có lỗi xảy ra khi tạo đơn hàng.");
+  //   }
+  // };
   const submitOrder = async () => {
     // Kiểm tra địa chỉ và phương thức thanh toán
     if (!defaultAddress) {
@@ -259,35 +334,97 @@ const PaymentPage: React.FC = () => {
     // Nếu phương thức thanh toán là VNPAY
     if (paymentMethod === "vnpay") {
       try {
+        // Gửi yêu cầu tạo giao dịch thanh toán VNPAY
         const response = await axios.post(
           "http://127.0.0.1:8000/api/payment-vnpay",
           {
             amount: totalAmount, // Số tiền đơn hàng
-            bank_code: "NCB", // Mã ngân hàng (thay đổi tùy ý)
+            bank_code: "NCB", // Mã ngân hàng
           }
         );
 
         // Chuyển hướng người dùng tới trang thanh toán VNPAY
         window.location.href = response.data.data;
+        await createOrder();
       } catch (error) {
         console.error("Error creating payment:", error);
-        message.error("Có lỗi xảy ra khi thanh toán.");
+        message.error("Có lỗi xảy ra khi tạo giao dịch thanh toán.");
         return;
       }
+    } else {
+      // Nếu không phải VNPAY, tạo đơn hàng trực tiếp
+      await createOrder();
     }
+  };
 
+  //   const checkPaymentStatus = async () => {
+  //     try {
+  //       const params = new URLSearchParams(window.location.search);
+  //       const vnp_Amount = params.get("vnp_Amount");
+  //       const vnp_BankCode = params.get("vnp_BankCode");
+  //       const vnp_BankTranNo = params.get("vnp_BankTranNo");
+  //       const vnp_CardType = params.get("vnp_CardType");
+  //       const vnp_OrderInfo = params.get("vnp_OrderInfo");
+  //       const vnp_PayDate = params.get("vnp_PayDate");
+  //       const vnp_ResponseCode = params.get("vnp_ResponseCode");
+  //       const vnp_TmnCode = params.get("vnp_TmnCode");
+  //       const vnp_TransactionNo = params.get("vnp_TransactionNo");
+  //       const vnp_TransactionStatus = params.get("vnp_TransactionStatus");
+  //       const vnp_TxnRef = params.get("vnp_TxnRef");
+  //       const vnp_SecureHash = params.get("vnp_SecureHash");
+  //       const data = {
+  //         vnp_Amount,
+  //         vnp_BankCode,
+  //         vnp_BankTranNo,
+  //         vnp_CardType,
+  //         vnp_OrderInfo,
+  //         vnp_PayDate,
+  //         vnp_ResponseCode,
+  //         vnp_TmnCode,
+  //         vnp_TransactionNo,
+  //         vnp_TransactionStatus,
+  //         vnp_TxnRef,
+  //         vnp_SecureHash,
+  //       };
+  //       const response = await axios.post(
+  //         "http://127.0.0.1:8000/api/vnpay-return",
+  //         {
+  //           data,
+  //         }
+  //       );
+  //       console.log(response);
+  //       if (response.data.status === "00") {
+  //         message.success("Thanh toán thành công!");
+  //         localStorage.setItem("order_id", response.data.data.order_id);
+  //         navigate(`/ordersuccess/${response.data.data.order_id}`);
+  //       } else {
+  //         message.error("Thanh toán thất bại, vui lòng thử lại.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error verifying payment:", error);
+  //       message.error("Có lỗi xảy ra khi kiểm tra trạng thái thanh toán.");
+  //     }
+  //   };
+
+  //   checkPaymentStatus();
+  // }, []);
+  useEffect(() => {
+    // Kiểm tra URL và gọi createOrder nếu trang là /ordersuccess
+    if (window.location.href === "http://localhost:3000/ordersuccess") {
+      createOrder(); // Gọi hàm createOrder khi trang là /ordersuccess
+    }
+  }, []);
+  const createOrder = async () => {
     // Tạo dữ liệu đơn hàng
     const orderData = {
       total_amount: totalAmount,
       promotion_id: idVoucher,
-      address_id: defaultAddress.id,
+      address_id: defaultAddress?.id,
       payment_method: paymentMethod,
       shipping_cost: 30000,
       carts_detail: savedCartDetailOrder,
     };
-    setOrderdata(orderData);
 
-    // Gửi yêu cầu tạo đơn hàng
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
         method: "POST",
@@ -300,7 +437,6 @@ const PaymentPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setOrderdata(data);
         message.success("Đặt hàng thành công!");
         localStorage.setItem("order_id", data.order.id);
 
@@ -370,6 +506,20 @@ const PaymentPage: React.FC = () => {
     } catch (error) {
       console.error("Lỗi khi kiểm tra mã giảm giá:", error);
       message.error("Không thể kiểm tra mã giảm giá. Vui lòng thử lại sau");
+    }
+  };
+
+  const updateOrderAddress = (selectedAddress: Address) => {
+    console.log("Cập nhật địa chỉ cho đơn hàng: ", selectedAddress);
+  };
+
+  const handleUpdateAddress = () => {
+    const selectedAddress = address.find((addr) => addr.is_default === 1);
+
+    if (selectedAddress) {
+      updateOrderAddress(selectedAddress);
+    } else {
+      alert("Vui lòng chọn một địa chỉ!");
     }
   };
 
@@ -550,59 +700,69 @@ const PaymentPage: React.FC = () => {
                     className="text-lg text-gray-700 "
                     style={{ fontSize: "15px", fontWeight: "bold" }}
                   >
-                    <div style={{ justifyContent: "center" }}>
+                    <div
+                      style={{
+                        justifyContent: "center",
+                        // backgroundColor: "yellow",
+                      }}
+                    >
                       <i className="fa-solid fa-location-dot"></i> Địa chỉ:
                     </div>
                   </span>
                 </div>
 
                 <div className="address-card">
-                  <div
-                    className="address-content"
-                    style={{ marginLeft: "34%" }}
-                  >
-                    {/* Tên và số điện thoại hiển thị cùng một dòng */}
+                  <div style={{ display: "flex" }}>
                     <div
+                      className="address-content"
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: "10px",
+                        marginLeft: "68%",
+                        // backgroundColor: "red",
+                        width: "300px",
                       }}
                     >
-                      <span
-                        className="address-name"
-                        style={{ fontSize: "14px", fontWeight: "bold" }}
+                      {/* Tên và số điện thoại hiển thị cùng một dòng */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          flexWrap: "nowrap",
+                          overflow: "hidden",
+                        }}
                       >
-                        {defaultAddress?.recipient_name}
-                      </span>{" "}
-                      <span style={{ marginLeft: "10px", marginRight: "10px" }}>
-                        |
-                      </span>
-                      <span
-                        className="address-phone"
-                        style={{ fontSize: "14px", fontWeight: "bold" }}
-                      >
-                        {defaultAddress?.phone}
-                      </span>
-                    </div>
+                        <span
+                          className="address-name"
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            whiteSpace: "nowrap", // Giữ nội dung trên 1 dòng
+                          }}
+                        >
+                          {defaultAddress?.recipient_name}
+                        </span>
+                        <span style={{ margin: "0 10px" }}>|</span>
+                        <span
+                          className="address-phone"
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {defaultAddress?.phone}
+                        </span>
+                      </div>
 
-                    <hr />
+                      <hr />
 
-                    {/* Địa chỉ hiển thị riêng một dòng */}
-                    <div style={{ marginBottom: "10px" }}>
-                      <span
-                        className="address-details"
-                        style={{ fontSize: "13px", color: "#666" }}
-                      >
-                        {defaultAddress?.address_line} - {defaultAddress?.state}{" "}
-                        - {defaultAddress?.city}
-                      </span>
+                      {/* Địa chỉ hiển thị riêng một dòng */}
                     </div>
 
                     {/* Nút thay đổi */}
                     <Button
                       style={{
-                        marginLeft: "auto",
+                        marginLeft: "80%",
                         width: "90px",
                         display: "block",
                       }}
@@ -612,7 +772,26 @@ const PaymentPage: React.FC = () => {
                       </a>
                     </Button>
                   </div>
-
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      flexWrap: "nowrap",
+                      overflow: "hidden",
+                      // backgroundColor: "blue",
+                      marginLeft: "63%",
+                      width: "400px",
+                    }}
+                  >
+                    <span
+                      className="address-details"
+                      style={{ color: "#666", flexWrap: "nowrap" }}
+                    >
+                      {defaultAddress?.address_line} - {defaultAddress?.state} -{" "}
+                      {defaultAddress?.city}
+                    </span>
+                  </div>
                   <Modal
                     title="Địa chỉ của tôi"
                     visible={isModalVisible}
@@ -651,7 +830,7 @@ const PaymentPage: React.FC = () => {
                               display: "flex",
                               alignItems: "center",
                               marginBottom: "10px",
-                              marginLeft: "30px",
+                              // marginLeft: "30px",
                             }}
                           >
                             <input
@@ -660,7 +839,8 @@ const PaymentPage: React.FC = () => {
                               checked={address.is_default === 1}
                               className="address-checkbox"
                               style={{ marginRight: "15px" }}
-                              onChange={(e) => checkPrime(e, address.id)}
+                              // onChange={() => setAddressId(address.id)}
+                              onChange={() => checkPrime(address.id)}
                             />
                             <span
                               className="address-name"
@@ -708,11 +888,21 @@ const PaymentPage: React.FC = () => {
                                 color: "#666",
                               }}
                             >
-                              Cập nhật
+                              Sửa
                             </Button>
                           </div>
                         ))}
+                        <div
+                          style={{
+                            display: "flex", // Sử dụng Flexbox
+                            justifyContent: "center", // Căn giữa theo chiều ngang
+                            alignItems: "center", // Căn giữa theo chiều dọc
+                          }}
+                        >
+                          <AddAddress onAddSuccess={get} />
+                        </div>
                       </div>
+
                       <div
                         style={{
                           display: "flex", // Sử dụng Flexbox
@@ -720,7 +910,7 @@ const PaymentPage: React.FC = () => {
                           alignItems: "center", // Căn giữa theo chiều dọc
                         }}
                       >
-                        <AddAddress onAddSuccess={get} />
+                        {/* <Button onClick={handleUpdateAddress}>Cập Nhật</Button> */}
                       </div>
                     </div>
                   </Modal>

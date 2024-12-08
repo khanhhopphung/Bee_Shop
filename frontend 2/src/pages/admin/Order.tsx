@@ -226,6 +226,13 @@ const Orders: React.FC = () => {
       return;
     }
   
+    // Kiểm tra trạng thái hiện tại của đơn hàng
+    const currentOrder = orders.find((order) => order.id === order_id);
+    if (currentOrder?.status === "completed") {
+      message.warning("Không thể thay đổi trạng thái khi đơn hàng đã hoàn thành!");
+      return;
+    }
+  
     try {
       await axios.put(
         `http://127.0.0.1:8000/api/orders/${order_id}`,
@@ -242,18 +249,18 @@ const Orders: React.FC = () => {
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === order_id ? { ...order, status: newStatus } : order
-      
         )
       );
       setFilteredOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.id == order_id ? { ...order, status: newStatus } : order
+          order.id === order_id ? { ...order, status: newStatus } : order
         )
       );
     } catch (error) {
       message.error("Cập nhật trạng thái thất bại!");
     }
   };
+  
   
   const handleViewDetails = (orderId: number) => {
     const order = orders.find((order) => order.id === orderId);
@@ -281,15 +288,7 @@ const Orders: React.FC = () => {
             )}
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
   
-            {/* Hiển thị ảnh sản phẩm */}
-            {/* <div>
-              <p>Product Image:</p>
-              <img
-                src={image_url ? `http://127.0.0.1:8000/storage/${image_url}` : "path_to_default_image.jpg"} 
-                alt="Product"
-                style={{ width: "100px", height: "100px", objectFit: "cover" }}
-              />
-            </div> */}
+          
           </div>
         ),
       });

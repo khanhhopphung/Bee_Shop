@@ -27,11 +27,11 @@ class UserController extends BaseController
         ]);
     }
   
-    public function updateDefaultAddressesUser(Request $request, string $id) {
+    public function updateDefaultAddressesUser(Request $request) {
         $user = Auth::user();
     
         // Tìm địa chỉ cần cập nhật
-        $addressToUpdate = $user->addresses()->find($id);
+        $addressToUpdate = $user->addresses()->find($request->id);
     
         if (!$addressToUpdate) {
             return response()->json(['message' => 'Address not found'], 404);
@@ -46,7 +46,7 @@ class UserController extends BaseController
             $addressToUpdate->save();
     
             // Đặt các địa chỉ khác thành không mặc định
-            $user->addresses()->where('id', '!=', $id)->update(['is_default' => 0]);
+            $user->addresses()->where('id', '!=', $request->id)->update(['is_default' => 0]);
     
             // Commit giao dịch
             DB::commit();

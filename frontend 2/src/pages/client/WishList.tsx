@@ -5,11 +5,6 @@ import { Link } from "react-router-dom";
 import Heart from "../../components/Heart";
 
 interface List {
-  id: number;
-  user_id: number;
-  product_id: number;
-  created_at: string;
-  updated_at: string;
   product: {
     id: number;
     name: string;
@@ -17,21 +12,37 @@ interface List {
     description: string;
     category_id: number;
     stock: number;
-    price: string | null;
+    price: number | null;
     is_active: number;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
-    image: {
+    price_max: number | null;
+    price_min: number | null;
+    image_url: string;
+    alt_text: string | null;
+    product_variants: {
       id: number;
       product_id: number;
-      variant_id: number | null;
-      alt_text: string | null;
-      image_url: string;
+      size_id: number;
+      color_id: number;
+      price: number | null;
+      stock: number;
       is_active: number;
       created_at: string;
       updated_at: string;
-    };
+      deleted_at: string | null;
+      images: {
+        id: number;
+        product_id: number;
+        variant_id: number;
+        alt_text: string | null;
+        image_url: string;
+        is_active: number;
+        created_at: string;
+        updated_at: string;
+      }[];
+    }[];
   };
 }
 
@@ -78,14 +89,14 @@ const WishList: React.FC = () => {
       >
         {list.map((item) => (
           <div
-            key={item.id}
+            key={item.product.id}
             className="col-3 p-b-35" // Sử dụng col-3 để có 4 sản phẩm mỗi hàng
           >
             <div className="block2">
               <Link to={`/products/${item.product.id}`}>
                 <div className="block2-pic hov-img0">
                   <img
-                    src={`http://127.0.0.1:8000/storage/${item.product.image.image_url}`}
+                    src={`http://127.0.0.1:8000/storage/${item.product.image_url}`}
                     alt={`Product: ${item.product.name}`}
                   />
                   <a
@@ -105,7 +116,10 @@ const WishList: React.FC = () => {
                     {item.product.name}
                   </a>
                   <span className="stext-105 cl3">
-                    {/* {item.product.price.toLocaleString()}₫ */}
+                    {item.product.price_min
+                      ? item.product.price_min.toLocaleString()
+                      : ""}
+                    ₫
                   </span>
                 </div>
                 {/* <div className="block2-txt-child2 flex-r p-t-3">

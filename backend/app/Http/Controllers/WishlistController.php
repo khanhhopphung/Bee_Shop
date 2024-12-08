@@ -39,10 +39,31 @@ class WishlistController extends Controller
 
     // Lấy danh sách yêu thích của người dùng
     public function index()
-    {
-        $wishlists = Wishlist::with('product.image')->where('user_id', auth()->id())->get();
+{
+    $wishlists = Wishlist::with('product.productVariants.images') // Liên kết với các biến thể sản phẩm và hình ảnh
+        ->where('user_id', auth()->id())
+        ->get();
 
-        return response()->json($wishlists);
-    }
+    // Tính toán giá min và max cho mỗi sản phẩm trong danh sách yêu thích
+    $wishlists->map(function ($wishlist) {
+        $product = $wishlist->product;
+        
+        if ($product) {
+            // Tính giá tối đa và tối thiểu của sản phẩm dựa trên các biến thể sản phẩm
+            $product['price_max'] = $product->productVariants->max('price');
+            $product['price_min'] = $product->productVariants->min('price');
+
+            // Lấy thông tin hình ảnh của sản phẩm
+            $image = $product->image()->first();
+            $product['image_url'] = $image ? $image->image_url : null;
+            $product['alt_text'] = $image ? $image->alt_text : null;
+        }
+
+        return $wishlist;
+    });
+
+    return response()->json($wishlists);
+}
+
 }
 

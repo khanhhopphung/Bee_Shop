@@ -356,7 +356,7 @@ const Carts: React.FC = () => {
                                 className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  cart.quantity < cart.product.stock &&
+                                  cart.quantity < cart.product_variant.stock &&
                                     updateQuantity(cart.id, cart.quantity + 1);
                                 }}
                               >
