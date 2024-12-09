@@ -16,6 +16,13 @@ type Props = {
 };
 
 const ProductItem = (props: Props) => {
+  const truncateProductName = (name: string, maxWords: number = 8) => {
+    const words = name.split(" ");
+    if (words.length > maxWords) {
+      return words.slice(0, maxWords).join(" ") + "...";
+    }
+    return name;
+  };
   const { id, name, price_max, price_min, image_url } = props;
   const dispatch = useDispatch<AppDispatch>();
 
@@ -54,7 +61,7 @@ const ProductItem = (props: Props) => {
         <div className="block2-txt flex-w flex-t p-t-14">
           <div className="block2-txt-child1 flex-col-l">
             <a href="" className="stext-104 cl4 hov-cl1 trans-04">
-              {name}
+              {truncateProductName(name)}
             </a>
 
             <span className="stext-105 cl3">

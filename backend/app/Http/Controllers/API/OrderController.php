@@ -18,7 +18,7 @@ use Carbon\Carbon;
 use App\Http\Controllers\BaseController;
 use App\Models\Product;
 use App\Models\ProductVariant;
-
+use App\Models\Promotion;
 
 class OrderController extends Controller
 {
@@ -72,12 +72,45 @@ class OrderController extends Controller
                 return response()->json(['error' => 'Address not found'], 404);
             }
             $addressF = $address->address_line."-".$address->state."-".$address->city;
+            if($request->discount_promotion_id != null){
+                $voucherDiscount = Promotion::find($request->discount_promotion_id);
+            if(!$voucherDiscount){
+                return response()->json(['error' => 'Voucher not found'], 404);
+            }else if($voucherDiscount->discount_type == 'money'){
+                $discountAmount = $voucherDiscount->discount_value;
+            }else if($voucherDiscount->discount_type == 'percentage'){
+                $discountAmount = $request->total_amount * ($voucherDiscount->discount_value / 100);
+            }
+            }
 
+            if($request->shipping_promotion_id != null){
+            
+            $voucherShip = Promotion::find($request->shipping_promotion_id);
+            if(!$voucherShip){
+                return response()->json(['error' => 'Ship voucher not found' ], 404);
+            }else if($voucherShip->discount_type == 'shipping'){
+                $shipDiscount = $voucherShip->discount_value;
+            }
+        }
+
+        if(isset($discountAmount) && !isset($shipDiscount)){
+            $fin = $request->total_amount - $discountAmount;
+        }else if(!isset($discountAmount) && isset($shipDiscount)){
+            $fin = $request->total_amount + ($request->shipping_cost - $shipDiscount);
+        } else if(isset($discountAmount) && isset($shipDiscount)){
+            $fin = $request->total_amount - $discountAmount + ($request->shipping_cost - $shipDiscount);
+        }
+
+        
             // Create the order
             $order = Order::create([
                 'user_id' => $userId,
                 'total_amount' => $request->total_amount,
-                'promotion_id' => $request->promotion_id,
+        'discount_promotion_id' => $request->discount_promotion_id ?: null,
+    'shipping_promotion_id' => $request->shipping_promotion_id ?: null,
+    'discount_amount' => isset($discountAmount) ? $discountAmount: null,
+    'shipping_discount' => isset($shipDiscount) ? $shipDiscount: null,
+    'final_amount' => $fin ,
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -117,6 +150,7 @@ class OrderController extends Controller
             return response()->json([
                 'error' => 'Could not create order. Please try again later.',
                 'message' => $e->getMessage(),
+                'line'=>$e->getLine(),
             ], 500);
         }
     }

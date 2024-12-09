@@ -1,407 +1,175 @@
-import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Upload, Space } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, UploadOutlined, SearchOutlined } from '@ant-design/icons';
-import { RcFile } from 'antd/es/upload';
-import axios from 'axios';
-import { ColumnsType } from 'antd/es/table';
+import React, { useEffect, useState } from "react";
 
-interface Blog {
+type Blog = {
   id: number;
-  category_id: number;
   title: string;
   content: string;
+  created_at: string;
   image: string;
-  is_active: boolean;
-}
+};
 
-interface Category {
-  id: number;
-  name: string;
-}
-
-const Blogs: React.FC = () => {
+const Blogs = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredBlogs, setFilteredBlogs] = useState<Blog[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentBlog, setCurrentBlog] = useState<Blog | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<RcFile | null>(null);
-  const [form] = Form.useForm();
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const blogsPerPage = 3;
 
-  // Fetch blogs from API
-  const fetchBlogs = async () => {
-    setLoading(true);
-    try {
-      const accessToken = localStorage.getItem("access_token");
-  
-      // Kiểm tra nếu token không tồn tại
-      if (!accessToken) {
-        message.error("Bạn chưa đăng nhập!");
-        return; // Dừng việc tải dữ liệu nếu chưa có token
-      }
-  
-      // Thêm token vào headers nếu có
-      const response = await axios.get('http://127.0.0.1:8000/api/blogs', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
-        },
-      });
-  
-      setBlogs(response.data.data || []);
-      setFilteredBlogs(response.data.data || []);
-    } catch (error) {
-      message.error('Lỗi khi tải bài viết.');
-      setBlogs([]);
-      setFilteredBlogs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Fetch categories from API
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/api/categories');
-      setCategories(response.data.data || []);
-    } catch (error) {
-      message.error('Failed to load categories');
-    }
-  };
-
+  // Fetch blogs từ API
   useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/blogs`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        if (result && result.data && Array.isArray(result.data)) {
+          setBlogs(result.data);
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      }
+    };
     fetchBlogs();
-    fetchCategories();
   }, []);
 
-  const handleSearch = (value: string) => {
-    setSearchText(value);
-    filterBlogs(value, selectedCategory);
+  // Lọc blog theo từ khóa tìm kiếm
+  const filteredBlogs = blogs.filter((blog) =>
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Tính toán blogs hiển thị trên trang hiện tại
+  const indexOfLastBlog = currentPage * blogsPerPage;
+  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
+
+  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
-
-  const handleCategoryFilter = (categoryId: number | null) => {
-    setSelectedCategory(categoryId);
-    filterBlogs(searchText, categoryId);
-  };
-
-  const filterBlogs = (text: string, categoryId: number | null) => {
-    const filtered = blogs.filter((blog) => {
-      const matchesText =
-        blog.title.toLowerCase().includes(text.toLowerCase()) ||
-        blog.content.toLowerCase().includes(text.toLowerCase());
-      const matchesCategory = categoryId === null || blog.category_id === categoryId;
-      return matchesText && matchesCategory;
-    });
-    setFilteredBlogs(filtered);
-  };
-
-  const handleAdd = () => {
-    setCurrentBlog(null);
-    setImageFile(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const handleEdit = (blog: Blog) => {
-    setCurrentBlog(blog);
-    form.setFieldsValue({
-      title: blog.title,
-      content: blog.content,
-      category_id: blog.category_id,
-      is_active: blog.is_active,
-    });
-    setImageFile(null); // reset file input to prevent accidental re-upload
-    setIsModalVisible(true);
-  };
-
-
-  const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: 'Are you sure you want to delete this blog?',
-      okText: 'Yes',
-      okType: 'danger',
-      cancelText: 'No',
-      onOk: async () => {
-        try {
-          await axios.delete(`http://127.0.0.1:8000/api/blogs/${id}`);
-          message.success('Blog deleted successfully');
-          fetchBlogs();
-        } catch (error) {
-          message.error('Failed to delete blog');
-        }
-      },
-    });
-  };
-
-  const handleSubmit = async (values: any) => {
-    try {
-      const formData = new FormData();
-      formData.append('title', values.title);
-      formData.append('content', values.content);
-      formData.append('category_id', values.category_id);
-      formData.append('is_active', values.is_active ? '1' : '0');
-      if (imageFile) formData.append('image', imageFile);
-
-      if (currentBlog) {
-        await axios.post(`http://127.0.0.1:8000/api/blogs/${currentBlog.id}/update`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Blog updated successfully');
-      } else {
-        await axios.post('http://127.0.0.1:8000/api/blogs', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        message.success('Blog created successfully');
-      }
-
-      setIsModalVisible(false);
-      fetchBlogs();
-    } catch (error) {
-      message.error('Failed to save blog');
-    }
-  };
-
-  const handleImageUpload = (file: RcFile) => {
-    setImageFile(file);
-    return false;
-  };
-
-  const columns: ColumnsType<Blog> = [
-
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
-      dataIndex: 'id',
-      key: 'id',
-      render: (text: any, record: Blog, index: number) => (
-        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
-      ),
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tiêu đề</span>,
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hình ảnh</span>,
-      dataIndex: 'image',
-      key: 'image',
-      render: (image: string) => (
-        <img
-          src={image ? `http://127.0.0.1:8000/storage/${image}` : '/admin/default-image.jpg'}
-          alt="Blog Image"
-          style={{ width: '100px', height: 'auto' }}
-        />
-      ),
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Loại danh mục</span>,
-      dataIndex: 'category_id',
-      key: 'category_id',
-      render: (categoryId: number) => {
-        const category = categories.find((c) => c.id === categoryId);
-        return category ? category.name : 'N/A';
-      },
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (active: boolean) => (
-        <span
-          style={{
-            fontSize: '16px',
-            color: active ? '#3f8600' : '#cf1322',
-            fontWeight: 'bold',
-          }}
-        >
-          {active ? 'Hoạt động' : 'Ngừng hoạt động'}
-        </span>
-      ),
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Actions</span>,
-      key: 'actions',
-      render: (record: Blog) => (
-        <Space>
-          <Button
-            type="primary"
-            size="large"
-            onClick={() => handleEdit(record)}
-            icon={<EditOutlined />}
-          />
-          <Button
-            type="primary"
-            danger
-            size="large"
-            onClick={() => handleDelete(record.id)}
-            icon={<DeleteOutlined />}
-          />
-        </Space>
-      ),
-      align: 'center',
-    },
-  ];
 
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-      <div
+    <div>
+      {/* Title page */}
+      <section
+        className="bg-img1 txt-center p-lr-15 p-tb-92"
         style={{
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          backgroundImage:
+            "url('https://i.pinimg.com/736x/42/9c/f2/429cf22bcfc7ec6e658fd617bda18b88.jpg')",
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
-          }}
-        >
+        <h2 className="ltext-105 cl0 txt-center">Blog</h2>
+      </section>
 
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
-          >
-            Thêm bài viết
-          </Button>
+      {/* Blog Section */}
+      <section className="bg0 p-t-62 p-b-60">
+        <div className="container">
+          <div className="row">
+            {/* Blog Content */}
+            <div className="col-md-8 col-lg-9 p-b-80">
+              <div className="p-r-45 p-r-0-lg">
+                {currentBlogs.map((blog) => (
+                  <div className="p-b-63" key={blog.id}>
+                    <a
+                      href={`/blogs/${blog.id}`}
+                      className="hov-img0 how-pos5-parent"
+                    >
+                      <img
+                        src={`http://127.0.0.1:8000/storage/${blog.image}`}
+                        alt={`Blog: ${blog.title}`}
+                      />
+                    </a>
+                    <div className="p-t-32">
+                      <h4 className="p-b-15">
+                        <a
+                          href={`/blogs/${blog.id}`}
+                          className="ltext-108 cl2 hov-cl1 trans-04"
+                        >
+                          {blog.title}
+                        </a>
+                      </h4>
+                      <p className="stext-108 cl6 p-t-10">
+                        {blog.content.length > 100
+                          ? `${blog.content.substring(0, 100)}...`
+                          : blog.content}
+                        {blog.content.length > 100 && (
+                          <a
+                            href={`/blogs/${blog.id}`}
+                            className="mtext-102 cl2 hov-cl1 trans-04"
+                          >
+                            Xem thêm
+                          </a>
+                        )}
+                      </p>
+                      <div className="flex-w flex-sb-m p-t-18">
+                        <span className="flex-w flex-m stext-111 cl2 p-r-30 m-tb-10">
+                          <span>
+                            <span className="cl4">By</span> Admin
+                            <span className="cl12 m-l-4 m-r-6">|</span>
+                          </span>
+                          <span>
+                            {new Date(blog.created_at).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                year: "numeric",
+                                month: "numeric",
+                                day: "numeric",
+                              }
+                            )}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
 
-          <Input.Search
-            placeholder="Tìm kiếm bài viết theo tiêu đề..."
-            allowClear
-            enterButton={<SearchOutlined />}
-            size="large"
-            value={searchText}
-            onChange={(e) => handleSearch(e.target.value)}
-            onSearch={handleSearch}
-            style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
-            }}
-          />
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex-l-m flex-w w-full p-t-10 m-lr--7">
+                    {[...Array(totalPages)].map((_, index) => (
+                      <a
+                        key={index}
+                        href="#"
+                        className={`flex-c-m how-pagination1 trans-04 m-all-7 ${
+                          currentPage === index + 1 ? "active-pagination1" : ""
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(index + 1);
+                        }}
+                      >
+                        {index + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div className="col-md-4 col-lg-3 p-b-80">
+              <div className="side-menu">
+                <div className="bor17 of-hidden pos-relative">
+                  <input
+                    className="stext-103 cl2 plh4 size-116 p-l-28 p-r-55"
+                    type="text"
+                    name="search"
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <button className="flex-c-m size-122 ab-t-r fs-18 cl4 hov-cl1 trans-04">
+                    <i className="zmdi zmdi-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <Select
-          placeholder="Filter by category"
-          allowClear
-          style={{
-            width: 250,
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-          }}
-          onChange={handleCategoryFilter}
-        >
-          {categories.map((category) => (
-            <Select.Option key={category.id} value={category.id}>
-              {category.name}
-            </Select.Option>
-          ))}
-        </Select>
-        <hr />
-        <Table
-          columns={columns}
-          dataSource={filteredBlogs}
-          rowKey="id"
-          bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
-          }}
-        />
-      </div>
-      {/* Modal */}
-      <Modal
-        open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentBlog ? 'Chỉnh sửa bài viết' : 'Thêm bài viết'}</span>}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-        centered
-      >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="content"
-            label="Content"
-            rules={[{ required: true, message: 'Vui lòng nhập nội dung!' }]}
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Form.Item
-            name="category_id"
-            label="Category"
-            rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
-          >
-            <Select placeholder="Select a category">
-              {categories.map((category) => (
-                <Select.Option key={category.id} value={category.id}>
-                  {category.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="is_active" label="Active" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-
-          <Form.Item label="Hình ảnh" name="image_url">
-            <Upload
-              listType="picture-card"
-              beforeUpload={(file) => {
-                setImageFile(file);
-                return false;
-              }}
-              fileList={
-                imageFile
-                  ? [
-                    {
-                      uid: '-1', // Mã định danh duy nhất
-                      name: imageFile.name,
-                      status: 'done',
-                      url: URL.createObjectURL(imageFile), // Hiển thị ảnh đã chọn
-                    },
-                  ]
-                  : currentBlog?.image 
-                    ? [
-                      {
-                        uid: '-2',
-                        name: 'Current Image',
-                        status: 'done',
-                        url: `http://127.0.0.1:8000/storage/${currentBlog.image}`, 
-                      },
-                    ]
-                    : [] 
-              }
-              showUploadList={{
-                showRemoveIcon: false, 
-              }}
-            >
-              <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
-            </Upload>
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large">
-              Lưu
-            </Button>
-          </Form.Item>
-          
-        </Form>
-      </Modal>
+      </section>
     </div>
   );
 };

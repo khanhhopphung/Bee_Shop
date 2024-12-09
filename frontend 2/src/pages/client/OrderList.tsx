@@ -85,6 +85,7 @@ const OrderList = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const navigate = useNavigate();
   const [user, setUser] = useState<User>();
+  const { confirm } = Modal;
 
   const cancelReasons = [
     "Tôi muốn cập nhật địa chỉ/số điện thoại nhận hàng.",
@@ -102,6 +103,22 @@ const OrderList = () => {
     "Tôi tìm thấy chỗ mua khác tốt hơn (Rẻ hơn, uy tín hơn, giao nhanh hơn…).",
     "Tôi không tìm thấy lý do hủy phù hợp.",
   ];
+
+  const showConfirm = (orderId: number) => {
+    confirm({
+      title: "Bạn có chắc chắn đã nhận được hàng?",
+      content: "Sau khi xác nhận, bạn sẽ không trả hàng được nữa !",
+      okText: "Đúng, tôi đã nhận",
+      cancelText: "Hủy",
+      onOk() {
+        handleConfirmOrder(orderId); // Gọi hàm xác nhận
+      },
+      onCancel() {
+        message.info("Hủy xác nhận nhận hàng.");
+      },
+    });
+  };
+
   const [review, setReview] = useState({
     rating: 0,
     comment: "",
@@ -135,10 +152,6 @@ const OrderList = () => {
   useEffect(() => {
     fectOrders();
   }, []);
-
-  // useEffect(() => {
-  //   console.log(orders);
-  // }, [orders]);
 
   const handleReviewSubmit = () => {
     console.log("Đánh giá đã được gửi:", review);
@@ -234,7 +247,40 @@ const OrderList = () => {
 
     // message.success("Hủy đơn hàng thành công!");
   };
+  const handleConfirmOrder = async (orderId: number) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/orders/${orderId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Đảm bảo token hợp lệ
+          },
+          body: JSON.stringify({
+            status: "completed",
+          }),
+        }
+      );
 
+      if (response.ok) {
+        message.success("Xác nhận đơn hàng thành công!");
+      } else {
+        const errorData = await response.json();
+        message.error(
+          `Xác nhận thất bại! Lỗi: ${errorData.message || "Không rõ"}`
+        );
+      }
+    } catch (error) {
+      console.error("Error confirming order:", error);
+      message.error(
+        "Đã xảy ra lỗi trong quá trình xác nhận. Vui lòng thử lại sau."
+      );
+    }
+
+    // Cập nhật danh sách đơn hàng (nếu cần)
+    await fectOrders();
+  };
   // const filteredOrders = Array.isArray(orders)
   //   ? orders.filter((order) => {
   //       const searchLower = searchTerm.toLowerCase();
@@ -263,9 +309,9 @@ const OrderList = () => {
     setSelectedStatus(status);
   };
 
-  let filteredOrders = selectedStatus
-    ? orders.filter((order) => order.status === selectedStatus)
-    : orders;
+  // let filteredOrders = selectedStatus
+  //   ? orders.filter((order) => order.status === selectedStatus)
+  //   : orders;
 
   const handleReorder = async (orderId: number) => {
     const order = orders.filter((order) => order.id === orderId)[0];
@@ -302,7 +348,19 @@ const OrderList = () => {
       alert("Đã xảy ra lỗi khi mua lại. Vui lòng thử lại.");
     }
   };
+  let filteredOrders = orders;
 
+  if (selectedStatus) {
+    filteredOrders = orders.filter((order) => order.status === selectedStatus);
+  }
+
+  const filteredBySearch = filteredOrders.filter((order) =>
+    order.order_details.some(
+      (detail) =>
+        detail.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id.toString().includes(searchTerm)
+    )
+  );
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -477,8 +535,8 @@ const OrderList = () => {
                 width: "100%",
               }}
             >
-              {Array.isArray(orders) &&
-                filteredOrders.map((order, index) => (
+              {Array.isArray(filteredBySearch) &&
+                filteredBySearch.map((order, index) => (
                   <div
                     key={index}
                     style={{ border: "solid red 0.1px" }}
@@ -541,12 +599,14 @@ const OrderList = () => {
                               </p>
                             </div>
                             <p className="order-product-price">
-                              {parseFloat(
-                                detail.product_variant.price
-                                  .toString()
-                                  .toLowerCase()
-                              )}
-                              ₫
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(
+                                parseFloat(
+                                  detail.product_variant.price.toString()
+                                )
+                              )}{" "}
                             </p>
                           </div>
                         </div>
@@ -601,7 +661,6 @@ const OrderList = () => {
                           >
                             Trả Hàng
                           </button>
-
                           <button
                             style={{
                               backgroundColor: "red",
@@ -609,10 +668,11 @@ const OrderList = () => {
                               color: "white",
                             }}
                             className="order-btn order-btn-reorder"
-                            onClick={() => setShowReviewForm(true)}
+                            onClick={() => showConfirm(order.id)} // Sửa lại để gọi showConfirm
                           >
-                            Đánh giá
+                            Đã nhận hàng
                           </button>
+                          ;
                         </div>
                       )}
                       {order.status == "shipped" && (
@@ -633,13 +693,27 @@ const OrderList = () => {
                       )}
                       {order.status == "completed" && (
                         // <Link to={`/products/${order.pro}`}>
-                        <button
-                          className="order-btn order-btn-reorder"
-                          // onClick={() => setShowReviewForm(true)}
-                          onClick={() => handleReorder(order.id)}
-                        >
-                          Mua Lại
-                        </button>
+                        <div>
+                          <button
+                            className="order-btn order-btn-reorder"
+                            // onClick={() => setShowReviewForm(true)}
+                            onClick={() => showConfirm(order.id)}
+                          >
+                            Mua Lại
+                          </button>
+
+                          <button
+                            style={{
+                              backgroundColor: "red",
+                              margin: "5px",
+                              color: "white",
+                            }}
+                            className="order-btn order-btn-reorder"
+                            onClick={() => setShowReviewForm(true)}
+                          >
+                            Đánh giá
+                          </button>
+                        </div>
                         // </Link>
                       )}
                       {order.status == "refunded" && (
@@ -650,7 +724,6 @@ const OrderList = () => {
                           Mua Lại
                         </button>
                       )}
-
                       {order.status == "returned" && (
                         <button
                           className="order-btn order-btn-reorder"

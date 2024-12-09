@@ -221,6 +221,12 @@ const Carts: React.FC = () => {
     // <Layout q={10}>
     <form className="bg0 p-t-75 p-b-85">
       <div className="container">
+        <h6
+          className="ltext-105 cl5 txt-center respon1"
+          style={{ marginBottom: "40px", marginTop: "-40px" }}
+        >
+          Giỏ Hàng
+        </h6>
         <div className="row">
           <div className="col-lg-12 col-xl-10 m-lr-auto m-b-50">
             <div className="m-l-25 m-r-0 m-lr-0-xl">
