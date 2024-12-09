@@ -38,6 +38,17 @@ interface Product {
   updated_at: string;
 }
 
+interface ProductVariant {
+  id: number;
+  product_id: number;
+  size_id: number;
+  color_id: number;
+  price: number;
+  stock: number;
+  is_active: boolean;
+  images: { image_url: string }[]; 
+}
+
 interface Category {
   id: number;
   name: string;
@@ -209,31 +220,45 @@ const Products: React.FC = () => {
   };
 
   const handleSubmit = async (values: any) => {
+    const accessToken = localStorage.getItem("access_token");
+  
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
+  
     try {
       const formData = new FormData();
       for (const key in values) {
         formData.append(key, values[key]);
       }
-
+  
       if (imageFile) {
         formData.append("image", imageFile);
       }
-
+  
       if (currentProduct) {
         await axios.post(
           `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
           formData,
           {
-            headers: { "Content-Type": "multipart/form-data" },
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${accessToken}`,
+            },
           }
         );
         message.success("Sản phẩm đã được cập nhật");
       } else {
         await axios.post("http://127.0.0.1:8000/api/products", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${accessToken}`,
+          },
         });
         message.success("Sản phẩm đã được tạo");
       }
+  
       setIsModalVisible(false);
       fetchProducts();
       form.resetFields();
@@ -242,6 +267,7 @@ const Products: React.FC = () => {
       message.error("Không thể lưu sản phẩm");
     }
   };
+  
 
   const columns: ColumnsType<Product> = [
     {
@@ -483,22 +509,16 @@ const Products: React.FC = () => {
               },
             },
             { title: "Stock", dataIndex: "stock", key: "stock" },
+            { title: "price", dataIndex: "price", key: "price" },
             {
-              title: "Image",
-              dataIndex: "image_url",
-              key: "image_url",
-              render: (imageUrl, image) => (
-                <img
-                  src={
-                    imageUrl
-                      ? `http://127.0.0.1:8000/storage/${image.image_url}`
-                      : "http://127.0.0.1:8000/storage/default-image.jpg"
-                  }
-                  alt="Variants"
-                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
-                />
+              title: (
+                <span style={{ fontSize: "18px", fontWeight: "bold" }}>Hình ảnh</span>
               ),
+              key: "images",
+              render: (record: ProductVariant) => renderImages(record.images),
+              align: "center",
             },
+            
           ]}
           dataSource={variants}
           rowKey="id"

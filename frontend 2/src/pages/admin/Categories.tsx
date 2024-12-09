@@ -96,6 +96,12 @@ const Categories: React.FC = () => {
     });
   };
   const handleSubmit = async (values: any) => {
+    const accessToken = localStorage.getItem("access_token");
+  
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
+      return;
+    }
     try {
       if (currentCategory) {
         await axios.put(`http://127.0.0.1:8000/api/categories/${currentCategory.id}`, values);

@@ -219,11 +219,53 @@ const Orders: React.FC = () => {
       message.error("Cập nhật thất bại");
     }
   };
+  const handleStatusChange = async (newStatus: string, order_id: number) => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập!");
+      return;
+    }
+  
+    // Kiểm tra trạng thái hiện tại của đơn hàng
+    const currentOrder = orders.find((order) => order.id === order_id);
+    if (currentOrder?.status === "completed") {
+      message.warning("Không thể thay đổi trạng thái khi đơn hàng đã hoàn thành!");
+      return;
+    }
+  
+    try {
+      await axios.put(
+        `http://127.0.0.1:8000/api/orders/${order_id}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      message.success("Cập nhật trạng thái thành công!");
+  
+      // Cập nhật trạng thái trong danh sách đơn hàng cục bộ
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === order_id ? { ...order, status: newStatus } : order
+        )
+      );
+      setFilteredOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === order_id ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (error) {
+      message.error("Cập nhật trạng thái thất bại!");
+    }
+  };
+  
+  
   const handleViewDetails = (orderId: number) => {
     const order = orders.find((order) => order.id === orderId);
     if (order) {
-      
-      const product = order.products?.[0]; // Assuming you want to show the first product's image
+      const product = order.products?.[0]; // Giả sử bạn muốn hiển thị ảnh của sản phẩm đầu tiên
       const image_url = product ? product.image_url : null;
   
       Modal.info({
@@ -246,31 +288,13 @@ const Orders: React.FC = () => {
             )}
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
   
-            {/* Display product image */}
-            {product ? (
-              <div>
-                <p>Product Image:</p>
-                <img
-                  src={`http://127.0.0.1:8000/storage/${product.image_url || "default-image.jpg"}`} // If no image, use default
-                  alt="Product"
-                  style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                />
-              </div>
-            ) : (
-              <div>
-                <p>Product Image:</p>
-                <img
-                  src="path_to_default_image.jpg"  // Đường dẫn đến hình ảnh mặc định nếu không có sản phẩm
-                  alt="Default Product"
-                  style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                />
-              </div>
-            )}
+          
           </div>
         ),
       });
     }
   };
+  
   
   
   
@@ -285,6 +309,7 @@ const Orders: React.FC = () => {
       ),
       align: 'center',
     },
+    
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã đơn hàng</span>,
       dataIndex: 'order_code',
@@ -305,15 +330,7 @@ const Orders: React.FC = () => {
       ),
       align: 'left',
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày đặt hàng</span>,
-      dataIndex: 'order_date',
-      key: 'order_date',
-      render: (orderDate: string) => (
-        <span style={{ fontSize: '16px' }}>{orderDate || 'N/A'}</span>
-      ),
-      align: 'left',
-    },
+    
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng đơn hàng</span>,
       dataIndex: 'total_amount',
@@ -323,15 +340,8 @@ const Orders: React.FC = () => {
       ),
       align: 'left',
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <span style={{ fontSize: '16px' }}>{status || 'N/A'}</span>
-      ),
-      align: 'left',
-    },
+   
+    
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phí vận chuyển</span>,
       dataIndex: 'shipping_cost',
@@ -369,40 +379,45 @@ const Orders: React.FC = () => {
       align: 'left',
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái hoạt động</span>,
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (isActive: boolean) => (
-        <span
-          style={{
-            fontSize: '16px',
-            color: isActive ? '#3f8600' : '#cf1322',
-            fontWeight: 'bold',
-          }}
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày đặt hàng</span>,
+      dataIndex: 'order_date',
+      key: 'order_date',
+      render: (orderDate: string) => (
+        <span style={{ fontSize: '16px' }}>{orderDate || 'N/A'}</span>
+      ),
+      align: 'left',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string, record: Order) => (
+        <Select
+          value={status}
+          style={{ width: 150 }}
+          onChange={(value) => handleStatusChange(value, record.id)}
         >
-          {isActive ? 'Yes' : 'No'}
-        </span>
+          <Select.Option value="pending">Đang xử lý</Select.Option>
+          <Select.Option value="completed">Hoàn thành</Select.Option>
+          <Select.Option value="cancelled">Đã hủy</Select.Option>
+          <Select.Option value="processing">Đang xử lý</Select.Option>
+            <Select.Option value="shipped">Đã gửi</Select.Option>
+            <Select.Option value="delivered">Đã giao</Select.Option>
+            <Select.Option value="returned">Đã trả lại</Select.Option>
+            <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+            <Select.Option value="on_hold">Tạm giữ</Select.Option>
+        </Select>
       ),
       align: 'center',
     },
+   
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
       key: 'actions',
       render: (record: Order) => (
         <Space>
-          <Button
-            type="primary"
-            size="large"
-            onClick={() => handleEdit(record)}
-            icon={<EditOutlined />}
-          />
-          <Button
-            type="primary"
-            danger
-            size="large"
-            onClick={() => handleDelete(record.id)}
-            icon={<DeleteOutlined />}
-          />
+         
+       
           <Button
             icon={<EyeOutlined />}
             onClick={() => handleViewDetails(record.id)}
@@ -445,7 +460,13 @@ const Orders: React.FC = () => {
             <Select.Option value="all">Tất cả trạng thái</Select.Option>
             <Select.Option value="pending">Đang giao</Select.Option>
             <Select.Option value="completed">Đã hoàn thành</Select.Option>
-            <Select.Option value="canceled">Đã hủy</Select.Option>
+            <Select.Option value="cancelled">Đã hủy</Select.Option>
+            <Select.Option value="processing">Đang xử lý</Select.Option>
+            <Select.Option value="shipped">Đã gửi</Select.Option>
+            <Select.Option value="delivered">Đã giao</Select.Option>
+            <Select.Option value="returned">Đã trả lại</Select.Option>
+            <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+            <Select.Option value="on_hold">Tạm giữ</Select.Option>
           </Select>
 
           <Input.Search
@@ -478,114 +499,8 @@ const Orders: React.FC = () => {
         />
       </div>
 
-      {/* Modal for editing order */}
-      <Modal
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>Chỉnh sửa đơn hàng</span>}
-        visible={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields(); // Ensure form resets when closed
-        }}
-        footer={null}
-        centered
-      >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
-          <Form.Item
-            name="order_date"
-            label="Ngày đặt hàng"
-            rules={[{ required: true, message: 'Vui lòng nhập ngày đặt hàng!' }]}
-          >
-            <Input disabled />
-          </Form.Item>
-
-          <Form.Item
-            name="order_code"
-            label="Mã đơn hàng"
-            rules={[{ required: true, message: 'Vui lòng nhập mã đơn hàng!' }]}
-          >
-            <Input disabled />
-          </Form.Item>
-
-          <Form.Item
-            name="total_amount"
-            label="Tổng đơn hàng"
-            rules={[{ required: true, message: 'Vui lòng nhập tổng đơn hàng!' }]}
-          >
-            <InputNumber style={{ width: '100%' }} min={0} disabled />
-          </Form.Item>
-
-          <Form.Item
-            name="shipping_cost"
-            label="Phí vận chuyển"
-            rules={[{ required: true, message: 'Vui lòng nhập phí vận chuyển!' }]}
-          >
-            <InputNumber style={{ width: '100%' }} min={0} disabled />
-          </Form.Item>
-
-          <Form.Item
-            name="payment_method"
-            label="Phương thức thanh toán"
-            rules={[{ required: true, message: 'Vui lòng nhập phương thức thanh toán!' }]}
-          >
-            <Input disabled />
-          </Form.Item>
-
-          <Form.Item
-            name="status"
-            label="Trạng thái"
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
-          >
-            <Select placeholder="Chọn trạng thái">
-              <Select.Option value="Đang xử lý">Đang xử lý</Select.Option>
-              <Select.Option value="Hoàn thành">Hoàn thành</Select.Option>
-              <Select.Option value="Đã hủy">Đã hủy</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="promotion_id"
-            label="Khuyến mãi"
-          
-          >
-            <Select disabled>
-              {promotions.map((promo) => (
-                <Select.Option key={promo.id} value={promo.id}>
-                  {promo.code}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="address_id"
-            label="Địa chỉ"
-            rules={[{ required: true, message: 'Vui lòng chọn địa chỉ!' }]}
-          >
-            <Select disabled>
-              {addresses.map((address) => (
-                <Select.Option key={address.id} value={address.id}>
-                  {address.address_line}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="is_active"
-            label="Trạng thái hoạt động"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large">
-              Lưu
-            </Button>
-          </Form.Item>
-        </Form>
-
-      </Modal>
+    
+     
     </div>
   );
 };

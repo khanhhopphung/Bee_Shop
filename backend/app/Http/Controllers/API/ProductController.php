@@ -506,20 +506,25 @@ public function getVariants($id)
         // Kiểm tra sản phẩm tồn tại
         $product = Product::findOrFail($id);
 
-        // Lấy biến thể của sản phẩm
-        $productVariants = $product->productVariants; 
-       
+        // Lấy biến thể của sản phẩm và eager load mối quan hệ với 'images'
+        $productVariants = $product->productVariants()
+            ->with('images') // Nạp ảnh liên quan đến biến thể
+            ->get();
+
+        // Trả về dữ liệu thành công
         return response()->json([
             'success' => true,
             'data' => $productVariants,
         ]);
     } catch (\Exception $e) {
+        // Trả về lỗi nếu có sự cố
         return response()->json([
             'success' => false,
             'message' => 'Không thể lấy biến thể sản phẩm.',
         ], 500);
     }
 }
+
 // Thêm phương thức mới trong ProductController
 
 public function latestProducts()

@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col } from 'antd';
-import { Table, Button, Modal, Form, Input, message, Space } from 'antd';
+import { Row, Col, Table, Button, Modal, Form, Input, message, Space, Switch } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { ColumnsType } from 'antd/es/table';
 
 interface Review {
   id: number;
@@ -14,136 +12,173 @@ interface Review {
   created_at: string;
   updated_at: string;
   review_date: string;
+  username: string;
   is_verified: boolean;
+}
+
+interface Product {
+  id: number;
+  name: string;
+}
+
+interface User {
+  id: number;
+  username: string;
 }
 
 const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [products, setProducts] = useState<{ [key: number]: string }>({});
+  const [users, setUsers] = useState<{ [key: number]: string }>({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState<string>(''); // State for search term
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [form] = Form.useForm();
 
-  // Fetch reviews from API
-  const fetchReviews = async () => {
+  // Fetch all necessary data
+  const fetchData = async () => {
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
-  
-      // Kiểm tra nếu token không tồn tại
+      
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
-        return; // Dừng việc tải dữ liệu nếu chưa có token
+        return;
       }
-  
-      // Thêm token vào headers nếu có
-      const response = await axios.get('http://127.0.0.1:8000/api/reviews', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // Thêm token vào header
-        },
+
+      const headers = {
+        Authorization: `Bearer ${accessToken}`
+      };
+
+      // Fetch reviews, products, and users in parallel
+      const [reviewsRes, productsRes, usersRes] = await Promise.all([
+        axios.get('http://127.0.0.1:8000/api/reviews', { headers }),
+        axios.get('http://127.0.0.1:8000/api/products', { headers }),
+        axios.get('http://127.0.0.1:8000/api/users', { headers })
+      ]);
+
+      // Set reviews
+      setReviews(reviewsRes.data.data || []);
+
+      // Create products lookup object
+      const productsMap: { [key: number]: string } = {};
+      productsRes.data.data.forEach((product: Product) => {
+        productsMap[product.id] = product.name;
       });
-  
-      setReviews(response.data.data || []);
+      setProducts(productsMap);
+
+      // Create users lookup object
+      const usersMap: { [key: number]: string } = {};
+      usersRes.data.forEach((user: User) => {
+        usersMap[user.id] = user.username;
+      });
+      setUsers(usersMap);
+
     } catch (error) {
-      message.error('Không thể tải đánh giá');
+      message.error('Không thể tải dữ liệu');
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
-    fetchReviews();
+    fetchData();
   }, []);
 
-  // Handle search term change
+  // Handle status toggle
+  const handleStatusToggle = async (review: Review) => {
+    try {
+      const accessToken = localStorage.getItem("access_token");
+      await axios.put(
+        `http://127.0.0.1:8000/api/reviews/${review.id}`,
+        {
+          ...review,
+          is_verified: !review.is_verified,
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        }
+      );
+      message.success("Cập nhật trạng thái bình luận thành công");
+      fetchData();
+    } catch (error) {
+      message.error("Cập nhật trạng thái bình luận thất bại");
+    }
+  };
+
+  // Handle search
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
   // Filter reviews based on search term
   const filteredReviews = reviews.filter((review) => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.comment.toLowerCase().includes(searchLower) ||
       review.rating.toString().includes(searchTerm) ||
-      review.review_date.toLowerCase().includes(searchTerm.toLowerCase())
+      review.review_date.toLowerCase().includes(searchLower) ||
+      products[review.product_id]?.toLowerCase().includes(searchLower) ||
+      users[review.user_id]?.toLowerCase().includes(searchLower)
     );
   });
-
-  // Handle Add Review
-  const handleAdd = () => {
-    setCurrentReview(null);
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  // Handle Edit Review
-  const handleEdit = (review: Review) => {
-    setCurrentReview(review);
-    form.setFieldsValue(review);
-    setIsModalVisible(true);
-  };
 
   // Handle Delete Review
   const handleDelete = async (id: number) => {
     Modal.confirm({
-      title: 'Are you sure you want to delete this category?',
-      okText: 'Yes',
+      title: 'Bạn có chắc chắn muốn xóa đánh giá này?',
+      okText: 'Có',
       okType: 'danger',
-      cancelText: 'No',
+      cancelText: 'Không',
       onOk: async () => {
         try {
-          await axios.delete(`http://127.0.0.1:8000/api/reviews/${id}`);
-          message.success('Review deleted successfully');
-          fetchReviews();
+          const accessToken = localStorage.getItem("access_token");
+          await axios.delete(`http://127.0.0.1:8000/api/reviews/${id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          message.success('Xóa đánh giá thành công');
+          fetchData();
         } catch (error) {
-          message.error('Failed to delete review');
+          message.error('Xóa đánh giá thất bại');
         }
       },
     });
   };
 
-  // Handle Submit form
-  const handleSubmit = async (values: any) => {
-    try {
-      const data = {
-        ...values,
-        review_date: new Date().toISOString().split('T')[0],
-        is_verified: true,
-        product_id: 1,
-        user_id: 1,
-      };
-
-      if (currentReview) {
-        await axios.put(`http://127.0.0.1:8000/api/reviews/${currentReview.id}`, data);
-        message.success('Review updated successfully');
-      } else {
-        await axios.post('http://127.0.0.1:8000/api/reviews', data);
-        message.success('Review created successfully');
-      }
-      setIsModalVisible(false);
-      fetchReviews();
-    } catch (error) {
-      message.error('Failed to save review');
-    }
-  };
-
   // Define columns for the table
-  const columns: ColumnsType<Review> = [
+  const columns = [
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
-      render: (text: any, record: Review, index: number) => (
+      render: (_: any, __: Review, index: number) => (
         <span style={{ fontSize: '16px' }}>{index + 1}</span>
       ),
       key: 'index',
-      align: 'center',
+      align: 'center' as 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Sản phẩm</span>,
+      key: 'product_id',
+      render: (record: Review) => (
+        <span style={{ fontSize: '16px' }}>{products[record.product_id] || 'N/A'}</span>
+      ),
+      align: 'center' as 'center',
+    },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>người dùng</span>,
+      key: 'user_id',
+      render: (record: Review) => (
+        <span style={{ fontSize: '16px' }}>{users[record.user_id] || 'N/A'}</span>
+      ),
+      align: 'center' as 'center',
     },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Rank</span>,
       dataIndex: 'rating',
       key: 'rating',
       render: (rating: number) => <span style={{ fontSize: '16px' }}>{rating}</span>,
+      align: 'center' as 'center',
     },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Bình luận</span>,
@@ -156,36 +191,25 @@ const Reviews: React.FC = () => {
       dataIndex: 'review_date',
       key: 'review_date',
       render: (date: string) => <span style={{ fontSize: '16px' }}>{date}</span>,
+      align: 'center' as 'center',
     },
-    // {
-    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hoạt động</span>,
-    //   dataIndex: 'is_verified',
-    //   key: 'is_verified',
-    //   render: (is_verified: boolean) => (
-    //     <span
-    //       style={{
-    //         fontSize: '16px',
-    //         color: is_verified ? '#3f8600' : '#cf1322',
-    //         fontWeight: 'bold',
-    //       }}
-    //     >
-    //       {is_verified ? 'Hoạt động' : 'Ngừng hoạt động'}
-    //     </span>
-    //   ),
-    //   align: 'center',
-    // },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      dataIndex: "is_verified",
+      key: "is_verified",
+      render: (is_verified: boolean, review: Review) => (
+        <Switch
+          checked={is_verified}
+          onChange={() => handleStatusToggle(review)}
+        />
+      ),
+      align: 'center' as 'center',
+    },
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
       key: 'actions',
       render: (record: Review) => (
         <Space>
-          {/* <Button
-            type="primary"
-            size="large"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            style={{ marginRight: 8 }}
-          /> */}
           <Button
             type="primary"
             danger
@@ -195,10 +219,9 @@ const Reviews: React.FC = () => {
           />
         </Space>
       ),
-      align: 'center',
+      align: 'center' as 'center',
     },
   ];
-
 
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
@@ -218,88 +241,26 @@ const Reviews: React.FC = () => {
             marginBottom: '16px',
           }}
         >
-          {/* <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
-          >
-            Thêm Review
-          </Button> */}
-
-<Row>
-  <Col span={24} style={{ textAlign: 'right' }}>
-    <Input.Search
-      placeholder="Tìm kiếm theo bình luận, xếp hạng hoặc ngày"
-      allowClear
-      enterButton={<SearchOutlined />}
-      size="large"
-      value={searchTerm}
-      onChange={handleSearchChange}
-      onSearch={(value) => setSearchTerm(value)}
-      style={{
-        maxWidth: '600px',
-        borderRadius: '8px',
-        height: '48px',
-      }}
-    />
-  </Col>
-</Row>
-
-
+          <Row>
+            <Col span={24} style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="Tìm kiếm đánh giá"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                style={{ maxWidth: '400px', marginBottom: '20px' }}
+              />
+            </Col>
+          </Row>
         </div>
-        <hr />
         <Table
+          rowKey="id"
           columns={columns}
           dataSource={filteredReviews}
-          rowKey="id"
-          bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
-          }}
+          loading={loading}
+          pagination={{ pageSize: 10 }}
         />
       </div>
-
-      {/* <Modal
-        open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentReview ? 'Chỉnh sửa đánh giá' : 'Thêm đánh giá'}</span>}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="product_id" hidden initialValue={1}>
-            <Input type="hidden" />
-          </Form.Item>
-          <Form.Item name="user_id" hidden initialValue={1}>
-            <Input type="hidden" />
-          </Form.Item>
-
-          <Form.Item
-            name="rating"
-            label="Rating"
-            rules={[{ required: true, message: 'Please enter rating' }]}
-          >
-            <Input type="number" min={1} max={5} />
-          </Form.Item>
-
-          <Form.Item
-            name="comment"
-            label="Comment"
-            rules={[{ required: true, message: 'Please enter a comment' }]}
-          >
-            <Input.TextArea />
-          </Form.Item>
-
-          <Button type="primary" htmlType="submit" block size="large">
-            Submit
-          </Button>
-        </Form>
-
-      </Modal> */}
     </div>
   );
 };
