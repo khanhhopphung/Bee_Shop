@@ -134,17 +134,23 @@ const UserPage: React.FC = () => {
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
   // Define table columns
   const columns: ColumnsType<User> = [
     {
       title: <span style={{ fontSize: "18px"}}>STT</span>,
       key: "stt",
       render: (_: any, __: any, index: number) => (
-        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
+        <strong style={{ fontSize: "16px" }}>
+          {(pagination.current - 1) * pagination.pageSize + index + 1}
+        </strong>
       ),
       align: "center",
     },
+    
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người dùng</span>,
       dataIndex: "username",
@@ -264,88 +270,29 @@ const UserPage: React.FC = () => {
         </div>
         <hr />
         <Table
-          columns={columns}
-          dataSource={filteredUsers}
-          rowKey="id"
-          bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
-          }}
-        />
+  columns={columns}
+  dataSource={filteredUsers}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    onChange: (page, pageSize) => {
+      setPagination({ current: page, pageSize });
+    },
+    position: ['bottomCenter'],
+    showSizeChanger: true,
+  }}
+  scroll={{ x: '800' }}
+  style={{
+    fontSize: '16px',
+    borderRadius: '8px',
+    width: '100%',
+  }}
+/>
+
       </div>
-      {/* <Modal
-        open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng'}</span>}
-
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-        }}
-        footer={null}
-        centered
-
-      >
-        <Form form={form} onFinish={handleSubmit}>
-          <Form.Item
-            name="username"
-            label="Tên người dùng"
-            rules={[{ required: true, message: "Vui lòng nhập tên người dùng" }]}
-            
-          >
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="email" label="Email"
-            rules={[{ required: true, message: "Vui lòng nhập email" }]}
-          >
-            <Input disabled  />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="Số điện thoại"
-            rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
-          >
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="role_id"
-            label="Mã vai trò"
-            rules={[{ required: true, message: "Vui lòng nhập mã vai trò" }]}
-          >
-            <Input type="number"  />
-          </Form.Item>
-          <Form.Item
-            name="tier_id"
-            label="Mã cấp bậc"
-            rules={[{ required: true, message: "Vui lòng nhập mã cấp bậc" }]}
-          >
-            <Input type="number"   />
-          </Form.Item>
-          <Form.Item name="points_total" label="Tổng điểm">
-            <Input type="number" disabled  />
-          </Form.Item>
-          <Form.Item name="total_spent" label="Tổng chi tiêu">
-            <Input type="number" disabled  />
-          </Form.Item>
-          <Form.Item
-            name="is_active"
-            label="Trạng thái"
-            valuePropName="checked"
-            initialValue={true}
-          >
-            <Switch />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block size="large">
-              Lưu
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal> */}
+      
     </div>
   );
 };

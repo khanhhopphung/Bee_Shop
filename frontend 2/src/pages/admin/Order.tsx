@@ -58,12 +58,16 @@ const Orders: React.FC = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   const [form] = Form.useForm();
+  const handleTableChange = (paginationInfo: any) => {
+    setPagination(paginationInfo);
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -73,16 +77,18 @@ const Orders: React.FC = () => {
         message.error("Bạn chưa đăng nhập!");
         return;
       }
-
+  
       const response = await axios.get("http://127.0.0.1:8000/api/orders", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-
+  
       const data = Array.isArray(response.data) ? response.data : [];
-      setOrders(data);
-      setFilteredOrders(data);
+      // Sắp xếp đơn hàng mới nhất lên đầu
+      const sortedOrders = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setOrders(sortedOrders);
+      setFilteredOrders(sortedOrders);
     } catch (error) {
       message.error("Lỗi khi tải đơn hàng.");
       setOrders([]);
@@ -91,6 +97,7 @@ const Orders: React.FC = () => {
       setLoading(false);
     }
   };
+  
 
   const fetchPromotions = async () => {
     try {
@@ -228,8 +235,24 @@ const Orders: React.FC = () => {
   
     // Kiểm tra trạng thái hiện tại của đơn hàng
     const currentOrder = orders.find((order) => order.id === order_id);
-    if (currentOrder?.status === "completed") {
+    if (!currentOrder) {
+      message.error("Đơn hàng không tồn tại!");
+      return;
+    }
+  
+    if (currentOrder.status === "completed") {
       message.warning("Không thể thay đổi trạng thái khi đơn hàng đã hoàn thành!");
+      return;
+    }
+  
+    // Định nghĩa thứ tự trạng thái hợp lệ
+    const statusOrder = ["pending","on_hold", "processing", "shipped","delivered","returned","refunded","cancelled","completed"];
+    const currentStatusIndex = statusOrder.indexOf(currentOrder.status);
+    const newStatusIndex = statusOrder.indexOf(newStatus);
+  
+    // Kiểm tra trạng thái mới có hợp lệ không
+    if (newStatusIndex <= currentStatusIndex) {
+      message.error(" trạng thái không hợp lệ!");
       return;
     }
   
@@ -260,6 +283,8 @@ const Orders: React.FC = () => {
       message.error("Cập nhật trạng thái thất bại!");
     }
   };
+  
+  
   
   
   const handleViewDetails = (orderId: number) => {
@@ -301,13 +326,14 @@ const Orders: React.FC = () => {
 
   const columns: ColumnsType<Order> = [
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
-      dataIndex: 'id',
-      key: 'id',
+      title: <span style={{ fontSize: "18px", fontWeight: "bold" }}>STT</span>,
+      key: "stt",
       render: (text: any, record: Order, index: number) => (
-        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+        <strong style={{ fontSize: "16px" }}>
+          {index + 1 + (pagination.current - 1) * pagination.pageSize}
+        </strong>
       ),
-      align: 'center',
+      align: "center",
     },
     
     {
@@ -397,16 +423,16 @@ const Orders: React.FC = () => {
           style={{ width: 150 }}
           onChange={(value) => handleStatusChange(value, record.id)}
         >
-          <Select.Option value="pending">Đang xử lý</Select.Option>
-          <Select.Option value="completed">Hoàn thành</Select.Option>
-          <Select.Option value="cancelled">Đã hủy</Select.Option>
-          <Select.Option value="processing">Đang xử lý</Select.Option>
-            <Select.Option value="shipped">Đã gửi</Select.Option>
-            <Select.Option value="delivered">Đã giao</Select.Option>
-            <Select.Option value="returned">Đã trả lại</Select.Option>
-            <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
-            <Select.Option value="on_hold">Tạm giữ</Select.Option>
-        </Select>
+         <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
+  <Select.Option value="on_hold">Tạm giữ</Select.Option>
+  <Select.Option value="processing">Đang xử lý</Select.Option>
+  <Select.Option value="shipped">Đã vận chuyển</Select.Option>
+  <Select.Option value="delivered">Đã giao hàng</Select.Option>
+  <Select.Option value="returned">Đã trả lại</Select.Option>
+  <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+  <Select.Option value="cancelled">Đã hủy</Select.Option>
+  <Select.Option value="completed">Hoàn thành</Select.Option>
+</Select>
       ),
       align: 'center',
     },
@@ -489,12 +515,18 @@ const Orders: React.FC = () => {
           dataSource={filteredOrders}
           rowKey="id"
           bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
+          pagination={{
+            position: ["bottomCenter"],
+            showSizeChanger: true,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+          }}
+          onChange={handleTableChange}
+          scroll={{ x: "800" }}
           style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
+            fontSize: "16px",
+            borderRadius: "8px",
+            width: "100%",
           }}
         />
       </div>

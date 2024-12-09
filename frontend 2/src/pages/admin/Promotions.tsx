@@ -184,13 +184,24 @@ const Promotions: React.FC = () => {
       message.error("không thể lưu khuyến mãi");
     }
   };
-
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
+  const handlePaginationChange = (page: number, pageSize: number) => {
+    setPagination({
+      current: page,
+      pageSize: pageSize,
+    });
+  };
   const columns: ColumnsType<Promotion> = [
     {
-      title: <span style={{ fontSize: "18px"}}>STT</span>,
+      title: <span style={{ fontSize: "18px" }}>STT</span>,
       key: "stt",
       render: (_: any, __: any, index: number) => (
-        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
+        <strong style={{ fontSize: "16px" }}>
+          {(pagination.current - 1) * pagination.pageSize + index + 1}
+        </strong>
       ),
       align: "center",
     },
@@ -355,13 +366,13 @@ const Promotions: React.FC = () => {
           dataSource={filteredPromotions}
           rowKey="id"
           bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: promotions.length,
+            onChange: handlePaginationChange,
           }}
+          scroll={{ x: '800' }}
           loading={loading}
         />
       </div>
