@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Layout, Menu, Spin } from "antd";
 import {
   ShoppingCartOutlined,
@@ -6,43 +6,15 @@ import {
   UserOutlined,
   PieChartOutlined,
 } from "@ant-design/icons";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 
 const { Header, Content, Footer, Sider } = Layout;
 
-interface User {
-  role_id: number;
-  // Thêm các thuộc tính khác của user nếu cần
-}
-
 const AdminLayout = () => {
-  const [user, setUser] = useState<User | null>(null); // Lưu thông tin người dùng
-  const [loading, setLoading] = useState<boolean>(true); // Trạng thái loading khi lấy dữ liệu
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      const parsedUser: User = JSON.parse(userData);
-      setUser(parsedUser);
-      setLoading(false); // Dữ liệu người dùng đã được tải, tắt loading
-    } else {
-      setLoading(false); // Nếu không có thông tin người dùng, tắt loading
-      navigate("/login"); // Điều hướng đến trang đăng nhập
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (user) {
-      // Kiểm tra quyền truy cập của người dùng
-      if (user.role_id != 2) {
-        navigate("/login"); // Điều hướng nếu người dùng không có quyền admin
-      }
-    }
-  }, [user, navigate]);
+  const [loading, setLoading] = useState<boolean>(false); // Trạng thái loading nếu cần dùng
 
   if (loading) {
-    return <Spin tip="Đang tải dữ liệu..." />; // Hiển thị loading khi đang lấy dữ liệu
+    return <Spin tip="Đang tải dữ liệu..." />; // Hiển thị loading nếu có
   }
 
   return (
@@ -92,5 +64,3 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
-
-

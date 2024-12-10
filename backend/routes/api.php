@@ -64,6 +64,9 @@ Route::apiResource('colors', ColorController::class);
 Route::apiResource('sizes', SizeController::class);
 Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
+Route::middleware('auth:api')->group(function () {
+Route::post('/add-review', action: [ReviewController::class,'addReview']);
+});
 Route::get('get-reviews-by-product/{productId}', [ReviewController::class,'getAllReviewByProduct']);
 
 Route::middleware('auth:api')->group(function () {

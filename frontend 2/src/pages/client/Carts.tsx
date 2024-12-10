@@ -49,6 +49,7 @@ interface Cart {
     color_id: number;
     price: number;
     stock: number;
+    is_active: number;
     size: {
       id: number;
       size_name: string;
@@ -114,16 +115,12 @@ const Carts: React.FC = () => {
         }
 
         const result = await response.json();
-        // console.log(result.data.cart_details);
         if (result && result.status && result.data) {
-          // Kiểm tra xem API có trả về mảng sản phẩm không
           if (
             result.data.cart_details &&
             Array.isArray(result.data.cart_details)
           ) {
-            setCarts(result.data.cart_details); // Set giỏ hàng với danh sách sản phẩm
-            // console.log("ố lương" + carts.length);
-            // dispatch(setQuantityCart(carts.length));
+            setCarts(result.data.cart_details.reverse()); // Set giỏ hàng với danh sách sản phẩm
           } else {
             console.error("Giỏ hàng không chứa mảng sản phẩm:", result);
           }
@@ -279,18 +276,49 @@ const Carts: React.FC = () => {
                       </tr>
                     ) : (
                       carts.map((cart) => (
-                        <tr key={cart.id} className="table_row">
-                          <td className="column-1 p-4">
-                            <Checkbox
-                              checked={ids.includes(cart.id)}
-                              onChange={(e: any) => onChange(e, cart.id)}
-                            ></Checkbox>
+                        <tr
+                          key={cart.id}
+                          className={`table_row ${
+                            cart.product_variant.is_active === 0 ||
+                            cart.product_variant.stock === 0
+                              ? "opacity-50"
+                              : ""
+                          }`}
+                          style={{
+                            opacity:
+                              cart.product_variant.is_active === 0 ||
+                              cart.product_variant.stock === 0
+                                ? 0.5
+                                : 1,
+                          }}
+                        >
+                          <td
+                            className="column-1 p-4"
+                            style={{
+                              opacity:
+                                cart.product_variant.is_active === 0 ||
+                                cart.product_variant.stock === 0
+                                  ? 0.5
+                                  : 1,
+                            }}
+                          >
+                            {!cart.product_variant.is_active ||
+                            cart.product_variant.stock === 0 ? null : (
+                              <Checkbox
+                                checked={ids.includes(cart.id)}
+                                onChange={(e) => onChange(e, cart.id)}
+                              />
+                            )}
                           </td>
                           <td className="column-2 text-lg flex items-center space-x-4">
                             {/* Hiển thị ảnh sản phẩm */}
                             <Link
                               to={`/products/${cart.product.id}`}
-                              className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                              className={`stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 ${
+                                cart.product_variant.is_active === 0
+                                  ? "opacity-50"
+                                  : ""
+                              }`}
                             >
                               <img
                                 src={`http://127.0.0.1:8000/storage/${
@@ -303,6 +331,10 @@ const Carts: React.FC = () => {
                                 style={{
                                   objectFit: "cover",
                                   borderRadius: "4px",
+                                  opacity:
+                                    cart.product_variant.is_active === 0
+                                      ? 0.5
+                                      : 1,
                                 }}
                               />
                             </Link>
@@ -310,7 +342,11 @@ const Carts: React.FC = () => {
                           <td className="column text-lg">
                             <Link
                               to={`/products/${cart.product.id}`}
-                              className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
+                              className={`stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6 ${
+                                cart.product_variant.is_active === 0
+                                  ? "opacity-50"
+                                  : ""
+                              }`}
                             >
                               {cart.product.name}
                             </Link>
@@ -332,13 +368,22 @@ const Carts: React.FC = () => {
                           <td className="column-4">
                             <div className="wrap-num-product flex-w m-l-auto m-r-0">
                               <button
-                                className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m"
+                                className={`btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m ${
+                                  cart.product_variant.is_active === 0 ||
+                                  cart.product_variant.stock === 0
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   cart.quantity > 1 &&
                                     updateQuantity(cart.id, cart.quantity - 1);
                                 }}
-                                disabled={cart.quantity <= 1}
+                                disabled={
+                                  cart.product_variant.is_active === 0 ||
+                                  cart.product_variant.stock === 0 ||
+                                  cart.quantity <= 1
+                                }
                               >
                                 <i className="fs-16 zmdi zmdi-minus"></i>
                               </button>
@@ -359,7 +404,12 @@ const Carts: React.FC = () => {
                                 }}
                               />
                               <button
-                                className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
+                                className={`btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m ${
+                                  cart.product_variant.is_active === 0 ||
+                                  cart.product_variant.stock === 0
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   cart.quantity < cart.product_variant.stock &&
@@ -370,7 +420,6 @@ const Carts: React.FC = () => {
                               </button>
                             </div>
                           </td>
-
                           <td className="column-5 text-lg">
                             {(
                               cart.product_variant.price * cart.quantity

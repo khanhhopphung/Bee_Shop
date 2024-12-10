@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Rate, Input, Upload, message, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
+
 interface CartItem {
   product_id: any;
   color_id: any;
@@ -73,6 +74,13 @@ interface Size {
   id: number;
   size_name: string;
 }
+
+interface Review {
+  comment: string;
+  rating: number;
+  image: string | null;
+  product_id: number;
+}
 const OrderList = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -86,7 +94,13 @@ const OrderList = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User>();
   const { confirm } = Modal;
-
+  const [review, setReview] = useState<Review>({
+    product_id: 0,
+    rating: 0,
+    comment: "",
+    image: "", // Lưu ảnh đã chọn
+  });
+  const [productId, setProductId] = useState<number>();
   const cancelReasons = [
     "Tôi muốn cập nhật địa chỉ/số điện thoại nhận hàng.",
     "Tôi muốn thêm/thay đổi mã giảm giá.",
@@ -119,11 +133,6 @@ const OrderList = () => {
     });
   };
 
-  const [review, setReview] = useState({
-    rating: 0,
-    comment: "",
-    images: [] as string[], // Lưu ảnh đã chọn
-  });
   const fectOrders = async () => {
     try {
       const response = await fetch(
@@ -153,28 +162,74 @@ const OrderList = () => {
     fectOrders();
   }, []);
 
+  // const handleReviewSubmit = () => {
+  //   console.log("Đánh giá đã được gửi:", review);
+  //   setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
+  //   message.success("Đánh giá của bạn đã được gửi!");
+  // };
   const handleReviewSubmit = () => {
     console.log("Đánh giá đã được gửi:", review);
-    setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
-    message.success("Đánh giá của bạn đã được gửi!");
+
+    // Kiểm tra trước khi gửi
+    if (!review.rating || !review.comment) {
+      message.error("Vui lòng nhập đầy đủ thông tin đánh giá!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("rating", review.rating.toString());
+    formData.append("comment", review.comment);
+    if (review.image) {
+      formData.append("image", review.image);
+    }
+
+    fetch("http://127.0.0.1:8000/api/add-review", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Something went wrong!");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Review submitted:", data);
+        setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
+        message.success("Đánh giá của bạn đã được gửi!");
+        setReview((prevReview) => ({
+          ...prevReview,
+          rating: 0,
+          comment: "",
+          image: null,
+        }));
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        message.error("Đã xảy ra lỗi khi gửi đánh giá!");
+      });
   };
 
   const handleImageUpload = (file: any) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("Chỉ cho phép tải lên file hình ảnh JPEG hoặc PNG!");
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      message.error("Chỉ cho phép tải lên file hình ảnh!");
+      return Upload.LIST_IGNORE;
     }
-    return isJpgOrPng;
+    setReview((prevReview) => ({
+      ...prevReview,
+      image: file,
+    }));
+    return false; // Ngăn hành vi tải lên mặc định
   };
 
-  const handleImageChange = (info: any) => {
-    if (info.file.status === "done") {
-      setReview({
-        ...review,
-        images: [...review.images, info.file.response.url], // Giả sử bạn nhận được URL của ảnh từ backend
-      });
-    }
+  const handleImageRemove = () => {
+    setReview((prevReview) => ({
+      ...prevReview,
+      image: null,
+    }));
   };
+
   const cancel = async () => {
     try {
       const response = await fetch(
@@ -782,16 +837,17 @@ const OrderList = () => {
           <div style={{ marginTop: 20 }}>
             <label>Thêm ảnh:</label>
             <Upload
-              action="/upload" // Địa chỉ API để upload ảnh
               listType="picture-card"
-              //   fileList={review.images.map((url) => ({ url }))}
-              onChange={handleImageChange}
+              maxCount={1} // Chỉ cho phép 1 ảnh
               beforeUpload={handleImageUpload}
+              onRemove={handleImageRemove}
             >
-              <div>
-                <UploadOutlined />
-                <div style={{ marginTop: 8 }}>Tải lên</div>
-              </div>
+              {!review.image && (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Tải lên</div>
+                </div>
+              )}
             </Upload>
           </div>
         </Modal>

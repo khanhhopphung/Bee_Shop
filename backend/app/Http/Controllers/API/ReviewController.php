@@ -176,6 +176,37 @@ class ReviewController extends BaseController
 }
 
     
+public function addReview(Request $request){
+    try {
+        $validatedData = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'comment' => 'required|string|max:255',
+            'rating' => 'required|integer|between:1,5',
+            'image' => 'nullable',
+        ]);
 
+       
+        $userId = auth()->id();
+        $review = Review::create([
+            'user_id' => $userId,
+            'product_id' => $validatedData['product_id'],
+            'comment' => $validatedData['comment'],
+            'rating' => $validatedData['rating'],
+            'is_verified' => $request->input('is_verified', false),
+            'review_date' => now(),
+            'image' => $request->hasFile('image') ? $request->file('image')->store('images', 'public') : null,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $review,
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'An error occurred: ' . $e->getMessage(),
+        ], 500);
+    }
+}
 
 }

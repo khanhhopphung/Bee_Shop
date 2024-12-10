@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { setSearchRedux } from "../store/searchSlice";
 interface Category {
   id: number;
   name: string;
@@ -14,7 +17,8 @@ interface Category {
 
 const CategoryMenu: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -29,6 +33,12 @@ const CategoryMenu: React.FC = () => {
     fetchCategories();
   }, []);
 
+  const searchkey = (name: string) => {
+    // navigate(`/search?q=${key}`);
+
+    dispatch(setSearchRedux(name));
+  };
+
   return (
     <div className="category-menu">
       <h6
@@ -39,13 +49,19 @@ const CategoryMenu: React.FC = () => {
       </h6>
       <div className="categories">
         {categories.map((category, index) => (
-          <div className="category-item" key={index}>
-            <img
-              src={category.image_url || "default-image-path.jpg"}
-              alt={category.name}
-            />
-            <p style={{ fontFamily: "Poppins-Regular" }}>{category.name}</p>
-          </div>
+          <Link to={"/products"}>
+            <div
+              className="category-item"
+              key={index}
+              onClick={() => searchkey(category.name)}
+            >
+              <img
+                src={category.image_url || "default-image-path.jpg"}
+                alt={category.name}
+              />
+              <p style={{ fontFamily: "Poppins-Regular" }}>{category.name}</p>
+            </div>
+          </Link>
         ))}
       </div>
     </div>
