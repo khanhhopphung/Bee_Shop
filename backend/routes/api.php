@@ -45,6 +45,10 @@ Route::post('/blogs/{blog}/update', [BlogController::class, 'update']);
 
 Route::apiResource('tiers', TierController::class);
 Route::apiResource('promotions', PromotionController::class);
+Route::middleware('auth:api')->group(function () {
+    Route::get('/get-list-voucher', [PromotionController::class, 'getlistVoucherByUser']); // Lấy danh sách yêu thích
+   
+});
 Route::apiResource('addresses', ShippingAddressController::class);
 Route::prefix('statistics')->group(function () {
     Route::get('dashboard', [StatisticsController::class, 'dashboard']); 
@@ -60,6 +64,9 @@ Route::apiResource('colors', ColorController::class);
 Route::apiResource('sizes', SizeController::class);
 Route::apiResource('images', ImageController::class);
 Route::apiResource('reviews', ReviewController::class);
+Route::middleware('auth:api')->group(function () {
+Route::post('/add-review', action: [ReviewController::class,'addReview']);
+});
 Route::get('get-reviews-by-product/{productId}', [ReviewController::class,'getAllReviewByProduct']);
 
 Route::middleware('auth:api')->group(function () {

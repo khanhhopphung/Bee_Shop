@@ -45,5 +45,13 @@ class User extends Model implements AuthenticatableContract
     public function orders(){
         return $this->hasMany(Order::class); // Giả sử 1 người dùng có nhiều đơn hàng
     }
+
+    public function role(){
+        return $this->belongsTo(Role::class); // Giả sử 1 người dùng thuộc về 1 vai trò
+    }
+
+    public function tier(){
+        return $this->belongsTo(Tier::class); // Giả sử 1 người dùng thuộc về 1 tier
+    }
    
 }

@@ -19,7 +19,7 @@ const Contact: React.FC = () => {
           <div className="size-210 bor10 p-lr-70 p-t-55 p-b-70 p-lr-15-lg w-full-md">
             <form onSubmit={handleSubmit}>
               <h4 className="mtext-105 cl2 txt-center p-b-30">
-                Send Us A Message
+                Gửi tin nhắn cho chúng tôi
               </h4>
 
               <div className="bor8 m-b-20 how-pos4-parent">
@@ -27,7 +27,7 @@ const Contact: React.FC = () => {
                   className="stext-111 cl2 plh3 size-116 p-l-62 p-r-30"
                   type="email"
                   name="email"
-                  placeholder="Your Email Address"
+                  placeholder="Email của bạn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -42,7 +42,7 @@ const Contact: React.FC = () => {
                 <textarea
                   className="stext-111 cl2 plh3 size-120 p-lr-28 p-tb-25"
                   name="msg"
-                  placeholder="How Can We Help?"
+                  placeholder="Chúng tôi có thể giúp gì cho bạn?"
                   value={msg}
                   onChange={(e) => setMsg(e.target.value)}
                 ></textarea>
@@ -52,14 +52,14 @@ const Contact: React.FC = () => {
                 type="submit"
                 className="flex-c-m stext-101 cl0 size-121 bg3 bor1 hov-btn3 p-lr-15 trans-04 pointer"
               >
-                Submit
+                Gửi
               </button>
             </form>
           </div>
 
           {/* Contact Information */}
           <div className="size-210 bor10 flex-w flex-col-m p-lr-93 p-tb-30 p-lr-15-lg w-full-md">
-            <div className="flex-w w-full p-b-42">
+            {/* <div className="flex-w w-full p-b-42">
               <span className="fs-18 cl5 txt-center size-211">
                 <span className="lnr lnr-map-marker"></span>
               </span>
@@ -71,7 +71,7 @@ const Contact: React.FC = () => {
                   US
                 </p>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex-w w-full p-b-42">
               <span className="fs-18 cl5 txt-center size-211">
@@ -79,21 +79,31 @@ const Contact: React.FC = () => {
               </span>
 
               <div className="size-212 p-t-2">
-                <span className="mtext-110 cl2">Lets Talk</span>
-                <p className="stext-115 cl1 size-213 p-t-18">+1 800 1236879</p>
+                <span className="mtext-110 cl2">Gọi cho chúng tôi</span>
+                <p className="stext-115 cl1 size-213 p-t-18">+84 68249852</p>
               </div>
             </div>
 
-            <div className="flex-w w-full">
+            <div className="flex-w w-full p-b-42">
               <span className="fs-18 cl5 txt-center size-211">
                 <span className="lnr lnr-envelope"></span>
               </span>
 
               <div className="size-212 p-t-2">
-                <span className="mtext-110 cl2">Sale Support</span>
+                <span className="mtext-110 cl2">Hỗ trợ</span>
                 <p className="stext-115 cl1 size-213 p-t-18">
-                  contact@example.com
+                  BeeShop@gmail.com
                 </p>
+              </div>
+            </div>
+            <div className="flex-w w-full">
+              <span className="fs-18 cl5 txt-center size-211">
+                <i className="fa fa-facebook" />
+              </span>
+
+              <div className="size-212 p-t-2">
+                <span className="mtext-110 cl2">Trang cá nhân</span>
+                <p className="stext-115 cl1 size-213 p-t-18">BeeShop</p>
               </div>
             </div>
           </div>

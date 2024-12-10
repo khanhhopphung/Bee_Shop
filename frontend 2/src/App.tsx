@@ -264,6 +264,7 @@ const App: React.FC = () => {
           <Route path="/resetpassemail" element={<ResetPassEmail />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/reset-pass" element={<ResetPass />} />
+          {/* <Route path="/promotions" element={<Promotions />} /> */}
         </Route>
 
         {/* Route cho phần admin */}

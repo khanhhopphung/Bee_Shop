@@ -15,6 +15,7 @@ class Review extends Model
         'rating',
         'review_date',
         'is_verified',
+        'image',
     ];
 
     // Thiết lập mối quan hệ với User
