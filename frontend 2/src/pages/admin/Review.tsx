@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Table, Button, Modal, Form, Input, message, Space, Switch } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 interface Review {
@@ -35,6 +35,10 @@ const Reviews: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [form] = Form.useForm();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Fetch all necessary data
   const fetchData = async () => {
@@ -147,12 +151,18 @@ const Reviews: React.FC = () => {
     });
   };
 
+  // Handle pagination change
+  const handlePaginationChange = (page: number, pageSize: number) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
+
   // Define columns for the table
   const columns = [
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       render: (_: any, __: Review, index: number) => (
-        <span style={{ fontSize: '16px' }}>{index + 1}</span>
+        <span style={{ fontSize: '16px' }}>{(currentPage - 1) * pageSize + index + 1}</span>
       ),
       key: 'index',
       align: 'center' as 'center',
@@ -205,22 +215,22 @@ const Reviews: React.FC = () => {
       ),
       align: 'center' as 'center',
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
-      key: 'actions',
-      render: (record: Review) => (
-        <Space>
-          <Button
-            type="primary"
-            danger
-            size="large"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          />
-        </Space>
-      ),
-      align: 'center' as 'center',
-    },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
+    //   key: 'actions',
+    //   render: (record: Review) => (
+    //     <Space>
+    //       <Button
+    //         type="primary"
+    //         danger
+    //         size="large"
+    //         icon={<DeleteOutlined />}
+    //         onClick={() => handleDelete(record.id)}
+    //       />
+    //     </Space>
+    //   ),
+    //   align: 'center' as 'center',
+    // },
   ];
 
   return (
@@ -258,7 +268,12 @@ const Reviews: React.FC = () => {
           columns={columns}
           dataSource={filteredReviews}
           loading={loading}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            current: currentPage,
+            pageSize,
+            total: filteredReviews.length,
+            onChange: handlePaginationChange,
+          }}
         />
       </div>
     </div>

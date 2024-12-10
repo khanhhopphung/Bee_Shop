@@ -97,6 +97,7 @@ const Orders: React.FC = () => {
 
       const data = Array.isArray(response.data) ? response.data : [];
       // Sắp xếp đơn hàng mới nhất lên đầu
+
       const sortedOrders = data.sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -251,6 +252,7 @@ const Orders: React.FC = () => {
     const currentOrder = orders.find((order) => order.id === order_id);
     if (!currentOrder) {
       message.error("Đơn hàng không tồn tại!");
+
       return;
     }
 
@@ -281,7 +283,6 @@ const Orders: React.FC = () => {
       message.error(" trạng thái không hợp lệ!");
       return;
     }
-
     try {
       await axios.put(
         `http://127.0.0.1:8000/api/orders/${order_id}`,

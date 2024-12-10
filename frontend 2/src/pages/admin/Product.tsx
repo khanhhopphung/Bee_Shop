@@ -268,15 +268,16 @@ const Products: React.FC = () => {
     }
   };
   
-
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const columns: ColumnsType<Product> = [
     {
       title: "STT",
-      dataIndex: "id",
-      key: "id",
-      render: (text: any, record: Product, index: number) => (
-        <strong>{index + 1}</strong>
-      ),
+      key: "stt",
+      render: (text: any, record: Product, index: number) => {
+        const { current, pageSize } = pagination;
+        return <strong>{(current - 1) * pageSize + index + 1}</strong>;
+      },
+      align: "center",
     },
     { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
     {
@@ -377,12 +378,20 @@ const Products: React.FC = () => {
           />
         </div>
         <Table
-          columns={columns}
-          dataSource={filteredProducts}
-          rowKey="id"
-          bordered
-          pagination={{ position: ["bottomCenter"], showSizeChanger: true }}
-        />
+  columns={columns}
+  dataSource={filteredProducts}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    showSizeChanger: true,
+    onChange: (page, pageSize) => {
+      setPagination({ current: page, pageSize });
+    },
+  }}
+/>
+
       </div>
       <Modal
         open={isModalVisible}
@@ -523,6 +532,7 @@ const Products: React.FC = () => {
           dataSource={variants}
           rowKey="id"
           pagination={{ position: ["bottomCenter"] }}
+          
         />
       </Modal>
     </div>

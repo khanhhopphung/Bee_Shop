@@ -258,14 +258,20 @@ const ProductVariants: React.FC = () => {
         ?.color_name.toLowerCase()
         .includes(searchTerm.toLowerCase())
   );
-
+  const handlePaginationChange = (page: number, pageSize: number) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const columns: ColumnsType<ProductVariant> = [
     {
       title: <span style={{ fontSize: "18px", fontWeight: "bold" }}>STT</span>,
       key: "stt",
-      render: (_: any, __: any, index: number) => (
-        <strong style={{ fontSize: "16px" }}>{index + 1}</strong>
-      ),
+      render: (_: any, __: any, index: number) => {
+        const serialNumber = (currentPage - 1) * pageSize + index + 1;
+        return <strong style={{ fontSize: "16px" }}>{serialNumber}</strong>;
+      },
       align: "center",
     },
     {
@@ -430,17 +436,16 @@ const ProductVariants: React.FC = () => {
         </div>
         <hr />
         <Table
-          columns={columns}
-          dataSource={filteredVariants}
-          rowKey="id"
-          bordered
-          pagination={{ position: ["bottomCenter"], showSizeChanger: true }}
-          scroll={{ x: "800" }}
-          style={{
-            fontSize: "16px",
-            borderRadius: "8px",
-            width: "100%",
-          }}
+  columns={columns}
+  dataSource={filteredVariants}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: currentPage,
+    pageSize: pageSize,
+    total: filteredVariants.length,
+    onChange: handlePaginationChange,
+  }}
         />
       </div>
 

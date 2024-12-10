@@ -28,9 +28,15 @@ const Blogs: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentBlog, setCurrentBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(false);
+
   const [imageFile, setImageFile] = useState<RcFile | null>(null);
   const [form] = Form.useForm();
 
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
+  
   // Fetch blogs from API
   const fetchBlogs = async () => {
     setLoading(true);
@@ -181,7 +187,11 @@ const Blogs: React.FC = () => {
       dataIndex: 'id',
       key: 'id',
       render: (text: any, record: Blog, index: number) => (
-        <strong style={{ fontSize: '16px' }}>{index + 1}</strong>
+        <strong style={{ fontSize: '16px' }}>
+          {pagination.current && pagination.pageSize
+            ? (pagination.current - 1) * pagination.pageSize + index + 1
+            : index + 1}
+        </strong>
       ),
     },
     {
@@ -311,18 +321,26 @@ const Blogs: React.FC = () => {
         </Select>
         <hr />
         <Table
-          columns={columns}
-          dataSource={filteredBlogs}
-          rowKey="id"
-          bordered
-          pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%', 
-          }}
-        />
+  columns={columns}
+  dataSource={filteredBlogs}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    showSizeChanger: true,
+    onChange: (current, pageSize) => {
+      setPagination({ current, pageSize });
+    },
+  }}
+  scroll={{ x: '800' }}
+  style={{
+    fontSize: '16px',
+    borderRadius: '8px',
+    width: '100%',
+  }}
+/>
+
       </div>
       {/* Modal */}
       <Modal
