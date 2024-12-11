@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\NewProductEvent;
+use App\Events\ProductEvent;
 use App\Http\Controllers\BaseController;
 use App\Models\ProductVariant;
 use App\Http\Requests\StoreProductVariantRequest;
 use App\Http\Requests\UpdateProductVariantRequest;
 use App\Models\Image;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Throwable;
@@ -16,6 +19,8 @@ class ProductVariantController extends BaseController
 {
     public function __construct()
     {
+        $randomCode = uniqid('prod_', true);        
+        event(new ProductEvent($randomCode));
         $this->model = ProductVariant::class;
     }
 
@@ -86,6 +91,8 @@ class ProductVariantController extends BaseController
  */
 public function update(Request $request, ProductVariant $productVariant)
 {
+       
+     
     try {
         DB::beginTransaction();
 
@@ -98,6 +105,102 @@ public function update(Request $request, ProductVariant $productVariant)
             'stock'      => $request->stock ?? $productVariant->stock,
             'is_active'  => $request->is_active !== null ? (bool)$request->is_active : $productVariant->is_active,
         ]);
+    //     $product = Product::find($productVariant->product_id);
+    //     $images = $product->image()->first();
+    //     $product['image_url'] = $images['image_url'];
+    //     $product['alt_text'] = $images['alt_text'];
+    //      // Khởi tạo các mảng để chứa màu sắc và kích cỡ
+    //    $product['color'] = collect();  // Sử dụng collect() thay vì mảng thông thường
+    //    $product['size'] = collect();   // Sử dụng collect() thay vì mảng thông thường
+    //    foreach ($product->productVariants as $variant) {
+    //        if ($variant->stock > 0) { // Kiểm tra nếu biến thể có tồn kho
+    //            $variant['color'] = $variant->color()->first()['color_name'];
+    //            $variant['size'] = $variant->size()->first()['size_name'];
+    //            $variant['image'] = $variant->images()->get();
+   
+    //            // Sử dụng phương thức push() để thêm phần tử vào collection
+    //            $product['color']->push(['id' => $variant['color_id'],
+    //             'name' => $variant['color'],
+    //             'availableColors' => $product->productVariants->pluck('size.size_name')
+    //             ->unique()
+    //             ->values()
+    //             ->toArray()
+    //            ]);
+    //            $product['size']->push(['id' => $variant['size_id'],
+    //             'name' => $variant['size'],
+    //             'availableSizes' => $product->productVariants->pluck('color.color_name')
+                
+    //             ->unique()
+    //             ->values()
+    //             ->toArray()
+    //            ]);
+   
+    //            // Loại bỏ phần tử trùng lặp dựa trên 'id' sau khi thêm
+    //            $product['color'] = $product['color']->unique('id')->values();
+    //            $product['size'] = $product['size']->unique('id')->values();
+    //        }
+    //    }
+    // //    return $product;
+
+    //     event(new NewProductEvent(...$product));
+
+    $product = Product::find($productVariant->product_id);
+$images = $product->image()->first();
+$product->image_url = $images['image_url'];
+$product->alt_text = $images['alt_text'];
+$product->stock = $product->productVariants->sum('stock');
+        $product->price_max = $product->productVariants->max('price');
+        $product->price_min = $product->productVariants->min('price');
+// Khởi tạo các mảng để chứa màu sắc và kích cỡ
+$product->color = collect();
+$product->size = collect();
+
+foreach ($product->productVariants as $variant) {
+    if ($variant->stock > 0) { // Kiểm tra nếu biến thể có tồn kho
+        $variantColor = $variant->color()->first();
+        $variantSize = $variant->size()->first();
+        
+        $variant->color = $variantColor['color_name'];
+        $variant->size = $variantSize['size_name'];
+        $variant->images = $variant->images()->get();
+
+        // Sử dụng phương thức push() để thêm phần tử vào collection
+        $product->color->push([
+            'id' => $variant['color_id'],
+            'name' => $variant->color,
+            'availableColors' => $product->productVariants->pluck('size.size_name')->unique()->values()->toArray()
+        ]);
+        
+        $product->size->push([
+            'id' => $variant['size_id'],
+            'name' => $variant->size,
+            'availableSizes' => $product->productVariants->pluck('color.color_name')->unique()->values()->toArray()
+        ]);
+
+        // Loại bỏ phần tử trùng lặp dựa trên 'id' sau khi thêm
+        $product->color = $product->color->unique('id')->values();
+        $product->size = $product->size->unique('id')->values();
+    }
+}
+
+// Chuyển đổi thành mảng trước khi truyền vào sự kiện
+// event(new NewProductEvent(
+//     $product->id,
+//     $product->name,
+//     $product->sku,
+//     $product->description,
+//     $product->category_id,
+//     $product->stock,
+//     $product->price_max ?? null,
+//     $product->price_min ?? null,
+//     $product->image_url,
+//     $product->alt_text,
+//     $product->color->toArray(),
+//     $product->size->toArray(),
+//     $product->productVariants->toArray()
+// ));
+
+
 
         // Kiểm tra và cập nhật nhiều ảnh
         if ($request->hasFile('images')) {
@@ -127,7 +230,8 @@ public function update(Request $request, ProductVariant $productVariant)
     } catch (Throwable $e) {
         DB::rollback();
         // Trả về thông báo lỗi chi tiết
-        return $this->error('Lỗi khi cập nhật biến thể sản phẩm: ' . $e->getMessage(), $e->getTrace());
+        return $this->error('Lỗi khi cập nhật biến thể sản phẩm: ' . $e->getMessage()
+        .'line'.$e->getLine().'file'.$e->getFile(), 500);
     }
 }
 

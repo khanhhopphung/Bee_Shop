@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Events\ProductEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
@@ -23,6 +24,8 @@ use App\Models\Promotion;
 class OrderController extends Controller
 {
    public function __construct(){
+    $randomCode = uniqid('prod_', true);        
+        event(new ProductEvent($randomCode));
     $this->autoUpdateStatus();
    }
     public function index()
@@ -99,6 +102,8 @@ class OrderController extends Controller
             $fin = $request->total_amount + ($request->shipping_cost - $shipDiscount);
         } else if(isset($discountAmount) && isset($shipDiscount)){
             $fin = $request->total_amount - $discountAmount + ($request->shipping_cost - $shipDiscount);
+        } else {
+            $fin = $request->total_amount;
         }
 
         
@@ -127,8 +132,13 @@ class OrderController extends Controller
             foreach ($cartDetails as $cartDetail) {
                 $variant = $cartDetail->productVariant()->get();
                 if ($variant) {
-                    $variant->first()->stock -= $cartDetail->quantity;
-                    $variant->first()->save(); // Cập nhật lại số lượng sản phẩm sau mua hàng
+                    if($variant->first()->stock >= $cartDetail->quantity){
+                        $variant->first()->stock -= $cartDetail->quantity;
+                        $variant->first()->save(); // Cập nhật lại số lượng sản phẩm sau mua hàng
+                    }else {
+                        return BaseController::error('Số Lượng Sản Phẩm Không Đủ !');
+                    }
+                   
                 }
                 OrderDetail::create([
                     'order_id' => $order->id,
@@ -141,16 +151,19 @@ class OrderController extends Controller
             }
 
             DB::commit();
-            return response()->json([
-                'message' => 'Order created successfully',
-                'order' => $order->load('address', 'promotion', 'orderDetails'),
-            ], 201);
+            return BaseController::success($order->load('address', 'promotion', 'orderDetails'),'Đặt hàng thành công !!!');
+            // return response()->json([
+            //     'message' => 'Order created successfully',
+            //     'order' => $order->load('address', 'promotion', 'orderDetails'),
+            // ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'error' => 'Could not create order. Please try again later.',
+                "status" =>false,
+                
                 'message' => $e->getMessage(),
                 'line'=>$e->getLine(),
+                'file'=>$e->getFile()
             ], 500);
         }
     }
@@ -231,6 +244,7 @@ class OrderController extends Controller
         $orders = $user->orders()->with([
             'address',
             'promotion',
+            'reviews',
             'orderDetails.product',
             'orderDetails.product_variant',
             'orderDetails.product_variant.images',

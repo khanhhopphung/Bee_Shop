@@ -155,7 +155,7 @@ class CartController extends BaseController
     public function viewCart()
     {
         $cart = Cart::with('cartDetails.product.image', 'cartDetails.productVariant.color', 'cartDetails.productVariant.size')
-            ->where('user_id', auth()->id())
+            ->where('user_id', auth()->id())->latest('id')
             ->first();
            
 

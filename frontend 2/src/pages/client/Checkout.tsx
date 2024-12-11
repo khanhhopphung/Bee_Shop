@@ -88,6 +88,12 @@ interface DiscountData {
   discount_shipping: Promotion[]; // Dùng object với key là ID
 }
 
+interface Res {
+  status: boolean; //
+  message: string;
+  data: Cart;
+}
+
 const PaymentPage: React.FC = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(window.location.search);
@@ -195,31 +201,88 @@ const PaymentPage: React.FC = () => {
   useEffect(() => {
     get();
   }, []);
+
+  // useEffect(() => {
+  //   const get = async (ids: number[]) => {
+  //     // try {
+  //     const response = await fetch(
+  //       `http://127.0.0.1:8000/api/carts-detail-order`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({ ids }),
+  //       }
+  //     );
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setCarts(data.cart_details);
+  //       const amount = data.cart_details.reduce((sum: number, cart: any) => {
+  //         return sum + cart.product_variant.price * cart.quantity;
+  //       }, 0);
+  //       console.log(amount);
+  //       setOriginalTotalAmount(amount);
+  //     }
+  //   };
+  //   get(savedCartDetailOrder);
+  // }, []);
   useEffect(() => {
     const get = async (ids: number[]) => {
-      // try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/carts-detail-order`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ ids }),
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/carts-detail-order`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ ids }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const updatedCarts = data.cart_details
+            .map((cart: any) => {
+              // Xử lý khi sản phẩm hết hàng
+              if (cart.product_variant.stock === 0) {
+                message.warning(
+                  `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+                );
+                return null;
+              }
+              // Xử lý khi số lượng không đủ
+              if (cart.quantity > cart.product_variant.stock) {
+                message.warning(
+                  `Sản phẩm "${cart.product_variant.name}" chỉ còn lại ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
+                );
+                return { ...cart, quantity: cart.product_variant.stock };
+              }
+              return cart;
+            })
+            .filter(Boolean); // Loại bỏ sản phẩm null (hết hàng)
+
+          setCarts(updatedCarts);
+
+          // Tính lại tổng số tiền
+          const amount = updatedCarts.reduce(
+            (sum: number, cart: any) =>
+              sum + cart.product_variant.price * cart.quantity,
+            0
+          );
+          setOriginalTotalAmount(amount);
         }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setCarts(data.cart_details);
-        const amount = data.cart_details.reduce((sum: number, cart: any) => {
-          return sum + cart.product_variant.price * cart.quantity;
-        }, 0);
-        console.log(amount);
-        setOriginalTotalAmount(amount);
+      } catch (error) {
+        console.error("Error fetching cart details:", error);
       }
     };
-    get(savedCartDetailOrder);
+
+    if (savedCartDetailOrder.length > 0) {
+      get(savedCartDetailOrder);
+    }
   }, []);
 
   const handleCloseModal = () => {
@@ -398,16 +461,109 @@ const PaymentPage: React.FC = () => {
       createOrder(); //
     }
   }, []);
+  // const createOrder = async () => {
+  //   // Tạo dữ liệu đơn hàng
+  //   // const orderData = {
+  //   //   total_amount: totalAmount,
+  //   //   promotion_id: idVoucher,
+  //   //   address_id: defaultAddress?.id,
+  //   //   payment_method: paymentMethod,
+  //   //   shipping_cost: 30000,
+  //   //   carts_detail: savedCartDetailOrder,
+  //   // };
+  //   const orderData = {
+  //     total_amount: totalAmount,
+  //     discount_promotion_id: idVoucher ? idVoucher : null,
+  //     shipping_promotion_id: idShip ? idShip : null,
+  //     address_id: defaultAddress?.id,
+  //     payment_method: paymentMethod,
+  //     shipping_cost: 31000,
+  //     carts_detail: savedCartDetailOrder,
+  //   };
+
+  //   try {
+  //     const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify(orderData),
+  //     });
+
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       message.success("Đặt hàng thành công!");
+  //       localStorage.setItem("order_id", data.order.id);
+
+  //       // Chuyển hướng người dùng tới trang thành công
+  //       navigate(`/ordersuccess/${data.order.id}`);
+  //     } else {
+  //       message.error("Đặt hàng thất bại, vui lòng thử lại.");
+  //     }
+  //   } catch (error) {
+  //     message.error("Có lỗi xảy ra khi tạo đơn hàng.");
+  //   }
+  // };
   const createOrder = async () => {
-    // Tạo dữ liệu đơn hàng
-    // const orderData = {
-    //   total_amount: totalAmount,
-    //   promotion_id: idVoucher,
-    //   address_id: defaultAddress?.id,
-    //   payment_method: paymentMethod,
-    //   shipping_cost: 30000,
-    //   carts_detail: savedCartDetailOrder,
-    // };
+    // try {
+    // Kiểm tra tồn kho trước khi tạo đơn hàng
+    const checkResponse = await fetch(
+      `http://127.0.0.1:8000/api/carts-detail-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: savedCartDetailOrder }),
+      }
+    );
+
+    if (!checkResponse.ok) {
+      const errorData = await checkResponse.json();
+      message.error(
+        `Không thể kiểm tra tồn kho: ${
+          errorData.message || "Lỗi không xác định"
+        }`
+      );
+      return;
+    }
+
+    const checkData = await checkResponse.json();
+    const updatedCarts = checkData.cart_details
+      .map((cart: any) => {
+        if (cart.product_variant.stock === 0) {
+          message.warning(
+            `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+          );
+          return null;
+        }
+        if (cart.quantity > cart.product_variant.stock) {
+          message.warning(
+            `Sản phẩm "${cart.product_variant.name}" chỉ còn ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
+          );
+          return { ...cart, quantity: cart.product_variant.stock };
+        }
+        return cart;
+      })
+      .filter(Boolean);
+
+    if (updatedCarts.length === 0) {
+      message.error("Không còn sản phẩm hợp lệ trong giỏ hàng.");
+      return;
+    }
+
+    setCarts(updatedCarts);
+
+    // Tính lại tổng tiền
+    const amount = updatedCarts.reduce(
+      (sum: number, cart: any) =>
+        sum + cart.product_variant.price * cart.quantity,
+      0
+    );
+
+    // Gửi yêu cầu tạo đơn hàng
     const orderData = {
       total_amount: totalAmount,
       discount_promotion_id: idVoucher ? idVoucher : null,
@@ -418,29 +574,36 @@ const PaymentPage: React.FC = () => {
       carts_detail: savedCartDetailOrder,
     };
 
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
+    const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(orderData),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        message.success("Đặt hàng thành công!");
-        localStorage.setItem("order_id", data.order.id);
-
-        // Chuyển hướng người dùng tới trang thành công
-        navigate(`/ordersuccess/${data.order.id}`);
-      } else {
-        message.error("Đặt hàng thất bại, vui lòng thử lại.");
-      }
-    } catch (error) {
-      message.error("Có lỗi xảy ra khi tạo đơn hàng.");
+    if (!response.ok) {
+      const errorData = await response.json();
+      message.error(
+        `Đặt hàng thất bại: ${errorData.message || "Lỗi không xác định"}`
+      );
+      return;
     }
+
+    const res: Res = await response.json();
+
+    if (res.status) {
+      message.success("Đặt hàng thành công!");
+      localStorage.setItem("order_id", res.data.id.toString());
+      navigate(`/ordersuccess/${res.data.id}`);
+    } else {
+      message.error(res.message || "Đặt hàng thất bại.");
+    }
+    // } catch (error) {
+    //   message.error("Có lỗi xảy ra khi tạo đơn hàng.");
+    //   console.error("Error creating order:", error);
+    // }
   };
 
   const submit = async () => {
@@ -719,7 +882,7 @@ const PaymentPage: React.FC = () => {
                       ))}
                   </tbody>
                 </table>
-                <div
+                {/* <div
                   className="note-seller mt-4"
                   style={{
                     height: "40px",
@@ -749,7 +912,7 @@ const PaymentPage: React.FC = () => {
                       placeholder="Lưu ý cho người bán"
                     ></textarea>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -819,7 +982,7 @@ const PaymentPage: React.FC = () => {
 
                       <div className="discount-list">
                         {/* Vouchers freeship */}
-                        {vouchers &&
+                        {/* {vouchers &&
                           vouchers.discount_shipping.map((voucher, index) => (
                             <div className="discount-item" key={index}>
                               <div className="discount-left">
@@ -858,7 +1021,7 @@ const PaymentPage: React.FC = () => {
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          ))} */}
 
                         {/* Vouchers giảm giá tiền (phần trăm hoặc tiền mặt) */}
                         {vouchers &&
@@ -876,23 +1039,28 @@ const PaymentPage: React.FC = () => {
                                     Mã giảm giá
                                   </span>
                                   <p className="discount-description">
-                                    Giảm{" "}
+                                    Giảm
                                     {voucher.discount_value
-                                      ? Number(voucher.discount_value) + " %"
+                                      ? Number(
+                                          voucher.discount_value
+                                        ).toLocaleString() + " %"
                                       : "N/A"}
-                                  </p>{" "}
+                                  </p>
                                   <p>
                                     Giảm tối đa :{" "}
                                     {voucher.max_discount &&
                                     voucher.max_discount > 0
-                                      ? Number(voucher.max_discount) + " %"
+                                      ? Number(
+                                          voucher.max_discount
+                                        ).toLocaleString() + " đ"
                                       : "Không giới hạn"}
-                                  </p>{" "}
+                                  </p>
                                   <p>
                                     Đơn tối thiểu :{" "}
                                     {voucher.min_purchase_amount
-                                      ? Number(voucher.min_purchase_amount) +
-                                        " đ"
+                                      ? Number(
+                                          voucher.min_purchase_amount
+                                        ).toLocaleString() + " đ"
                                       : "từ 0 đ"}
                                   </p>{" "}
                                   <div className="discount-status">
@@ -935,9 +1103,11 @@ const PaymentPage: React.FC = () => {
                                     Mã giảm giá
                                   </span>
                                   <p className="discount-description">
-                                    Giảm tối đa{" "}
+                                    Giảm tối đa :{" "}
                                     {voucher.discount_value
-                                      ? voucher.discount_value + "₫"
+                                      ? Number(
+                                          voucher.discount_value
+                                        ).toLocaleString() + "₫"
                                       : "N/A"}
                                   </p>
                                   <div className="discount-status">
@@ -1069,7 +1239,7 @@ const PaymentPage: React.FC = () => {
                       }}
                     >
                       <a className="change-link" onClick={showModal}>
-                        Thay Đổi
+                        Địa chỉ
                       </a>
                     </Button>
                   </div>
@@ -1181,7 +1351,7 @@ const PaymentPage: React.FC = () => {
                               {address.address_line}-{address.state}-
                               {address.city}
                             </span>
-                            <Button
+                            {/* <Button
                               className="update address"
                               style={{
                                 display: "flex",
@@ -1190,7 +1360,7 @@ const PaymentPage: React.FC = () => {
                               }}
                             >
                               Sửa
-                            </Button>
+                            </Button> */}
                           </div>
                         ))}
                         <div
