@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import Layout from "../../components/Layout";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { setQuantityCart } from "../../store/quantityCartSlice";
 import { Rate } from "antd";
 import Heart from "../../components/Heart";
+import Pusher from "pusher-js";
+import { message } from "antd";
 
 interface Product {
   id: number;
@@ -15,22 +16,28 @@ interface Product {
   price_max: number;
   price_min: number;
   image_url: string;
-  color: {
-    id: number;
-    name: string;
-  }[];
-  size: {
-    id: number;
-    name: string;
-  }[];
-  product_variants: {
-    size_id: number;
-    color_id: number;
-    price: number;
-    stock: number;
-    image_url: string;
-  };
+  color: Color[];
+  size: Size[];
+  product_variants: Variant[];
 }
+
+interface Color {
+  id: number;
+  name: string;
+}
+interface Size {
+  id: number;
+  name: string;
+}
+interface Variant {
+  id: number;
+  size_id: number;
+  color_id: number;
+  price: number;
+  stock: number;
+  image: { image_url: string }[];
+}
+
 interface Review {
   id: number;
   user_id: number;
@@ -41,14 +48,7 @@ interface Review {
   comment: string;
   rating: number;
   review_date: Date;
-}
-interface Size {
-  id: number;
-  name: string;
-}
-interface Color {
-  id: number;
-  name: string;
+  image: { image_url: string }[];
 }
 interface rating {
   average_rating: number;
@@ -59,7 +59,15 @@ interface Error {
   errorSize?: string;
   errorColor?: string;
 }
-
+interface ProductRelated {
+  id: number;
+  name: string;
+  sku: string;
+  description: string;
+  price_max: number;
+  price_min: number;
+  image: { image_url: string };
+}
 interface Data {
   id: number;
   sizeId: number;
@@ -71,22 +79,31 @@ interface ProductDetailProps {
     id: number | string | undefined,
     sizeId: number | string | undefined,
     colorId: number | string | undefined,
-    quantity: number | string
+    quantity: number | string,
+    price: number | null
   ) => void;
 }
-const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
+const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
   const dispatch = useDispatch();
-
-  const [error, setError] = useState<Error>({});
-  const { id } = useParams();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
+  const [csrfToken, setCsrfToken] = useState();
+  const { id } = useParams(); // lấy id từ url
+  const [products, setProducts] = useState<Product | null>(null); // để lưu sản phẩm
+  const [productrelated, setProductRelated] = useState<ProductRelated[]>([]);
+  const [error, setError] = useState<Error>({}); // để lưu lỗi
   const [sizes, setSize] = useState<Size[]>([]);
-
   const [sizeId, setSizeId] = useState<number>();
   const [colorId, setColorId] = useState<number>();
-
+  const [filteredSizes, setFilteredSizes] = useState<Size[]>([]);
+  const [filteredColors, setFilteredColors] = useState<Color[]>([]);
+  const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
+  const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [stock, setStock] = useState<number | undefined>();
+  const [price, setPrice] = useState<number | null>(null);
   const [colors, setColor] = useState<Color[]>([]);
-  const [products, setProducts] = useState<Product | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState<{
     average_rating: number;
@@ -95,11 +112,74 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
     average_rating: 0,
     rating_count: 0,
   });
+  useEffect(() => {
+    if (stock !== undefined) {
+      setQuantity(stock > 0 ? 1 : 0);
+    }
+  }, [stock]);
 
   const [selectedVariant, setSelectedVariant] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+  const [loading, setLoading] = useState<string>("");
   // call api products
+  useEffect(() => {
+    console.log("Bắt đầu ...");
+    Pusher.logToConsole = true;
+
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+
+    const channel = pusher.subscribe("product");
+    channel.bind("variant", (data: any) => {
+      console.log(data);
+      setProducts(data);
+    });
+
+    // Lấy CSRF token từ server
+    // const fetchCsrfToken = async () => {
+    //   const response = await fetch("http://127.0.0.1:8000/api/csrf-token");
+    //   const data = await response.json();
+    //   setCsrfToken(data.csrf_token);
+    // };
+
+    // fetchCsrfToken();
+
+    return () => {
+      // Unsubscribe khi component bị hủy
+      pusher.unsubscribe("product");
+    };
+  }, []);
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoading(data.code);
+    });
+
+    // Lấy CSRF token từ server
+    // const fetchCsrfToken = async () => {
+    //   const response = await fetch("http://127.0.0.1:8000/api/csrf-token");
+    //   const data = await response.json();
+    //   setCsrfToken(data.csrf_token);
+    // };
+
+    // fetchCsrfToken();
+
+    return () => {
+      // Unsubscribe khi component bị hủy
+      pusher.unsubscribe("product");
+    };
+  }, []);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -107,18 +187,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
           `http://127.0.0.1:8000/api/products/${id}`
         );
 
-        // Kiểm tra nếu phản hồi từ server là thành công
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-
-        // Kiểm tra xem result có dữ liệu hợp lệ không
         if (result && result.data) {
           setProducts(result.data);
           setSize(result.data.size);
           setColor(result.data.color);
+          setFilteredSizes(result.data.size);
+          setFilteredColors(result.data.color);
+          console.log(result.data);
         } else {
           console.error("Data is not valid:", result);
         }
@@ -128,7 +208,87 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
     };
 
     fetchProducts();
-  }, [id]);
+  }, [id, loading]);
+  useEffect(() => {
+    if (products && selectedColorId !== null) {
+      const sizes = products.size.filter((size) =>
+        products.product_variants.some(
+          (variant) =>
+            variant.color_id === selectedColorId && variant.size_id === size.id
+        )
+      );
+      setFilteredSizes(sizes);
+    } else {
+      setFilteredSizes(products?.size || []);
+    }
+  }, [selectedColorId, products]);
+
+  // Update filtered colors based on selected size
+  useEffect(() => {
+    if (products && selectedSizeId !== null) {
+      const colors = products.color.filter((color) =>
+        products.product_variants.some(
+          (variant) =>
+            variant.size_id === selectedSizeId && variant.color_id === color.id
+        )
+      );
+      setFilteredColors(colors);
+    } else {
+      setFilteredColors(products?.color || []);
+    }
+  }, [selectedSizeId, products]);
+
+  // Update price and stock based on selected size and color
+  useEffect(() => {
+    if (products && selectedSizeId !== null && selectedColorId !== null) {
+      const variant = products.product_variants.find(
+        (v) => v.size_id === selectedSizeId && v.color_id === selectedColorId
+      );
+      if (variant) {
+        setStock(variant.stock);
+        setPrice(variant.price);
+      } else {
+        setStock(0);
+        setPrice(null);
+      }
+    } else {
+      // setStock(0);
+      const num = () => {
+        return products?.product_variants.reduce(
+          (tong: number, product_variant: Variant) =>
+            tong + product_variant.stock,
+          0
+        );
+      };
+      setStock(num());
+      setPrice(null);
+    }
+  }, [selectedSizeId, selectedColorId, products]);
+
+  useEffect(() => {
+    if (products && selectedColorId !== null) {
+      const matchingVariant = products.product_variants.find(
+        (variant) =>
+          variant.color_id === selectedColorId &&
+          (selectedSizeId === null || variant.size_id === selectedSizeId)
+      );
+
+      console.log("Matching Variant:", matchingVariant);
+
+      if (matchingVariant) {
+        console.log(matchingVariant.image);
+        // Lấy image_url từ phần tử đầu tiên của mảng images
+        const imageUrl = matchingVariant.image?.[0]?.image_url || "";
+        console.log("Image URL:", imageUrl);
+        setImageUrl(imageUrl);
+      } else {
+        setImageUrl("");
+      }
+    } else {
+      setImageUrl("");
+    }
+  }, [selectedColorId, selectedSizeId, products]);
+
   // call api review
   useEffect(() => {
     const fetchReviews = async () => {
@@ -168,87 +328,91 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
 
     fetchReviews();
   }, [id]);
+  // call api sản phẩm liên quan
+  useEffect(() => {
+    const fetchProductRelated = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/products-related/${id}`
+        );
 
-  // call api sizes
-  // useEffect(() => {
-  //   const fetchSizes = async () => {
-  //     try {
-  //       const response = await fetch(`http://127.0.0.1:8000/api/sizes`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-  //       // Kiểm tra nếu phản hồi từ server là thành công
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
+        const result = await response.json();
+        // console.log(result.data);
 
-  //       const result = await response.json();
+        if (result?.data && Array.isArray(result.data)) {
+          setProductRelated(result.data.slice(0, 4)); // Lấy tối đa 4 sản phẩm
+        } else {
+          console.error("Invalid data format:", result);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
 
-  //       // Kiểm tra xem result có dữ liệu hợp lệ không
-  //       if (result && result.data) {
-  //         setSize(result.data);
-  //       } else {
-  //         console.error("Data is not valid for sizes:", result);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching sizes:", error);
-  //     }
-  //   };
+    fetchProductRelated();
+  }, [id]);
 
-  //   fetchSizes();
-  // }, []); // Chạy chỉ một lần khi component được mount
-
-  // call api colors
-  // useEffect(() => {
-  //   const fetchColors = async () => {
-  //     try {
-  //       const response = await fetch(`http://127.0.0.1:8000/api/colors`);
-
-  //       // Kiểm tra nếu phản hồi từ server là thành công
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-
-  //       const result = await response.json();
-
-  //       // Kiểm tra xem result có dữ liệu hợp lệ không
-  //       if (result && result.data) {
-  //         setColor(result.data);
-  //       } else {
-  //         console.error("Data is not valid for colors:", result);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching colors:", error);
-  //     }
-  //   };
-
-  //   fetchColors();
-  // }, []); // Chạy chỉ một lần khi component được mount
-
+  useEffect(() => {
+    console.log(productrelated);
+  }, [productrelated]);
   const handle = async () => {
     const errorObject = {
       errorSize: "",
       errorColor: "",
     };
-    if (!sizeId) {
+    if (!selectedSizeId) {
       errorObject.errorSize = "Vui lòng chọn kích thước!";
     }
 
-    if (!colorId) {
+    if (!selectedColorId) {
       errorObject.errorColor = "Vui lòng chọn màu sắc!";
     }
 
     // Cập nhật lỗi cùng một lúc
     setError(errorObject);
 
-    if (sizeId && colorId) {
-      setError({
-        errorSize: "",
-        errorColor: "",
-      });
+    // if (selectedSizeId && selectedColorId) {
+    //   setError({
+    //     errorSize: "",
+    //     errorColor: "",
+    //   });
 
-      await addToCart(Number(id), sizeId, colorId, quantity);
+    //   await addToCart(
+    //     Number(id),
+    //     selectedSizeId,
+    //     selectedColorId,
+    //     quantity,
+    //     price
+    //   );
+    // }
+    if (token) {
+      if (selectedSizeId && selectedColorId) {
+        setError({
+          errorSize: "",
+          errorColor: "",
+        });
+        // alert(quantity);
+        if (quantity > 0) {
+          await addToCart(
+            Number(id),
+            selectedSizeId,
+            selectedColorId,
+            quantity,
+            price
+          );
+        } else {
+          message.error("Thêm vào giỏ hàng thất bại! ");
+        }
+      }
+    } else {
+      navigate("/login");
     }
   };
-
+  // console.log(imageUrl);
   return (
     <div className="container">
       {/* bread-crumb */}
@@ -286,52 +450,47 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                         style={{ display: "flex" }}
                       >
                         <div className="slick3 gallery-lb">
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-01.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              />
-                            </div>
-                          </div>
-
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-02.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              />
-                            </div>
-                          </div>
-
-                          <div
-                            className="item-slick3"
-                            data-thumb="images/product-detail-03.jpg"
-                          >
-                            <div className="wrap-pic-w pos-relative">
-                              <img
-                                src={`http://127.0.0.1:8000/storage/${
-                                  products?.product_variants?.image_url ||
-                                  "default-image.jpg"
-                                }`}
-                              />
-                            </div>
-                          </div>
+                          {products?.product_variants
+                            ?.filter(
+                              (variant, index, self) =>
+                                self.findIndex(
+                                  (v) => v.color_id === variant.color_id
+                                ) === index
+                            )
+                            .map((variant, index) => (
+                              <div
+                                className="item-slick3"
+                                data-thumb="images/product-detail-01.jpg"
+                                key={index}
+                              >
+                                {/* <>
+                                  <p>{variant?.image?.[0]?.image_url}</p>
+                                </> */}
+                                <div className="wrap-pic-w pos-relative">
+                                  <img
+                                    src={`http://127.0.0.1:8000/storage/${variant?.image?.[0]?.image_url}`}
+                                    alt={`product variant ${index}`}
+                                    style={{
+                                      width: "120px",
+                                      marginRight: "10px",
+                                      marginBottom: "10px",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
                         </div>
+                        {/* <>
+                          {console.log(
+                            `http://127.0.0.1:8000/storage/${imageUrl}`
+                          )}
+                        </> */}
                         <img
-                          src={`http://127.0.0.1:8000/storage/${
-                            products?.image_url || "default-image.jpg"
-                          }`}
+                          src={
+                            imageUrl
+                              ? `http://127.0.0.1:8000/storage/${imageUrl}`
+                              : `http://127.0.0.1:8000/storage/${products?.image_url}`
+                          }
                           alt="IMG-PRODUCT"
                         />
                       </div>
@@ -340,6 +499,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                 </div>
               </div>
             </div>
+
             {products && (
               <div className="col-md-6 col-lg-5 p-b-30 ">
                 <div className="p-r-50 p-t-5 p-lr-0-lg">
@@ -348,113 +508,184 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                     style={{
                       fontFamily: "Roboto, sans-serif",
                       fontSize: "30px",
-                      color: "#2c3e50",
+                      color: "#717fe0",
                       marginBottom: "14px",
                       fontWeight: "700",
                     }}
                   >
                     <strong>{products.name}</strong>
                   </h4>
-
-                  <span className=" stext-102 p-t-20 sku-adjust ">
-                    Mã :{products.sku}
-                  </span>
+                  <div>
+                    <span className=" stext-102 p-t-20 sku-adjust ">
+                      Mã :{products.sku}
+                    </span>
+                  </div>
                   <br />
-                  <span className="mtext-108 cl2 p-t-20 ">
-                    Giá: {products.price_min.toLocaleString()}₫ -{" "}
-                    {products.price_max.toLocaleString()}₫
-                  </span>
+                  <div style={{ marginBottom: "5px" }}>
+                    <span className="mtext-108 cl2 p-t-20 ">
+                      Giá:{" "}
+                      {price
+                        ? `${Math.round(price).toLocaleString("vi-VN")} đ`
+                        : `${Math.round(products.price_min).toLocaleString(
+                            "vi-VN"
+                          )}đ - ${Math.round(products.price_max).toLocaleString(
+                            "vi-VN"
+                          )}đ`}
+                    </span>
+                  </div>
 
                   <div className="p-t-33">
                     <div className="product-options">
                       <div className="color-selector">
-                        <span>Màu Sắc: </span>
-                        {colors.map((color, index) => (
-                          <button
-                            key={index}
-                            className={`color-button ${
-                              selectedColor === color.name ? "selected" : ""
-                            }`}
-                            onClick={() => setSelectedColor(color.name)}
-                          >
-                            {color.name}
-                          </button>
-                        ))}
+                        <span>Màu Sắc </span>
+                        <div
+                          style={{
+                            marginLeft: "20px",
+                            display: "flex",
+                            gap: "10px",
+                          }}
+                        >
+                          {filteredColors.length > 0 ? (
+                            filteredColors.map((color) => (
+                              <button
+                                key={color.id}
+                                className={`color-button ${
+                                  selectedColorId === color.id ? "selected" : ""
+                                }`}
+                                onClick={() =>
+                                  setSelectedColorId((prev) =>
+                                    prev === color.id ? null : color.id
+                                  )
+                                }
+                                style={{
+                                  backgroundColor:
+                                    selectedColorId === color.id
+                                      ? "#717fe0"
+                                      : "",
+                                }}
+                              >
+                                {color.name}
+                              </button>
+                            ))
+                          ) : (
+                            <p>Không có màu nào khả dụng.</p>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="color-selector">
-                        <span>Kích Thước: </span>
-                        {sizes.map((size, index) => (
-                          <button
-                            key={index}
-                            className={`size-button ${
-                              selectedSize === size.name ? "selected" : ""
-                            }`}
-                            onClick={() => setSelectedSize(size.name)}
-                          >
-                            {size.name}
-                          </button>
-                        ))}
+                      <div className="size-selector">
+                        <span>Kích Thước </span>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          {filteredSizes.length > 0 ? (
+                            filteredSizes.map((size) => (
+                              <button
+                                key={size.id}
+                                className={`size-button ${
+                                  selectedSizeId === size.id ? "selected" : ""
+                                }`}
+                                onClick={() =>
+                                  setSelectedSizeId((prev) =>
+                                    prev === size.id ? null : size.id
+                                  )
+                                }
+                                style={{
+                                  backgroundColor:
+                                    selectedSizeId === size.id ? "#717fe0" : "",
+                                }}
+                              >
+                                {size.name}
+                              </button>
+                            ))
+                          ) : (
+                            <p>Không có kích thước nào khả dụng.</p>
+                          )}
+                        </div>
                       </div>
+
+                      {/* <div>
+                        <h3>Hình ảnh biến thể:</h3>
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt="Variant"
+                            style={{ width: "300px" }}
+                          />
+                        ) : (
+                          <p>Hãy chọn màu hoặc kích thước để xem hình ảnh.</p>
+                        )}
+                      </div> */}
                     </div>
 
                     {/* Chọn Số Lượng */}
                     <div className="flex-w flex-r-m p-b-10">
-                      <div className="size-204 flex-w flex-m respon6-next">
+                      <div
+                        className="size-204 flex-w flex-m respon6-next"
+                        style={{ marginLeft: "-104px" }}
+                      >
                         <div
                           className="size-204 flex-w flex-m respon6-next"
-                          style={{ marginLeft: "10px" }}
+                          style={{ marginLeft: "-104px" }}
                         >
-                          <div className="color-selector">
-                            <span>Số Lượng: </span>
-                          </div>
-                          <div className="wrap-num-product flex-w m-r-20 m-tb-10">
-                            <div
-                              className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m"
-                              onClick={() =>
-                                setQuantity((prevQuantity) =>
-                                  Math.max(prevQuantity - 1, 1)
-                                )
-                              }
-                            >
-                              <i className="fs-16 zmdi zmdi-minus"></i>
+                          <div style={{ display: "flex", marginTop: "12px" }}>
+                            <div className="stock-selector">
+                              <span>Số Lượng </span>
                             </div>
-
-                            <input
-                              className="mtext-104 cl3 txt-center num-product"
-                              type="number"
-                              name="num-product"
-                              min="1"
-                              max={
-                                products.product_variants.stock
-                                  ? products.product_variants.stock
-                                  : 1
-                              }
-                              value={quantity}
-                              onChange={handle}
-                            />
-
-                            <div
-                              className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
-                              onClick={() =>
-                                setQuantity((preQuantity) =>
-                                  Math.min(
-                                    preQuantity + 1,
-                                    products.product_variants.stock
+                            <div className="wrap-num-product flex-w m-r-20 m-tb-10">
+                              <div
+                                className="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={() =>
+                                  setQuantity((prevQuantity) =>
+                                    Math.max(prevQuantity - 1, 1)
                                   )
-                                )
-                              }
+                                }
+                              >
+                                <i className="fs-16 zmdi zmdi-minus"></i>
+                              </div>
+                              <input
+                                className="mtext-104 cl3 txt-center num-product"
+                                type="number"
+                                name="num-product"
+                                min="1"
+                                max={stock ? stock : 1}
+                                // value={quantity}
+                                value={
+                                  quantity > (stock ?? 0)
+                                    ? stock ?? 0
+                                    : quantity
+                                }
+                                onChange={handle}
+                              />
+                              <div
+                                className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
+                                onClick={() =>
+                                  setQuantity((preQuantity) =>
+                                    Math.min(preQuantity + 1, stock ? stock : 1)
+                                  )
+                                }
+                              >
+                                <i className="fs-16 zmdi zmdi-plus"></i>
+                              </div>{" "}
+                            </div>{" "}
+                            <div
+                              style={{
+                                whiteSpace: "nowrap",
+                                textAlign: "center",
+                                lineHeight: "60px",
+                              }}
                             >
-                              <i className="fs-16 zmdi zmdi-plus"></i>
+                              <span> {stock} Sản phẩm có sẵn</span>
                             </div>
                           </div>
-
                           <div
                             className="button-container"
-                            style={{ display: "flex", gap: "10px" }}
+                            style={{
+                              display: "flex",
+                              gap: "10px",
+                              marginTop: "10px",
+                            }}
                           >
                             <button
-                              onClick={handle}
+                              onClick={() => handle()}
                               className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail"
                             >
                               Thêm vào giỏ
@@ -539,19 +770,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                   </div>
                 </div>
 
-                <div
+                {/* <div
                   className="tab-pane fade"
                   id="information"
                   role="tabpanel"
-                ></div>
+                ></div> */}
 
                 <div className="tab-pane fade" id="reviews" role="tabpanel">
-                  <div style={{ padding: "5px" }}>
-                    {/* Hiển thị trung bình sao */}
-                    <strong>
-                      <strong>{rating.average_rating} trên 5</strong>
-                    </strong>
-                    <div style={{ display: "flex" }}>
+                  <div className="rating-summary">
+                    <strong>{rating.average_rating} trên 5</strong>
+                    <div className="stars">
                       {Array.from({ length: 5 }).map((_, index) => (
                         <span
                           key={index}
@@ -559,104 +787,55 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
                             color:
                               index < Math.round(rating.average_rating)
                                 ? "orange"
-                                : "lightgray", // Vàng cho các sao đã đạt, xám cho sao chưa đạt
+                                : "lightgray",
                           }}
                         >
                           ⭐
                         </span>
                       ))}
                     </div>
-                    <br />
-
-                    {/* Hiển thị số lượng đánh giá */}
-                    <span>{rating.rating_count} Bình luận</span>
+                    <span>({rating.rating_count} Bình luận)</span>
                   </div>
 
                   {reviews?.map((review, index) => (
-                    <div
-                      key={index}
-                      className="rowww"
-                      // style={{ height: "200px" }}
-                    >
-                      <div
-                        className="comments"
-                        style={{ marginRight: "600px" }}
-                      >
-                        <div
-                          className="avatar"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            display: "flex",
-                          }}
-                        >
+                    <div key={index} className="rowww">
+                      <div className="comments">
+                        <div className="avatar">
                           <img
                             src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
                             alt="avt"
                           />
-                          <div
-                            className="review"
-                            style={{ marginLeft: "15px" }}
-                          >
-                            <div
-                              className="username"
-                              style={{ display: "inline-block", gap: "10px" }}
-                            >
-                              <span
-                                className="mtext-106 cl2"
-                                style={{ marginRight: "5px" }}
-                              >
-                                {review.user.username}
-                              </span>
-
-                              {review.review_date
-                                ? new Date(
-                                    review.review_date
-                                  ).toLocaleDateString()
-                                : "Invalid Date"}
-                            </div>
-
-                            <div className="star">
-                              <div className="wrap-rating flex-m p-t-6">
-                                <div>
-                                  {Array.from({ length: review.rating }).map(
-                                    (_, index) => (
-                                      <span
-                                        key={index}
-                                        style={{ color: "gold" }}
-                                      >
-                                        ⭐
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                              <p
-                                className="comment"
-                                style={{
-                                  marginTop: "10px",
-                                  whiteSpace: "pre-wrap", // Giúp văn bản tự động xuống dòng nếu dài
-                                  overflowWrap: "break-word", // Giúp văn bản dài không bị tràn
-                                }}
-                              >
-                                {review.comment}
-                                <img
-                                  style={{ width: "50px", height: "50px" }}
-                                  src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
-                                  alt=""
-                                />
-                              </p>
+                        </div>
+                        <div className="review">
+                          <div className="username">
+                            <span>{review.user.username}</span>
+                            {review.review_date
+                              ? new Date(
+                                  review.review_date
+                                ).toLocaleDateString()
+                              : "Invalid Date"}
+                          </div>
+                          <div className="star">
+                            <div className="wrap-rating">
+                              {Array.from({ length: review.rating }).map(
+                                (_, index) => (
+                                  <span key={index}>⭐</span>
+                                )
+                              )}
                             </div>
                           </div>
+                          <p className="comment">
+                            {review.comment}
+                            <div>
+                              <img
+                                src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
+                                alt=""
+                              />
+                            </div>
+                          </p>
                         </div>
                       </div>
-                      <hr
-                        style={{
-                          margin: "20px 0",
-                          borderColor: "#ccc",
-                          borderWidth: "1px",
-                        }}
-                      />
+                      <hr />
                     </div>
                   ))}
                 </div>
@@ -668,23 +847,60 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
       <section className="sec-relate-product bg0 p-t-45 p-b-105">
         <div className="container">
           <div className="p-b-45">
-            <h3 className="ltext-106 cl5 txt-center">Related Products</h3>
+            <h3 className="ltext-106 cl5 txt-center">Sản Phẩm Liên Quan</h3>
           </div>
-          <div className="tab-content p-t-50">
+          {/* <>{console.log(productrelated)}</> */}
+          <div className="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item">
             <div
-              className="tab-pane fade show active"
-              id="best-seller"
-              role="tabpanel"
+              className="row isotope-grid"
+              style={{
+                display: "flex",
+                // backgroundColor: "red",
+                width: "1260px",
+              }}
             >
-              <div className="wrap-slick2">
-                <div className="slick2">
-                  {/* Sản phẩm - 4 sản phẩm xếp ngang nhau */}
-                  <div className="flex-w flex-sb-m p-l-15 p-r-15"></div>
-                  {/* Thêm các sản phẩm khác nếu cần */}
+              {productrelated.map((related, index) => (
+                <div style={{ width: "25%" }}>
+                  {/* <div key={index} className="block2"> */}
+                  <div key={related.id} className="block2">
+                    <Link to={`/products/${id}`}>
+                      <div className="block2-pic hov-img0">
+                        <img
+                          src={`http://127.0.0.1:8000/storage/${related.image.image_url}`}
+                          alt={`Product: ${related.name}`}
+                        />
+                        <a
+                          href="#"
+                          className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04"
+                        >
+                          Mua Ngay{" "}
+                        </a>
+                      </div>
+                    </Link>
+                    <div className="block2-txt flex-w flex-t p-t-14">
+                      <div className="block2-txt-child1 flex-col-l">
+                        <a
+                          href={`/products/${id}`}
+                          className="stext-104 cl4 hov-cl1 trans-04"
+                        >
+                          {related.name}
+                        </a>
+
+                        <span className="stext-105 cl3">
+                          {related.price_min && !isNaN(related.price_min)
+                            ? Number(related.price_min).toLocaleString() + "₫"
+                            : "N/A"}
+                        </span>
+                      </div>
+
+                      <div className="block2-txt-child2 flex-r p-t-3">
+                        {/* <Heart product_id={id} /> */}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-            {/* Các tab khác */}
           </div>
         </div>
       </section>
@@ -692,4 +908,4 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ addToCart }) => {
   );
 };
 
-export default ProductDetail;
+export default ProductDetail2;

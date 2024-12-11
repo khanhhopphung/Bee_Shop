@@ -49,6 +49,10 @@ class Order extends Model
         return $this->belongsTo(Promotion::class,'promotion_id');
     }
 
+    public function reviews(){
+        return $this->hasMany(Review::class);
+    }
+
 //     pending: Màu vàng hoặc cam (đang chờ xử lý).
 // completed: Màu xanh lá (hoàn tất).
 // cancelled: Màu đỏ (hủy).

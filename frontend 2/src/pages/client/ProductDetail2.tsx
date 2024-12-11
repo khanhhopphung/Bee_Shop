@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import Layout from "../../components/Layout";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { setQuantityCart } from "../../store/quantityCartSlice";
@@ -30,6 +29,7 @@ interface Size {
   name: string;
 }
 interface Variant {
+  id: number;
   size_id: number;
   color_id: number;
   price: number;
@@ -47,6 +47,7 @@ interface Review {
   comment: string;
   rating: number;
   review_date: Date;
+  image: { image_url: string }[];
 }
 interface rating {
   average_rating: number;
@@ -83,6 +84,9 @@ interface ProductDetailProps {
 }
 const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
+
   const { id } = useParams(); // lấy id từ url
   const [products, setProducts] = useState<Product | null>(null); // để lưu sản phẩm
   const [productrelated, setProductRelated] = useState<ProductRelated[]>([]);
@@ -184,7 +188,15 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
         setPrice(null);
       }
     } else {
-      setStock(0);
+      // setStock(0);
+      const num = () => {
+        return products?.product_variants.reduce(
+          (tong: number, product_variant: Variant) =>
+            tong + product_variant.stock,
+          0
+        );
+      };
+      setStock(num());
       setPrice(null);
     }
   }, [selectedSizeId, selectedColorId, products]);
@@ -265,7 +277,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
         }
 
         const result = await response.json();
-        console.log(result.data);
+        // console.log(result.data);
 
         if (result?.data && Array.isArray(result.data)) {
           setProductRelated(result.data.slice(0, 4)); // Lấy tối đa 4 sản phẩm
@@ -299,22 +311,40 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
     // Cập nhật lỗi cùng một lúc
     setError(errorObject);
 
-    if (selectedSizeId && selectedColorId) {
-      setError({
-        errorSize: "",
-        errorColor: "",
-      });
+    // if (selectedSizeId && selectedColorId) {
+    //   setError({
+    //     errorSize: "",
+    //     errorColor: "",
+    //   });
 
-      await addToCart(
-        Number(id),
-        selectedSizeId,
-        selectedColorId,
-        quantity,
-        price
-      );
+    //   await addToCart(
+    //     Number(id),
+    //     selectedSizeId,
+    //     selectedColorId,
+    //     quantity,
+    //     price
+    //   );
+    // }
+    if (token) {
+      if (selectedSizeId && selectedColorId) {
+        setError({
+          errorSize: "",
+          errorColor: "",
+        });
+
+        await addToCart(
+          Number(id),
+          selectedSizeId,
+          selectedColorId,
+          quantity,
+          price
+        );
+      }
+    } else {
+      navigate("/register");
     }
   };
-  console.log(imageUrl);
+  // console.log(imageUrl);
   return (
     <div className="container">
       {/* bread-crumb */}
@@ -546,17 +576,19 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                                 name="num-product"
                                 min="1"
                                 max={stock ? stock : 1}
-                                value={quantity}
+                                // value={quantity}
+                                value={
+                                  quantity > (stock ?? 0)
+                                    ? stock ?? 0
+                                    : quantity
+                                }
                                 onChange={handle}
                               />
                               <div
                                 className="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m"
                                 onClick={() =>
                                   setQuantity((preQuantity) =>
-                                    Math.min(
-                                      preQuantity + 1,
-                                      stock ? stock - 1 : 1
-                                    )
+                                    Math.min(preQuantity + 1, stock ? stock : 1)
                                   )
                                 }
                               >
@@ -746,7 +778,7 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
           <div className="p-b-45">
             <h3 className="ltext-106 cl5 txt-center">Sản Phẩm Liên Quan</h3>
           </div>
-          <>{console.log(productrelated)}</>
+          {/* <>{console.log(productrelated)}</> */}
           <div className="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item">
             <div
               className="row isotope-grid"
@@ -758,7 +790,8 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
             >
               {productrelated.map((related, index) => (
                 <div style={{ width: "25%" }}>
-                  <div key={index} className="block2">
+                  {/* <div key={index} className="block2"> */}
+                  <div key={related.id} className="block2">
                     <Link to={`/products/${id}`}>
                       <div className="block2-pic hov-img0">
                         <img

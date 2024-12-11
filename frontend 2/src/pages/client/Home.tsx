@@ -25,28 +25,33 @@ type Blog = {
 const features = [
   {
     icon: <FiTruck />,
-    title: "Free delivery",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Giao hàng miễn phí",
+    description:
+      "Đảm bảo sự tiện lợi cho bạn với dịch vụ giao hàng nhanh chóng và miễn phí.",
   },
   {
     icon: <FiLock />,
-    title: "100% secure payment",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Thanh toán 100% bảo mật",
+    description:
+      "Bảo vệ thông tin cá nhân của bạn với hệ thống thanh toán an toàn và bảo mật tuyệt đối.",
   },
   {
     icon: <FiCheckSquare />,
-    title: "Quality guarantee",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Đảm bảo chất lượng",
+    description:
+      "Cam kết mang đến sản phẩm chất lượng cao, đáp ứng mọi yêu cầu của bạn.",
   },
   {
     icon: <FiPercent />,
-    title: "Guaranteed savings",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Tiết kiệm đảm bảo",
+    description:
+      "Nhận được ưu đãi lớn và giảm giá hấp dẫn cho các sản phẩm yêu thích của bạn.",
   },
   {
     icon: <FiGift />,
-    title: "Daily offers",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Ưu đãi mỗi ngày",
+    description:
+      "Khám phá những ưu đãi mới mỗi ngày và tận hưởng những món quà bất ngờ từ chúng tôi.",
   },
 ];
 
@@ -387,7 +392,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div> */}
-        {/* <div
+        <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -424,11 +429,10 @@ const Home: React.FC = () => {
               </p>
             </div>
           ))}
-        </div> */}
-        <div>
-          <CategoryMenu />
-          {/* Các component khác của bạn */}
         </div>
+        {/* <div>
+          <CategoryMenu />
+        </div> */}
         <section className="sec-product bg0 p-t-100 p-b-50">
           <div className="container">
             {/* Tab sản phẩm */}

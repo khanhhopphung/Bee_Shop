@@ -89,7 +89,9 @@ const App: React.FC = () => {
     quantities = Number(quantities);
     if (isNaN(quantities) || quantities <= 0) {
       // Nếu quantities không hợp lệ, gán giá trị mặc định (1)
-      quantities = 1;
+      message.error("Thêm vào giỏ hàng thất bại! ");
+      return;
+      // quantities = 1;
     }
     setCartItem({
       product_id: productId,
@@ -233,7 +235,7 @@ const App: React.FC = () => {
           /> */}
           <Route
             path="products/:id"
-            element={<ProductDetail2 addToCart={addToCart} />}
+            element={<ProductDetail addToCart={addToCart} />}
           />
           <Route path="carts" element={<Carts />} />
           <Route path="category" element={<CategoryPage />} />

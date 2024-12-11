@@ -184,31 +184,78 @@ class PromotionController extends BaseController
 
     }
 
-    public function getlistVoucherByUser()
+//     public function getlistVoucherByUser()
+// {
+//     try {
+//         $user = auth()->user();
+//         $tier = $user->tier()->first();
+        
+//         // Lấy tất cả các mã giảm giá của người dùng theo tier và trạng thái active
+//         $promotions = Promotion::where('tier_id', $tier->id)
+//             ->where('is_active', true)
+//             ->get();
+        
+//         // Phân loại các mã giảm giá theo loại discount_type và chuyển thành mảng
+//         $discountMoney = $promotions->filter(function($promotion) {
+//             return $promotion->discount_type === 'money';
+//         })->values(); // Chuyển thành mảng
+
+//         $discountPercentage = $promotions->filter(function($promotion) {
+//             return $promotion->discount_type === 'percentage';
+//         })->values(); // Chuyển thành mảng
+
+//         $discountShipping = $promotions->filter(function($promotion) {
+//             return $promotion->discount_type === 'shipping';
+//         })->values(); // Chuyển thành mảng
+
+//         // Trả về kết quả dưới dạng hai danh sách riêng biệt
+//         return response()->json([
+//             'status' => 'success',
+//             'data' => [
+//                 'discount_money' => $discountMoney,
+//                 'discount_percentage' => $discountPercentage,
+//                 'discount_shipping' => $discountShipping,
+//             ]
+//         ]);
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             "status" => "error",
+//             "message" => "Đã xảy ra lỗi: ". $e->getMessage()
+//         ], 500);
+//     }
+// }
+
+public function getlistVoucherByUser()
 {
     try {
         $user = auth()->user();
         $tier = $user->tier()->first();
         
-        // Lấy tất cả các mã giảm giá của người dùng theo tier và trạng thái active
+        // Get all active vouchers for the user based on their tier
         $promotions = Promotion::where('tier_id', $tier->id)
             ->where('is_active', true)
             ->get();
-        
-        // Phân loại các mã giảm giá theo loại discount_type và chuyển thành mảng
-        $discountMoney = $promotions->filter(function($promotion) {
-            return $promotion->discount_type === 'money';
-        })->values(); // Chuyển thành mảng
 
-        $discountPercentage = $promotions->filter(function($promotion) {
-            return $promotion->discount_type === 'percentage';
-        })->values(); // Chuyển thành mảng
+        // Get the order IDs where vouchers have already been used by the user
+        $usedOrderIds = Order::where('user_id', $user->id)
+            ->whereNotNull('promotion_id')
+            ->pluck('promotion_id')
+            ->toArray();
 
-        $discountShipping = $promotions->filter(function($promotion) {
-            return $promotion->discount_type === 'shipping';
-        })->values(); // Chuyển thành mảng
+        // Filter the promotions by discount type and remove those that have been used
+        $discountMoney = $promotions->filter(function($promotion) use ($usedOrderIds) {
+            return $promotion->discount_type === 'money' && !in_array($promotion->id, $usedOrderIds);
+        })->values(); // Convert to array
 
-        // Trả về kết quả dưới dạng hai danh sách riêng biệt
+        $discountPercentage = $promotions->filter(function($promotion) use ($usedOrderIds) {
+            return $promotion->discount_type === 'percentage' && !in_array($promotion->id, $usedOrderIds);
+        })->values(); // Convert to array
+
+        $discountShipping = $promotions->filter(function($promotion) use ($usedOrderIds) {
+            return $promotion->discount_type === 'shipping' && !in_array($promotion->id, $usedOrderIds);
+        })->values(); // Convert to array
+
+        // Return the result as separate lists
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -225,7 +272,8 @@ class PromotionController extends BaseController
     }
 }
 
-    public function checkVoucher(Request $request){
+
+public function checkVoucher(Request $request){
         try {
             // kiểm tra người dùng 
             $user = auth()->user();

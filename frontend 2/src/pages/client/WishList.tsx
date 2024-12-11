@@ -47,6 +47,13 @@ interface List {
 }
 
 const WishList: React.FC = () => {
+  const truncateProductName = (name: string, maxWords: number = 8) => {
+    const words = name.split(" ");
+    if (words.length > maxWords) {
+      return words.slice(0, maxWords).join(" ") + "...";
+    }
+    return name;
+  };
   const favoriteItems = useSelector(
     (state: RootState) => state.favorites.items
   );
@@ -113,7 +120,7 @@ const WishList: React.FC = () => {
                     href={`/products/${item.product.id}`}
                     className="stext-104 cl4 hov-cl1 trans-04"
                   >
-                    {item.product.name}
+                    {truncateProductName(item.product.name)}
                   </a>
                   <span className="stext-105 cl3">
                     {item.product.price_min
