@@ -44,12 +44,12 @@ class StatisticsController extends Controller
 
         // Sản phẩm bán chạy
         $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
-            ->join('products', 'order_details.product_id', '=', 'products.id')
-            ->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
-            ->groupBy('products.name')
-            ->orderByDesc('total_sold')
-            ->limit(5)
-            ->get();
+        ->join('products', 'order_details.product_id', '=', 'products.id')
+        ->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
+        ->groupBy('products.id', 'products.name') // Thêm 'products.id' vào groupBy
+        ->orderByDesc('total_sold')
+        ->limit(5)
+        ->get();
         //tồn kho
         $lowStockProducts = Product::where('stock', '<', 10)
             ->select('id', 'name', 'sku', 'price', 'stock', 'category_id', 'is_active', 'created_at', 'updated_at')
@@ -62,16 +62,15 @@ class StatisticsController extends Controller
         ->join('products', 'order_details.product_id', '=', 'products.id')
         ->select('products.name', 'products.sku', DB::raw('SUM(order_details.quantity) as total_sold'), DB::raw('SUM(order_details.quantity * order_details.price) as total_revenue'))
         ->whereBetween('orders.order_date', [$startDate, $endDate])
-        ->groupBy('products.id')
+        ->groupBy('products.id', 'products.name', 'products.sku') // Thêm 'products.id', 'products.name', 'products.sku' vào groupBy
         ->orderByDesc('total_sold')
         ->get();
-
     
 
 $lowStockCount = $lowStockProducts->count();
 
-$unsoldProducts = Product::whereNotIn('id', function($query) use ($startDate, $endDate) {
-    $query->select('product_id')
+$unsoldProducts = Product::whereNotIn('products.id', function($query) use ($startDate, $endDate) {
+    $query->select('order_details.product_id')
           ->from('order_details')
           ->join('orders', 'order_details.order_id', '=', 'orders.id')
           ->whereBetween('orders.order_date', [$startDate, $endDate]);

@@ -16,6 +16,8 @@ interface Order {
   user_id: number;
   order_code: string;
   order_date: string;
+  product_id: number;
+  product_name: string;
   total_amount: number;
   shipping_cost: number;
   payment_method: string;
@@ -62,6 +64,7 @@ const Orders: React.FC = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   const [form] = Form.useForm();
@@ -97,6 +100,28 @@ const Orders: React.FC = () => {
       setLoading(false);
     }
   };
+ const fetchProducts = async () => {
+  try {
+    const accessToken = localStorage.getItem("access_token");
+
+    if (!accessToken) {
+      message.error("Bạn chưa đăng nhập!");
+      return;
+    }
+
+    const response = await axios.get("http://127.0.0.1:8000/api/products", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    setProducts(response.data); // Store the products data in state
+  } catch (error) {
+    message.error("Failed to load products");
+    setProducts([]); // Handle errors gracefully
+  }
+};
+
   
 
   const fetchPromotions = async () => {
@@ -310,7 +335,10 @@ const Orders: React.FC = () => {
               <p>
                 Promotion: {order.promotion_id}
               </p>
+              
             )}
+            <p>sản phẩm  {order.product_name}</p>
+
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
   
           
@@ -353,6 +381,24 @@ const Orders: React.FC = () => {
         <span style={{ fontSize: '16px' }}>
           {users.find((user) => user.id === userId)?.username || 'Unknown'}
         </span>
+      ),
+      align: 'left',
+    },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>id sản phẩm </span>,
+    //   dataIndex: 'product_id',
+    //   key: 'product_id',
+    //   render: (product_id: number) => (
+    //     <span style={{ fontSize: '16px' }}>{product_id || 'N/A'}</span>
+    //   ),
+    //   align: 'left',
+    // },
+    {
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>tên sản phẩm </span>,
+      dataIndex: 'product_name',
+      key: 'product_name',
+      render: (product_name: string) => (
+        <span style={{ fontSize: '16px' }}>{product_name || 'N/A'}</span>
       ),
       align: 'left',
     },

@@ -63,6 +63,10 @@ class Product extends Model
     {
         return $this->hasMany(Color::class);
     }
+    public function orders()
+    {
+        return $this->hasMany(order::class);
+    }
 
     public function orderDetails()
 

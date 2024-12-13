@@ -180,7 +180,7 @@ const ProductVariants: React.FC = () => {
     formData.append("color_id", values.color_id);
     formData.append("price", values.price);
     formData.append("stock", values.stock);
-    formData.append("is_active", values.is_active ? "1" : "0");
+    formData.append("is_active", values.is_active ? "0" : "1");
 
     // Gửi tất cả ảnh mới được upload
     images.forEach((file) => {

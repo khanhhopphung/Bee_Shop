@@ -205,30 +205,7 @@ const UserPage: React.FC = () => {
       ),
       align: 'center',
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
-      key: "actions",
-      render: (user: User) => (
-        <Space>
-          {/* <Button
-            type="primary"
-            size="large"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(user)}
-            style={{ marginRight: 8 }}
-          /> */}
-          <Button
-            type="primary"
-            danger
-            size="large"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(user.id)}
-
-          />
-        </Space>
-      ),
-      align: 'center',
-    },
+   
   ];
 
 

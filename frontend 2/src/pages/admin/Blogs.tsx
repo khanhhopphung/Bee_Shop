@@ -183,7 +183,7 @@ const Blogs: React.FC = () => {
   const columns: ColumnsType<Blog> = [
 
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STTt</span>,
       dataIndex: 'id',
       key: 'id',
       render: (text: any, record: Blog, index: number) => (

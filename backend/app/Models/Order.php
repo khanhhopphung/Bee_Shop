@@ -12,6 +12,8 @@ class Order extends Model
         'user_id',
         'order_date',
         'total_amount',
+        'product_id',
+        'product_name',
         'promotion_id',
         'status',
         'address_id',
@@ -23,6 +25,7 @@ class Order extends Model
         'address',
         'is_active',
     ];
+    
     protected $casts = [
         'total_amount' => 'integer',
         'shipping_cost' => 'integer',
@@ -43,6 +46,11 @@ class Order extends Model
     {
         return $this->belongsTo(ShippingAddress::class, 'address_id');
     }
+    // public function product()
+    // {
+    //     return $this->belongsTo(Product::class, 'product_id');
+    // }
+    
     
     public function promotion()
     {

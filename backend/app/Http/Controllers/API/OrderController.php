@@ -78,6 +78,7 @@ class OrderController extends Controller
                 'user_id' => $userId,
                 'total_amount' => $request->total_amount,
                 'promotion_id' => $request->promotion_id,
+           
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -86,9 +87,14 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
-                'address'=> $addressF
+                'address'=> $addressF,
+                'product_id' => $cartDetails->first()->product_id,
+                'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
          
             ]);
+            // $order->product_id = $cartDetails->first()->product_id;
+       
+            // $order->save();
 
             // Create order details and delete cart items
             foreach ($cartDetails as $cartDetail) {
@@ -127,17 +133,18 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            // Load relationships including order_code
-            $order->load(['address', 'promotion', 'orderDetails']);
-            return response()->json([
-                'message' => 'Order created successfully',
-                'order' => $order->load([
-                    'address',
-                    'promotion',
-                    'orderDetails.product' // Thêm quan hệ product để lấy ảnh
-                ]),
-            ], 201);
+            $order->load(['orderDetails.product:id,name']);
             
+            // Lấy danh sách tên sản phẩm
+            $productNames = $order->orderDetails->map(function ($detail) {
+                return $detail->product->name;
+            });
+    
+            return response()->json([
+                'message' => 'Order fetched successfully',
+                'order' => $order,
+                'product_names' => $productNames, // Trả về danh sách tên sản phẩm riêng
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch order. Please try again later.',
@@ -145,7 +152,7 @@ class OrderController extends Controller
             ], 500);
         }
     }
-
+    
     /**
      * Update the specified resource in storage.
      */

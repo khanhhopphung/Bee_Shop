@@ -1,0 +1,40 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f0f2f5;
+  }
+  
+  .container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto; /* Center container */
+  }
+  
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap; /* Wrap elements for smaller screens */
+  }
+  
+  .actions .ant-btn,
+  .actions .ant-input {
+    margin: 5px;
+  }
+  
+  .table {
+    width: 100%; /* Full width */
+  }
+  
+  @media (max-width: 768px) {
+    .actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .actions .ant-btn,
+    .actions .ant-input {
+      width: 100%; /* Full width on small screens */
+    }
+  }
+  
