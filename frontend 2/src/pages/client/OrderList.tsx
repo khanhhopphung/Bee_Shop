@@ -682,12 +682,22 @@ const OrderList = () => {
                       order.order_details.map((detail, detailIndex) => (
                         <div key={detailIndex}>
                           <div className="order-product">
-                            <img
+                            {/* <img
                               // src={`http://127.0.0.1:8000/storage/${detail.product_variant?.images[0].image_url}`}
                               src={`http://127.0.0.1:8000/storage/${detail.product_variant?.images[0].image_url}`}
                               alt="Sản phẩm A"
                               className="order-product-image"
+                            /> */}
+                            <img
+                              src={
+                                detail.product_variant?.images?.[0]?.image_url
+                                  ? `http://127.0.0.1:8000/storage/${detail.product_variant.images[0].image_url}`
+                                  : "default-placeholder-url" // Thay bằng URL placeholder nếu không có ảnh
+                              }
+                              alt="Sản phẩm A"
+                              className="order-product-image"
                             />
+
                             <div className="order-product-info">
                               <p className="order-product-name">
                                 {detail.product.name}

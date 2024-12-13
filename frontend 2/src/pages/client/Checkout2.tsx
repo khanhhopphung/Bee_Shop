@@ -351,74 +351,6 @@ const PaymentPage: React.FC = () => {
     setIsModalVisible(false);
   };
 
-  // const submitOrder = async () => {
-  //   // Kiểm tra địa chỉ và phương thức thanh toán
-  //   if (!defaultAddress) {
-  //     message.error("Vui lòng chọn địa chỉ nhận hàng");
-  //     return;
-  //   }
-  //   if (!paymentMethod) {
-  //     message.error("Vui lòng chọn phương thức thanh toán");
-  //     return;
-  //   }
-
-  //   // Nếu phương thức thanh toán là VNPAY
-  //   if (paymentMethod === "vnpay") {
-  //     try {
-  //       const response = await axios.post(
-  //         "http://127.0.0.1:8000/api/payment-vnpay",
-  //         {
-  //           amount: totalAmount, // Số tiền đơn hàng
-  //           bank_code: "NCB", // Mã ngân hàng (thay đổi tùy ý)
-  //         }
-  //       );
-
-  //       // Chuyển hướng người dùng tới trang thanh toán VNPAY
-  //       window.location.href = response.data.data;
-  //     } catch (error) {
-  //       console.error("Error creating payment:", error);
-  //       message.error("Có lỗi xảy ra khi thanh toán.");
-  //       return;
-  //     }
-  //   }
-
-  //   // Tạo dữ liệu đơn hàng
-  //   const orderData = {
-  //     total_amount: totalAmount,
-  //     promotion_id: idVoucher,
-  //     address_id: defaultAddress.id,
-  //     payment_method: paymentMethod,
-  //     shipping_cost: 30000,
-  //     carts_detail: savedCartDetailOrder,
-  //   };
-  //   setOrderdata(orderData);
-
-  //   // Gửi yêu cầu tạo đơn hàng
-  //   try {
-  //     const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(orderData),
-  //     });
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setOrderdata(data);
-  //       message.success("Đặt hàng thành công!");
-  //       localStorage.setItem("order_id", data.order.id);
-
-  //       // Chuyển hướng người dùng tới trang thành công
-  //       navigate(`/ordersuccess/${data.order.id}`);
-  //     } else {
-  //       message.error("Đặt hàng thất bại, vui lòng thử lại.");
-  //     }
-  //   } catch (error) {
-  //     message.error("Có lỗi xảy ra khi tạo đơn hàng.");
-  //   }
-  // };
   const submitOrder = async () => {
     // Kiểm tra địa chỉ và phương thức thanh toán
     if (!defaultAddress) {
@@ -433,22 +365,23 @@ const PaymentPage: React.FC = () => {
     // Nếu phương thức thanh toán là VNPAY
     if (paymentMethod === "vnpay") {
       try {
-        // Gửi yêu cầu tạo giao dịch thanh toán VNPAY
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/payment-vnpay",
+          "http://localhost:8000/api/vnpay/create-payment",
           {
-            amount: totalAmount, // Số tiền đơn hàng
-            bank_code: "NCB", // Mã ngân hàng
+            amount: totalAmount, // Số tiền
+            description: "Thanh toán đơn hàng", // Thông tin mô tả đơn hàng
           }
         );
 
-        // Chuyển hướng người dùng tới trang thanh toán VNPAY
-        window.location.href = response.data.data;
-        await createOrder();
+        const data = response.data;
+        console.log(data);
+
+        if (data.data) {
+          // Chuyển hướng đến URL thanh toán VNPay
+          window.location.href = data.data;
+        }
       } catch (error) {
-        console.error("Error creating payment:", error);
-        message.error("Có lỗi xảy ra khi tạo giao dịch thanh toán.");
-        return;
+        console.error("Payment Error:", error);
       }
     } else {
       // Nếu không phải VNPAY, tạo đơn hàng trực tiếp
@@ -456,55 +389,40 @@ const PaymentPage: React.FC = () => {
     }
   };
 
+  const handlePaymentStatus = async () => {
+    try {
+      // Giả sử bạn nhận trạng thái thanh toán từ callback (VNPay trả về thông qua vnp_ReturnUrl)
+      const urlParams = new URLSearchParams(window.location.search);
+      const vnp_ResponseCode = urlParams.get("vnp_ResponseCode"); // Mã phản hồi giao dịch
+
+      if (vnp_ResponseCode === "00") {
+        createOrder(); //
+
+        // setPaymentStatus("Thanh toán thành công");
+        // Bạn có thể tạo đơn hàng hoặc xử lý logic khác ở đây
+      } else {
+        // setPaymentStatus(`Thanh toán thất bại, mã lỗi: ${vnp_ResponseCode}`);
+      }
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+      message.error("thanh toán thất bại")
+      // setPaymentStatus("Có lỗi trong quá trình kiểm tra thanh toán");
+    }
+  };
+
+  // Gọi hàm handlePaymentStatus khi trang được tải lại (URL callback)
+  React.useEffect(() => {
+    if (window.location.search) {
+      handlePaymentStatus(); // Kiểm tra trạng thái thanh toán
+    }
+  }, []);
+
   useEffect(() => {
     if (window.location.href === "http://localhost:3000/ordersuccess") {
       createOrder(); //
     }
   }, []);
-  // const createOrder = async () => {
-  //   // Tạo dữ liệu đơn hàng
-  //   // const orderData = {
-  //   //   total_amount: totalAmount,
-  //   //   promotion_id: idVoucher,
-  //   //   address_id: defaultAddress?.id,
-  //   //   payment_method: paymentMethod,
-  //   //   shipping_cost: 30000,
-  //   //   carts_detail: savedCartDetailOrder,
-  //   // };
-  //   const orderData = {
-  //     total_amount: totalAmount,
-  //     discount_promotion_id: idVoucher ? idVoucher : null,
-  //     shipping_promotion_id: idShip ? idShip : null,
-  //     address_id: defaultAddress?.id,
-  //     payment_method: paymentMethod,
-  //     shipping_cost: 31000,
-  //     carts_detail: savedCartDetailOrder,
-  //   };
-
-  //   try {
-  //     const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(orderData),
-  //     });
-
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       message.success("Đặt hàng thành công!");
-  //       localStorage.setItem("order_id", data.order.id);
-
-  //       // Chuyển hướng người dùng tới trang thành công
-  //       navigate(`/ordersuccess/${data.order.id}`);
-  //     } else {
-  //       message.error("Đặt hàng thất bại, vui lòng thử lại.");
-  //     }
-  //   } catch (error) {
-  //     message.error("Có lỗi xảy ra khi tạo đơn hàng.");
-  //   }
-  // };
+  
   const createOrder = async () => {
     // try {
     // Kiểm tra tồn kho trước khi tạo đơn hàng

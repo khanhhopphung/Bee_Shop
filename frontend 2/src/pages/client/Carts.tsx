@@ -392,7 +392,7 @@ const Carts: React.FC = () => {
                                 : 1,
                           }}
                         >
-                          <td className="column-1 p-4">
+                          {/* <td className="column-1 p-4">
                             {!cart.product_variant.is_active ||
                             cart.product_variant.stock === 0 ? null : (
                               <Checkbox
@@ -404,7 +404,31 @@ const Carts: React.FC = () => {
                                 }
                               />
                             )}
+                          </td> */}
+                          <td className="column-1 p-4">
+                            {cart.product_variant.is_active === 0 ||
+                            cart.product_variant.stock === 0 ? (
+                              <span
+                                className="text-gray-500 font-semibold"
+                                style={{
+                                  backgroundColor: "#9e9e9e",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                HẾT HÀNG
+                              </span>
+                            ) : (
+                              <Checkbox
+                                checked={ids.includes(cart.id)}
+                                onChange={(e) => onChange(e, cart.id)}
+                                disabled={
+                                  cart.product_variant.is_active === 0 ||
+                                  cart.product_variant.stock === 0
+                                }
+                              />
+                            )}
                           </td>
+
                           <td className="column-2 text-lg flex items-center space-x-4">
                             <Link
                               to={`/products/${cart.product.id}`}
