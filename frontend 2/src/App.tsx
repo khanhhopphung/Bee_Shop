@@ -51,6 +51,8 @@ import ResetPassEmail from "./pages/client/ResetPassEmail";
 import VerifyOtp from "./pages/client/VerifyOtp";
 import ResetPass from "./pages/client/ResetPass";
 import ProductDetail2 from "./pages/client/ProductDetail2";
+import VNPayPayment from "./pages/client/VnPayment";
+import PaymentPage2 from "./pages/client/Checkout2";
 
 interface CartItem {
   product_id: any;
@@ -247,6 +249,7 @@ const App: React.FC = () => {
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
           <Route path="blogs/:id" element={<BlogDetail />} />
+          {/* <Route path="payments" element={<PaymentPage />} /> */}
           <Route path="payments" element={<PaymentPage />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="ordersuccess" element={<OrderSuccess2 />} />
@@ -266,6 +269,7 @@ const App: React.FC = () => {
           <Route path="/resetpassemail" element={<ResetPassEmail />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/reset-pass" element={<ResetPass />} />
+          <Route path="/vn-pay" element={<VNPayPayment />} />
           {/* <Route path="/promotions" element={<Promotions />} /> */}
         </Route>
 

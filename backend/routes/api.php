@@ -14,6 +14,7 @@ use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ReviewController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\VnPayController;
 use App\Models\Tier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/check', [PromotionController::class,'check']);
 
 });
+Route::post('/vnpay/create-payment', [VnPayController::class, 'createPayment']);
 
 Route::middleware('auth:api')->group(function () {
     Route::put('/update-phone/{id}', [UserController::class, 'updatePhone']);

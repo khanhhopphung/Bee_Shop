@@ -2063,7 +2063,7 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .table-shopping-cart .column-2 {
-  width: 200px;
+  /* width: 200px; */
   font-size: 15px;
   margin-left: 90px;
 }
@@ -4802,4 +4802,77 @@ hr {
 .review-form__button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+.payment-method-buttons button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1; /* Màu nền cho button */
+  color: #333; /* Màu chữ cho button */
+  cursor: pointer;
+  font-size: 14px; /* Kích thước chữ cho button */
+  text-align: center;
+  display: inline-block; /* Hiển thị các nút inline */
+  margin: 4px 2px; /* Khoảng cách giữa các nút */
+}
+
+.payment-method-buttons button:hover {
+  background-color: #e0e0e0; /* Màu nền khi hover */
+  color: #000; /* Màu chữ khi hover */
+}
+
+.address-inputs {
+  display: flex;
+  flex-direction: column; /* Sắp xếp theo hàng dọc */
+  gap: 16px; /* Khoảng cách giữa các hàng */
+  /* padding: 16px;  */
+  border-radius: 8px; /* Bo góc cho container */
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #ddd; /* Đường viền nhẹ xung quanh mỗi checkbox */
+  border-radius: 4px; /* Bo góc nhẹ cho các checkbox */
+  background-color: #f9f9f9; /* Màu nền nhạt cho sự nổi bật */
+  transition: background-color 0.3s ease; /* Hiệu ứng khi hover */
+  margin-bottom: 13px; /* Khoảng cách giữa các checkbox */
+}
+
+.checkbox-container:hover {
+  background-color: #e6e6e6; /* Màu nền khi hover */
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center; /* Căn chỉnh theo chiều dọc */
+  font-size: 14px; /* Kích thước chữ nhỏ hơn */
+  color: #333; /* Màu chữ */
+}
+
+.checkbox-container input {
+  margin-right: 8px; /* Khoảng cách giữa checkbox và văn bản */
+  width: 16px; /* Đặt chiều rộng và chiều cao của checkbox */
+  height: 16px; /* Đặt chiều rộng và chiều cao của checkbox */
+  border-radius: 50%; /* Biến checkbox thành hình tròn */
+  appearance: none; /* Ẩn thuộc tính mặc định của hệ điều hành */
+  background-color: #fff; /* Màu nền của checkbox */
+  border: 1px solid #ddd; /* Đường viền cho checkbox */
+  transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+}
+
+.checkbox-container input:checked {
+  background-color: #717fe0; /* Màu khi checkbox được chọn */
+  border-color: #717fe0; /* Đổi màu viền khi checkbox được chọn */
+}
+
+.checkbox-container input:hover {
+  border-color: #bbb; /* Màu viền khi hover */
+}
+.checkbox-container .payment-logo {
+  margin-left: 8px;
+  width: 24px;
+  height: 24px;
 }
