@@ -2063,7 +2063,7 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .table-shopping-cart .column-2 {
-  width: 200px;
+  /* width: 200px; */
   font-size: 15px;
   margin-left: 90px;
 }
@@ -2109,7 +2109,7 @@ input.num-product::-webkit-inner-spin-button {
 } */
 
 .table-shopping-cart .table_head th {
-  font-family: Poppins-Bold;
+  /* font-family: Poppins-Bold; */
   font-size: 13px;
   color: #555;
   text-transform: uppercase;
@@ -2385,7 +2385,7 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .stext-108 {
-  font-family: Poppins-Light;
+  font-family: auto;
   font-size: 14px;
   line-height: 1.7143;
 }
@@ -2456,7 +2456,12 @@ input.num-product::-webkit-inner-spin-button {
 /*//////////////////////////////////////////////////////////////////
 [ M-Text 16 - 25 ]*/
 .mtext-101 {
-  font-family: Poppins-Medium;
+  font-family: lora-Medium;
+  font-size: 18px;
+  line-height: 1.333333;
+}
+.mtextt-101 {
+  font-family: Poppins-SemiBold;
   font-size: 18px;
   line-height: 1.333333;
 }
@@ -2481,7 +2486,7 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .mtext-105 {
-  font-family: Poppins-Regular;
+  font-family: lora;
   font-size: 24px;
   line-height: 1.5;
 }
@@ -2558,14 +2563,14 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .ltext-104 {
-  font-family: Poppins-Bold;
+  font-family: Lora;
   font-size: 60px;
   line-height: 1.1;
   text-transform: uppercase;
 }
 
 .ltext-105 {
-  font-family: Poppins-Bold;
+  font-family: Lora;
   font-size: 50px;
   line-height: 1.1;
 }
@@ -2583,7 +2588,7 @@ input.num-product::-webkit-inner-spin-button {
 }
 
 .ltext-108 {
-  font-family: Poppins-Bold;
+  font-family: lora;
   font-size: 26px;
   line-height: 1.3846;
 }
@@ -4485,4 +4490,389 @@ hr {
 .dropdown-content a:hover {
   background-color: #f0f0f0;
   /* color: #ff5722; */
+}
+/* Danh sách mã giảm giá */
+.discount-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Khoảng cách giữa các item */
+}
+
+.discount-item {
+  display: flex;
+  border: 1px solid #ebebeb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  align-items: center;
+}
+
+.discount-left {
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+/* 
+.discount-icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 4px;
+} */
+.discount-icon {
+  width: 90px;
+  height: 90px;
+  background-color: #f6f6f6; /* Màu nền */
+  border-radius: 50%; /* Tạo hình tròn */
+  display: flex;
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  align-items: center; /* Căn giữa theo chiều dọc */
+}
+
+.discount-icon i {
+  font-size: 24px; /* Kích thước biểu tượng */
+  color: #ff5722; /* Màu sắc của biểu tượng */
+}
+.discount-right {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.discount-info {
+  flex: 1;
+}
+
+.discount-title {
+  font-weight: bold;
+  color: black;
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.discount-description {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.discount-status {
+  font-size: 12px;
+  color: #999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.discount-condition {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.discount-condition:hover {
+  text-decoration: underline;
+}
+
+.discount-checkbox {
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
+.discount-checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: #ff5722;
+  cursor: pointer;
+}
+
+/* Container chứa input và button */
+.voucher-container {
+  display: flex;
+  align-items: center;
+  background-color: #f8f8f8; /* Tùy chỉnh màu nền */
+  padding: 10px;
+  gap: 10px; /* Khoảng cách giữa các phần tử */
+  margin-bottom: 10px;
+  /* border: blue; */
+  border-radius: 5px;
+}
+
+/* Nhãn mã voucher */
+.voucher-label {
+  white-space: nowrap;
+  padding-top: 5px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+/* Input tìm kiếm */
+.search-input {
+  flex: 1; /* Input chiếm phần lớn không gian */
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #717fe0;
+  /* box-shadow: 0 0 4px rgba(0, 123, 255, 0.5); */
+}
+
+/* Button áp dụng */
+.apply-button {
+  padding: 8px 15px;
+  background-color: white;
+  color: black;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.apply-button:hover {
+  background-color: #e9ecef;
+}
+/* Container của footer */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end; /* Đẩy các nút về phía bên phải */
+  gap: 10px; /* Khoảng cách giữa các nút */
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd; /* Đường viền ngăn cách nội dung và footer */
+}
+
+/* Nút Trở lại */
+.back-button {
+  padding: 8px 15px;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: #eaeaea;
+}
+
+/* Nút OK */
+.ok-button {
+  padding: 8px 15px;
+  background-color: #717fe0;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ok-button:hover {
+  background-color: #5f6fd7;
+}
+/* Styles for CategoryMenu component */
+.category-menu {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.category-menu h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.category-item {
+  /* background-color: #f9f4e6; */
+  border-radius: 50%; /* Circular shape */
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease-in-out; /* Smooth hover effect */
+}
+
+.category-item img {
+  max-width: 120px;
+  height: auto;
+  border-radius: 50%; /* Circle image */
+}
+
+.category-item p {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666; /* Grey text */
+}
+
+/* Hover effect for category items */
+.category-item:hover {
+  transform: scale(1.1); /* Scale up on hover */
+  /* background-color: #e0d7b3;  */
+}
+
+@media (max-width: 768px) {
+  .categories {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .category-item {
+    width: 80%; /* Increase item size on smaller screens */
+  }
+}
+.review-form {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+.review-form__container {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-form__field {
+  margin-bottom: 15px;
+}
+
+.review-form__label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.review-form__select,
+.review-form__textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+}
+
+.review-form__select:disabled,
+.review-form__textarea:disabled {
+  background-color: #e9e9e9;
+  cursor: not-allowed;
+}
+
+.review-form__textarea {
+  height: 100px;
+  resize: none;
+}
+
+.review-form__button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.review-form__button:hover {
+  background-color: #0056b3;
+}
+
+.review-form__button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.payment-method-buttons button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1; /* Màu nền cho button */
+  color: #333; /* Màu chữ cho button */
+  cursor: pointer;
+  font-size: 14px; /* Kích thước chữ cho button */
+  text-align: center;
+  display: inline-block; /* Hiển thị các nút inline */
+  margin: 4px 2px; /* Khoảng cách giữa các nút */
+}
+
+.payment-method-buttons button:hover {
+  background-color: #e0e0e0; /* Màu nền khi hover */
+  color: #000; /* Màu chữ khi hover */
+}
+
+.address-inputs {
+  display: flex;
+  flex-direction: column; /* Sắp xếp theo hàng dọc */
+  gap: 16px; /* Khoảng cách giữa các hàng */
+  /* padding: 16px;  */
+  border-radius: 8px; /* Bo góc cho container */
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #ddd; /* Đường viền nhẹ xung quanh mỗi checkbox */
+  border-radius: 4px; /* Bo góc nhẹ cho các checkbox */
+  background-color: #f9f9f9; /* Màu nền nhạt cho sự nổi bật */
+  transition: background-color 0.3s ease; /* Hiệu ứng khi hover */
+  margin-bottom: 13px; /* Khoảng cách giữa các checkbox */
+}
+
+.checkbox-container:hover {
+  background-color: #e6e6e6; /* Màu nền khi hover */
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center; /* Căn chỉnh theo chiều dọc */
+  font-size: 14px; /* Kích thước chữ nhỏ hơn */
+  color: #333; /* Màu chữ */
+}
+
+.checkbox-container input {
+  margin-right: 8px; /* Khoảng cách giữa checkbox và văn bản */
+  width: 16px; /* Đặt chiều rộng và chiều cao của checkbox */
+  height: 16px; /* Đặt chiều rộng và chiều cao của checkbox */
+  border-radius: 50%; /* Biến checkbox thành hình tròn */
+  appearance: none; /* Ẩn thuộc tính mặc định của hệ điều hành */
+  background-color: #fff; /* Màu nền của checkbox */
+  border: 1px solid #ddd; /* Đường viền cho checkbox */
+  transition: border-color 0.3s ease; /* Hiệu ứng khi hover */
+}
+
+.checkbox-container input:checked {
+  background-color: #717fe0; /* Màu khi checkbox được chọn */
+  border-color: #717fe0; /* Đổi màu viền khi checkbox được chọn */
+}
+
+.checkbox-container input:hover {
+  border-color: #bbb; /* Màu viền khi hover */
+}
+.checkbox-container .payment-logo {
+  margin-left: 8px;
+  width: 24px;
+  height: 24px;
 }

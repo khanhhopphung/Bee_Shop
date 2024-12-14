@@ -51,6 +51,8 @@ import ResetPassEmail from "./pages/client/ResetPassEmail";
 import VerifyOtp from "./pages/client/VerifyOtp";
 import ResetPass from "./pages/client/ResetPass";
 import ProductDetail2 from "./pages/client/ProductDetail2";
+import VNPayPayment from "./pages/client/VnPayment";
+import PaymentPage2 from "./pages/client/Checkout2";
 
 interface CartItem {
   product_id: any;
@@ -89,7 +91,9 @@ const App: React.FC = () => {
     quantities = Number(quantities);
     if (isNaN(quantities) || quantities <= 0) {
       // Nếu quantities không hợp lệ, gán giá trị mặc định (1)
-      quantities = 1;
+      message.error("Thêm vào giỏ hàng thất bại! ");
+      return;
+      // quantities = 1;
     }
     setCartItem({
       product_id: productId,
@@ -233,7 +237,7 @@ const App: React.FC = () => {
           /> */}
           <Route
             path="products/:id"
-            element={<ProductDetail2 addToCart={addToCart} />}
+            element={<ProductDetail addToCart={addToCart} />}
           />
           <Route path="carts" element={<Carts />} />
           <Route path="category" element={<CategoryPage />} />
@@ -245,6 +249,7 @@ const App: React.FC = () => {
           <Route path="verify" element={<EmailVerify />} />
           <Route path="blogs" element={<Blogs />} />
           <Route path="blogs/:id" element={<BlogDetail />} />
+          {/* <Route path="payments" element={<PaymentPage />} /> */}
           <Route path="payments" element={<PaymentPage />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="ordersuccess" element={<OrderSuccess2 />} />
@@ -264,6 +269,8 @@ const App: React.FC = () => {
           <Route path="/resetpassemail" element={<ResetPassEmail />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/reset-pass" element={<ResetPass />} />
+          <Route path="/vn-pay" element={<VNPayPayment />} />
+          {/* <Route path="/promotions" element={<Promotions />} /> */}
         </Route>
 
         {/* Route cho phần admin */}

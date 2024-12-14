@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\Request;
@@ -45,16 +46,25 @@ class ReviewController extends BaseController
         // Gán mặc định `user_id` và `product_id` hoặc xử lý theo yêu cầu
         $userId = 1; // Hoặc có thể là giá trị mặc định khác
         $productId = 1; // Bạn có thể sửa `product_id` theo yêu cầu của bạn
-
-        // Tạo mới review
-        $review = Review::create([
+        $data = [
             'user_id' => $userId,
-            'product_id' => $productId,
+            'order_id' => $request->order_id,
+            'product_id' => $request->product_id,
             'comment' => $request->comment,
+            'image' => $request->image,
             'rating' => $request->rating,
             'is_verified' => $request->is_verified ?? false,
             'review_date' => now(), // Thêm dòng này
-        ]);
+        ];
+        return $data;
+        // Tạo mới review
+        $review = Review::create($data);
+        // $order = Order::find($request->order_id);
+        // $order->update([
+        //     'status' => 'updated',
+        // ])
+
+
 
         return response()->json([
             "status" => "success",
@@ -176,6 +186,42 @@ class ReviewController extends BaseController
 }
 
     
+public function addReview(Request $request){
+    try {
+        // return $request->order_id;
+        // $validatedData = $request->validate([
+        //     'product_id' => 'required|exists:products,id',
+        //     'comment' => 'required|string|max:255',
+        //     'rating' => 'required|integer|between:1,5',
+        //     'order_id' => 'required',
+        //     'image' => 'nullable',
+        // ]);
 
+       
+        $userId = auth()->id();
+        $data = [
+            'user_id' => $userId,
+            'order_id' => $request->order_id,
+            'product_id' => $request->product_id,
+            'comment' => $request->comment,
+            'rating' => $request->rating,
+            'is_verified' => $request->input('is_verified', false),
+            'review_date' => now(),
+            'image' => $request->hasFile('image') ? $request->file('image')->store('images', 'public') : null,
+        ];
+        $review = Review::create($data );
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $review,
+        ], 201);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'An error occurred: ' . $e->getMessage(),
+            'line'=>$e->getLine(),
+        ], 500);
+    }
+}
 
 }

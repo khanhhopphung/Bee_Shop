@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {Table,Button,Modal,Form,Input,message,Select,InputNumber,Switch,Space} from "antd";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+  Select,
+  InputNumber,
+  Switch,
+  Space,
+} from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
@@ -8,7 +19,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import moment from "moment";
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType } from "antd/es/table";
 
 // Define the types for Order, User, Address, and Promotion
 interface Order {
@@ -80,16 +91,20 @@ const Orders: React.FC = () => {
         message.error("Bạn chưa đăng nhập!");
         return;
       }
-  
+
       const response = await axios.get("http://127.0.0.1:8000/api/orders", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-  
+
       const data = Array.isArray(response.data) ? response.data : [];
       // Sắp xếp đơn hàng mới nhất lên đầu
-      const sortedOrders = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const sortedOrders = data.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
       setOrders(sortedOrders);
       setFilteredOrders(sortedOrders);
     } catch (error) {
@@ -100,29 +115,6 @@ const Orders: React.FC = () => {
       setLoading(false);
     }
   };
- const fetchProducts = async () => {
-  try {
-    const accessToken = localStorage.getItem("access_token");
-
-    if (!accessToken) {
-      message.error("Bạn chưa đăng nhập!");
-      return;
-    }
-
-    const response = await axios.get("http://127.0.0.1:8000/api/products", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    setProducts(response.data); // Store the products data in state
-  } catch (error) {
-    message.error("Failed to load products");
-    setProducts([]); // Handle errors gracefully
-  }
-};
-
-  
 
   const fetchPromotions = async () => {
     try {
@@ -170,7 +162,8 @@ const Orders: React.FC = () => {
       const userName =
         users.find((user) => user.id === order.user_id)?.username || "";
       const address =
-        addresses.find((addr) => addr.id === order.address_id)?.address_line || "";
+        addresses.find((addr) => addr.id === order.address_id)?.address_line ||
+        "";
       return (
         userName.toLowerCase().includes(lowerKeyword) ||
         order.status.toLowerCase().includes(lowerKeyword) ||
@@ -257,30 +250,42 @@ const Orders: React.FC = () => {
       message.error("Bạn chưa đăng nhập!");
       return;
     }
-  
+
     // Kiểm tra trạng thái hiện tại của đơn hàng
     const currentOrder = orders.find((order) => order.id === order_id);
     if (!currentOrder) {
       message.error("Đơn hàng không tồn tại!");
+
       return;
     }
-  
+
     if (currentOrder.status === "completed") {
-      message.warning("Không thể thay đổi trạng thái khi đơn hàng đã hoàn thành!");
+      message.warning(
+        "Không thể thay đổi trạng thái khi đơn hàng đã hoàn thành!"
+      );
       return;
     }
-  
+
     // Định nghĩa thứ tự trạng thái hợp lệ
-    const statusOrder = ["pending","on_hold", "processing", "shipped","delivered","returned","refunded","cancelled","completed"];
+    const statusOrder = [
+      "pending",
+      "on_hold",
+      "processing",
+      "shipped",
+      "delivered",
+      "returned",
+      "refunded",
+      "cancelled",
+      "completed",
+    ];
     const currentStatusIndex = statusOrder.indexOf(currentOrder.status);
     const newStatusIndex = statusOrder.indexOf(newStatus);
-  
+
     // Kiểm tra trạng thái mới có hợp lệ không
     if (newStatusIndex <= currentStatusIndex) {
       message.error(" trạng thái không hợp lệ!");
       return;
     }
-  
     try {
       await axios.put(
         `http://127.0.0.1:8000/api/orders/${order_id}`,
@@ -292,7 +297,7 @@ const Orders: React.FC = () => {
         }
       );
       message.success("Cập nhật trạng thái thành công!");
-  
+
       // Cập nhật trạng thái trong danh sách đơn hàng cục bộ
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
@@ -308,16 +313,13 @@ const Orders: React.FC = () => {
       message.error("Cập nhật trạng thái thất bại!");
     }
   };
-  
-  
-  
-  
+
   const handleViewDetails = (orderId: number) => {
     const order = orders.find((order) => order.id === orderId);
     if (order) {
       const product = order.products?.[0]; // Giả sử bạn muốn hiển thị ảnh của sản phẩm đầu tiên
       const image_url = product ? product.image_url : null;
-  
+
       Modal.info({
         title: "Order Details",
         content: (
@@ -335,22 +337,19 @@ const Orders: React.FC = () => {
               <p>
                 Promotion: {order.promotion_id}
               </p>
-              
+
             )}
             <p>sản phẩm  {order.product_name}</p>
 
+
+            {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
+
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
-  
-          
           </div>
         ),
       });
     }
   };
-  
-  
-  
-  
 
   const columns: ColumnsType<Order> = [
     {
@@ -363,26 +362,19 @@ const Orders: React.FC = () => {
       ),
       align: "center",
     },
-    
+
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã đơn hàng</span>,
-      dataIndex: 'order_code',
-      key: 'order_code',
-      render: (orderCode: string) => (
-        <span style={{ fontSize: '16px' }}>{orderCode || 'N/A'}</span>
-      ),
-      align: 'left',
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người đặt</span>,
-      dataIndex: 'user_id',
-      key: 'user_id',
-      render: (userId: number) => (
-        <span style={{ fontSize: '16px' }}>
-          {users.find((user) => user.id === userId)?.username || 'Unknown'}
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Mã đơn hàng
         </span>
       ),
-      align: 'left',
+      dataIndex: "order_code",
+      key: "order_code",
+      render: (orderCode: string) => (
+        <span style={{ fontSize: "16px" }}>{orderCode || "N/A"}</span>
+      ),
+      align: "left",
     },
     // {
     //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>id sản phẩm </span>,
@@ -402,120 +394,161 @@ const Orders: React.FC = () => {
       ),
       align: 'left',
     },
-    
+
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng đơn hàng</span>,
-      dataIndex: 'total_amount',
-      key: 'total_amount',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Tên người đặt
+        </span>
+      ),
+      dataIndex: "user_id",
+      key: "user_id",
+      render: (userId: number) => (
+        <span style={{ fontSize: "16px" }}>
+          {users.find((user) => user.id === userId)?.username || "Unknown"}
+        </span>
+      ),
+      align: "left",
+    },
+
+    {
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Tổng đơn hàng
+        </span>
+      ),
+      dataIndex: "total_amount",
+      key: "total_amount",
       render: (totalAmount: number) => (
-        <strong style={{ fontSize: '16px' }}>{totalAmount.toLocaleString()}₫</strong>
+        <strong style={{ fontSize: "16px" }}>
+          {totalAmount.toLocaleString()}₫
+        </strong>
       ),
-      align: 'left',
+      align: "left",
     },
-   
-    
+
+    // {
+    //   title: (
+    //     <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+    //       Phí vận chuyển
+    //     </span>
+    //   ),
+    //   dataIndex: "shipping_cost",
+    //   key: "shipping_cost",
+    //   render: (shippingCost: number) => (
+    //     <strong style={{ fontSize: "16px" }}>
+    //       {shippingCost.toLocaleString()}₫
+    //     </strong>
+    //   ),
+    //   align: "left",
+    // },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phí vận chuyển</span>,
-      dataIndex: 'shipping_cost',
-      key: 'shipping_cost',
-      render: (shippingCost: number) => (
-        <strong style={{ fontSize: '16px' }}>{shippingCost.toLocaleString()}₫</strong>
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Phương thức thanh toán
+        </span>
       ),
-      align: 'left',
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Phương thức thanh toán</span>,
-      dataIndex: 'payment_method',
-      key: 'payment_method',
+      dataIndex: "payment_method",
+      key: "payment_method",
       render: (paymentMethod: string) => (
-        <span style={{ fontSize: '16px' }}>{paymentMethod || 'N/A'}</span>
+        <span style={{ fontSize: "16px" }}>{paymentMethod || "N/A"}</span>
       ),
-      align: 'left',
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Địa chỉ</span>,
-      dataIndex: 'address',
-      key: 'address',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Địa chỉ</span>
+      ),
+      dataIndex: "address",
+      key: "address",
       render: (address: { address_line: string }) => (
-        <span style={{ fontSize: '16px' }}>{address?.address_line || 'N/A'}</span>
+        <span style={{ fontSize: "16px" }}>
+          {address?.address_line || "N/A"}
+        </span>
       ),
-      align: 'left',
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Khuyến mãi</span>,
-      dataIndex: 'promotion',
-      key: 'promotion',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Khuyến mãi</span>
+      ),
+      dataIndex: "promotion",
+      key: "promotion",
       render: (promotion: { code: string }) => (
-        <span style={{ fontSize: '16px' }}>{promotion?.code || 'N/A'}</span>
+        <span style={{ fontSize: "16px" }}>{promotion?.code || "N/A"}</span>
       ),
-      align: 'left',
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày đặt hàng</span>,
-      dataIndex: 'order_date',
-      key: 'order_date',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Ngày đặt hàng
+        </span>
+      ),
+      dataIndex: "order_date",
+      key: "order_date",
       render: (orderDate: string) => (
-        <span style={{ fontSize: '16px' }}>{orderDate || 'N/A'}</span>
+        <span style={{ fontSize: "16px" }}>{orderDate || "N/A"}</span>
       ),
-      align: 'left',
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
-      dataIndex: 'status',
-      key: 'status',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Trạng thái</span>
+      ),
+      dataIndex: "status",
+      key: "status",
       render: (status: string, record: Order) => (
         <Select
           value={status}
           style={{ width: 150 }}
           onChange={(value) => handleStatusChange(value, record.id)}
         >
-         <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
-  <Select.Option value="on_hold">Tạm giữ</Select.Option>
-  <Select.Option value="processing">Đang xử lý</Select.Option>
-  <Select.Option value="shipped">Đã vận chuyển</Select.Option>
-  <Select.Option value="delivered">Đã giao hàng</Select.Option>
-  <Select.Option value="returned">Đã trả lại</Select.Option>
-  <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
-  <Select.Option value="cancelled">Đã hủy</Select.Option>
-  <Select.Option value="completed">Hoàn thành</Select.Option>
-</Select>
+          <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
+          <Select.Option value="shipped">Đã vận chuyển</Select.Option>
+          <Select.Option value="delivered">Đã giao hàng</Select.Option>
+          <Select.Option value="returned">Đã trả lại</Select.Option>
+          <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+          <Select.Option value="cancelled">Đã hủy</Select.Option>
+          <Select.Option value="completed">Hoàn thành</Select.Option>
+        </Select>
       ),
-      align: 'center',
+      align: "center",
     },
-   
+
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
-      key: 'actions',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Hành động</span>
+      ),
+      key: "actions",
       render: (record: Order) => (
         <Space>
-         
-       
           <Button
             icon={<EyeOutlined />}
             onClick={() => handleViewDetails(record.id)}
           />
         </Space>
       ),
-      align: 'center',
+      align: "center",
     },
   ];
 
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div
         style={{
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px 24px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px",
           }}
         >
           <Select
@@ -525,20 +558,19 @@ const Orders: React.FC = () => {
             allowClear
             style={{
               width: 250,
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             }}
           >
             <Select.Option value="all">Tất cả trạng thái</Select.Option>
             <Select.Option value="pending">Đang giao</Select.Option>
             <Select.Option value="completed">Đã hoàn thành</Select.Option>
             <Select.Option value="cancelled">Đã hủy</Select.Option>
-            <Select.Option value="processing">Đang xử lý</Select.Option>
             <Select.Option value="shipped">Đã gửi</Select.Option>
             <Select.Option value="delivered">Đã giao</Select.Option>
             <Select.Option value="returned">Đã trả lại</Select.Option>
             <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
-            <Select.Option value="on_hold">Tạm giữ</Select.Option>
+          
           </Select>
 
           <Input.Search
@@ -549,9 +581,9 @@ const Orders: React.FC = () => {
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
+              maxWidth: "600px",
+              borderRadius: "8px",
+              height: "48px",
             }}
           />
         </div>
@@ -576,9 +608,6 @@ const Orders: React.FC = () => {
           }}
         />
       </div>
-
-    
-     
     </div>
   );
 };

@@ -9,12 +9,15 @@ class Review extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'order_id',
+
         'user_id',
         'product_id',
         'comment',
         'rating',
         'review_date',
         'is_verified',
+        'image',
     ];
 
     // Thiết lập mối quan hệ với User

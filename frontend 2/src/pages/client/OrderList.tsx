@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Rate, Input, Upload, message, Radio } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
+import Pusher from "pusher-js";
 interface CartItem {
   product_id: any;
   color_id: any;
@@ -28,7 +29,9 @@ interface Order {
   phone: string;
   address: string;
   is_active: number;
+  reviews: Reviewh[];
   order_details: {
+    order_id: number;
     quantity: number;
     price: number;
     name: string;
@@ -41,6 +44,13 @@ interface Order {
     color: Color;
     size: Size;
   }[];
+}
+interface Reviewh {
+  id: number;
+  comment: string;
+  rating: number;
+  image: string | null;
+  product_id: number;
 }
 
 interface Product {
@@ -73,6 +83,13 @@ interface Size {
   id: number;
   size_name: string;
 }
+
+interface Review {
+  comment: string;
+  rating: number;
+  image: string | null;
+  product_id: number;
+}
 const OrderList = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -85,7 +102,15 @@ const OrderList = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const navigate = useNavigate();
   const [user, setUser] = useState<User>();
-
+  const { confirm } = Modal;
+  const [review, setReview] = useState<Review>({
+    product_id: 0,
+    rating: 0,
+    comment: "",
+    image: "", // Lưu ảnh đã chọn
+  });
+  const [productId, setProductId] = useState<number>();
+  const [orderId, setOderId] = useState<number>();
   const cancelReasons = [
     "Tôi muốn cập nhật địa chỉ/số điện thoại nhận hàng.",
     "Tôi muốn thêm/thay đổi mã giảm giá.",
@@ -98,15 +123,44 @@ const OrderList = () => {
 
   const refundReasons = [
     "Tôi muốn thay đổi sản phẩm (kích thước, màu sắc, số lượng…).",
-    "Thủ tục thanh toán rắc rối.",
     "Tôi tìm thấy chỗ mua khác tốt hơn (Rẻ hơn, uy tín hơn, giao nhanh hơn…).",
-    "Tôi không tìm thấy lý do hủy phù hợp.",
+    "Tôi không tìm thấy lý do trả phù hợp.",
   ];
-  const [review, setReview] = useState({
-    rating: 0,
-    comment: "",
-    images: [] as string[], // Lưu ảnh đã chọn
-  });
+  const [loading, setLoading] = useState<string>("");
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoading(data.code);
+    });
+
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
+
+  const showConfirm = (orderId: number) => {
+    confirm({
+      title: "Bạn có chắc chắn đã nhận được hàng?",
+      content: "Sau khi xác nhận, bạn sẽ không trả hàng được nữa !",
+      okText: "Đúng, tôi đã nhận",
+      cancelText: "Hủy",
+      onOk() {
+        handleConfirmOrder(orderId); // Gọi hàm xác nhận
+      },
+      onCancel() {
+        message.info("Hủy xác nhận nhận hàng.");
+      },
+    });
+  };
+
   const fectOrders = async () => {
     try {
       const response = await fetch(
@@ -134,34 +188,89 @@ const OrderList = () => {
 
   useEffect(() => {
     fectOrders();
-  }, []);
+  }, [loading]);
 
-  // useEffect(() => {
-  //   console.log(orders);
-  // }, [orders]);
-
+  // const handleReviewSubmit = () => {
+  //   console.log("Đánh giá đã được gửi:", review);
+  //   setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
+  //   message.success("Đánh giá của bạn đã được gửi!");
+  // };
   const handleReviewSubmit = () => {
     console.log("Đánh giá đã được gửi:", review);
-    setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
-    message.success("Đánh giá của bạn đã được gửi!");
+
+    // Kiểm tra trước khi gửi
+    if (!review.rating || !review.comment) {
+      message.error("Vui lòng nhập đầy đủ thông tin đánh giá!");
+      return;
+    }
+
+    const data = {
+      product_id: productId,
+      rating: review.rating,
+      comment: review.comment,
+      image: review.image ? review.image : null,
+      order_id: orderId,
+    };
+
+    const formData = new FormData();
+    formData.append("rating", review.rating.toString());
+    formData.append("comment", review.comment);
+    if (review.image) {
+      formData.append("image", review.image);
+    }
+
+    fetch("http://127.0.0.1:8000/api/add-review", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Something went wrong!");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Review submitted:", data);
+        setShowReviewForm(false); // Đóng modal sau khi gửi đánh giá
+        message.success("Đánh giá của bạn đã được gửi!");
+        setReview((prevReview) => ({
+          ...prevReview,
+          rating: 0,
+          comment: "",
+          image: null,
+        }));
+        fectOrders();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        message.error("Đã xảy ra lỗi khi gửi đánh giá!");
+      });
   };
 
   const handleImageUpload = (file: any) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("Chỉ cho phép tải lên file hình ảnh JPEG hoặc PNG!");
+    const isImage = file.type.startsWith("image/");
+    if (!isImage) {
+      message.error("Chỉ cho phép tải lên file hình ảnh!");
+      return Upload.LIST_IGNORE;
     }
-    return isJpgOrPng;
+    setReview((prevReview) => ({
+      ...prevReview,
+      image: file,
+    }));
+    return false; // Ngăn hành vi tải lên mặc định
   };
 
-  const handleImageChange = (info: any) => {
-    if (info.file.status === "done") {
-      setReview({
-        ...review,
-        images: [...review.images, info.file.response.url], // Giả sử bạn nhận được URL của ảnh từ backend
-      });
-    }
+  const handleImageRemove = () => {
+    setReview((prevReview) => ({
+      ...prevReview,
+      image: null,
+    }));
   };
+
   const cancel = async () => {
     try {
       const response = await fetch(
@@ -234,7 +343,40 @@ const OrderList = () => {
 
     // message.success("Hủy đơn hàng thành công!");
   };
+  const handleConfirmOrder = async (orderId: number) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/orders/${orderId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Đảm bảo token hợp lệ
+          },
+          body: JSON.stringify({
+            status: "completed",
+          }),
+        }
+      );
 
+      if (response.ok) {
+        message.success("Xác nhận đơn hàng thành công!");
+      } else {
+        const errorData = await response.json();
+        message.error(
+          `Xác nhận thất bại! Lỗi: ${errorData.message || "Không rõ"}`
+        );
+      }
+    } catch (error) {
+      console.error("Error confirming order:", error);
+      message.error(
+        "Đã xảy ra lỗi trong quá trình xác nhận. Vui lòng thử lại sau."
+      );
+    }
+
+    // Cập nhật danh sách đơn hàng (nếu cần)
+    await fectOrders();
+  };
   // const filteredOrders = Array.isArray(orders)
   //   ? orders.filter((order) => {
   //       const searchLower = searchTerm.toLowerCase();
@@ -263,9 +405,9 @@ const OrderList = () => {
     setSelectedStatus(status);
   };
 
-  let filteredOrders = selectedStatus
-    ? orders.filter((order) => order.status === selectedStatus)
-    : orders;
+  // let filteredOrders = selectedStatus
+  //   ? orders.filter((order) => order.status === selectedStatus)
+  //   : orders;
 
   const handleReorder = async (orderId: number) => {
     const order = orders.filter((order) => order.id === orderId)[0];
@@ -302,7 +444,19 @@ const OrderList = () => {
       alert("Đã xảy ra lỗi khi mua lại. Vui lòng thử lại.");
     }
   };
+  let filteredOrders = orders;
 
+  if (selectedStatus) {
+    filteredOrders = orders.filter((order) => order.status === selectedStatus);
+  }
+
+  const filteredBySearch = filteredOrders.filter((order) =>
+    order.order_details.some(
+      (detail) =>
+        detail.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.id.toString().includes(searchTerm)
+    )
+  );
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -325,6 +479,19 @@ const OrderList = () => {
     };
     fetchUser();
   }, []);
+  const getStatusLabel = (status: string) => {
+    const statusMapping: { [key: string]: string } = {
+      pending: "Đang chờ xử lý",
+      shipped: "Đang vận chuyển",
+      delivered: "Đã giao hàng",
+      completed: "Hoàn thành",
+      cancelled: "Đã hủy",
+      returned: "Trả hàng/Hoàn tiền",
+      refunded: "Đã hoàn tiền",
+    };
+
+    return statusMapping[status] || "Không xác định";
+  };
 
   return (
     <div className="account-page">
@@ -410,7 +577,7 @@ const OrderList = () => {
                 }`}
                 onClick={() => handleTabClick("shipped")}
               >
-                Vận chuyển
+                Đang vận chuyển
               </button>
               <button
                 className={`order-tab ${
@@ -477,14 +644,13 @@ const OrderList = () => {
                 width: "100%",
               }}
             >
-              {Array.isArray(orders) &&
-                filteredOrders.map((order, index) => (
+              {Array.isArray(filteredBySearch) &&
+                filteredBySearch.map((order, index) => (
                   <div
                     key={index}
-                    style={{ border: "solid red 0.1px" }}
+                    style={{ border: "solid #b5a5a5 0.2px" }}
                     className="order-item"
                   >
-                    <>{console.log(order.id)}</>
                     <div
                       style={{
                         textAlign: "right",
@@ -497,9 +663,9 @@ const OrderList = () => {
                       >
                         <span
                           style={{
-                            fontSize: "20px",
-                            // fontWeight: "bold",
-                            color: "red",
+                            fontSize: "17px",
+                            fontWeight: "bold",
+                            // color: "red",
                             textTransform: "capitalize",
                             padding: "5px 10px",
                             backgroundColor: "#f0f0f0",
@@ -508,25 +674,30 @@ const OrderList = () => {
                             marginBottom: "5px",
                           }}
                         >
-                          {order.status}
+                          {getStatusLabel(order.status)}
                         </span>
                       </div>
                     </div>
                     {Array.isArray(order.order_details) &&
                       order.order_details.map((detail, detailIndex) => (
                         <div key={detailIndex}>
-                          <>
-                            {console.log(
-                              detail.product_variant?.images[0].image_url
-                            )}
-                          </>
-
                           <div className="order-product">
-                            <img
+                            {/* <img
+                              // src={`http://127.0.0.1:8000/storage/${detail.product_variant?.images[0].image_url}`}
                               src={`http://127.0.0.1:8000/storage/${detail.product_variant?.images[0].image_url}`}
                               alt="Sản phẩm A"
                               className="order-product-image"
+                            /> */}
+                            <img
+                              src={
+                                detail.product_variant?.images?.[0]?.image_url
+                                  ? `http://127.0.0.1:8000/storage/${detail.product_variant.images[0].image_url}`
+                                  : "default-placeholder-url" // Thay bằng URL placeholder nếu không có ảnh
+                              }
+                              alt="Sản phẩm A"
+                              className="order-product-image"
                             />
+
                             <div className="order-product-info">
                               <p className="order-product-name">
                                 {detail.product.name}
@@ -541,14 +712,41 @@ const OrderList = () => {
                               </p>
                             </div>
                             <p className="order-product-price">
-                              {parseFloat(
-                                detail.product_variant.price
-                                  .toString()
-                                  .toLowerCase()
-                              )}
-                              ₫
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(
+                                parseFloat(
+                                  detail.product_variant.price.toString()
+                                )
+                              )}{" "}
                             </p>
                           </div>
+                          <>{console.log(detail.order_id)}</>
+                          {order.status === "completed" &&
+                            order.reviews.length == 0 && (
+                              // <Link to={`/products/${order.pro}`}>
+                              <div style={{ marginLeft: "60px" }}>
+                                <button
+                                  style={{
+                                    backgroundColor: "red",
+                                    margin: "5px",
+                                    color: "white",
+                                    marginLeft: "903px",
+                                    width: "90px",
+                                  }}
+                                  className="order-btn order-btn-reorder"
+                                  onClick={() => {
+                                    setShowReviewForm(true);
+                                    setProductId(detail.product.id);
+                                    setOderId(detail.order_id);
+                                  }}
+                                >
+                                  Đánh giá
+                                </button>
+                              </div>
+                              // </Link>
+                            )}
                         </div>
                       ))}
                     <div className="order-item-footer">
@@ -590,8 +788,9 @@ const OrderList = () => {
                           </button>
                         </div>
                       )}
-                      {order.status == "delivered" && (
+                      {order.status === "delivered" && (
                         <div>
+                          {/* Hiển thị chữ "đã giao hàng" */}
                           <button
                             className="order-btn order-btn-detail"
                             onClick={() => {
@@ -601,7 +800,6 @@ const OrderList = () => {
                           >
                             Trả Hàng
                           </button>
-
                           <button
                             style={{
                               backgroundColor: "red",
@@ -609,9 +807,9 @@ const OrderList = () => {
                               color: "white",
                             }}
                             className="order-btn order-btn-reorder"
-                            onClick={() => setShowReviewForm(true)}
+                            onClick={() => showConfirm(order.id)} // Sửa lại để gọi showConfirm
                           >
-                            Đánh giá
+                            Đã nhận hàng
                           </button>
                         </div>
                       )}
@@ -633,13 +831,34 @@ const OrderList = () => {
                       )}
                       {order.status == "completed" && (
                         // <Link to={`/products/${order.pro}`}>
-                        <button
-                          className="order-btn order-btn-reorder"
-                          // onClick={() => setShowReviewForm(true)}
-                          onClick={() => handleReorder(order.id)}
+                        <div
+                          style={{
+                            width: "90px",
+                          }}
                         >
-                          Mua Lại
-                        </button>
+                          <button
+                            style={{
+                              width: "90px",
+                            }}
+                            className="order-btn order-btn-reorder"
+                            // onClick={() => setShowReviewForm(true)}
+                            onClick={() => showConfirm(order.id)}
+                          >
+                            Mua Lại
+                          </button>
+
+                          {/* <button
+                            style={{
+                              backgroundColor: "red",
+                              margin: "5px",
+                              color: "white",
+                            }}
+                            className="order-btn order-btn-reorder"
+                            onClick={() => setShowReviewForm(true)}
+                          >
+                            Đánh giá
+                          </button> */}
+                        </div>
                         // </Link>
                       )}
                       {order.status == "refunded" && (
@@ -650,7 +869,6 @@ const OrderList = () => {
                           Mua Lại
                         </button>
                       )}
-
                       {order.status == "returned" && (
                         <button
                           className="order-btn order-btn-reorder"
@@ -675,7 +893,7 @@ const OrderList = () => {
         </div>
 
         {/* Modal đánh giá */}
-        <Modal
+        {/* <Modal
           title="Đánh giá sản phẩm"
           visible={showReviewForm}
           onCancel={() => setShowReviewForm(false)}
@@ -709,19 +927,67 @@ const OrderList = () => {
           <div style={{ marginTop: 20 }}>
             <label>Thêm ảnh:</label>
             <Upload
-              action="/upload" // Địa chỉ API để upload ảnh
               listType="picture-card"
-              //   fileList={review.images.map((url) => ({ url }))}
-              onChange={handleImageChange}
+              maxCount={1} // Chỉ cho phép 1 ảnh
               beforeUpload={handleImageUpload}
+              onRemove={handleImageRemove}
             >
-              <div>
-                <UploadOutlined />
-                <div style={{ marginTop: 8 }}>Tải lên</div>
-              </div>
+              {!review.image && (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Tải lên</div>
+                </div>
+              )}
+            </Upload>
+          </div>
+        </Modal> */}
+        <Modal
+          title="Viết đánh giá của bạn"
+          visible={showReviewForm}
+          onCancel={() => setShowReviewForm(false)}
+          footer={[
+            <Button key="back" onClick={() => setShowReviewForm(false)}>
+              Đóng
+            </Button>,
+            <Button key="submit" type="primary" onClick={handleReviewSubmit}>
+              Gửi đánh giá
+            </Button>,
+          ]}
+        >
+          <div>
+            <Rate
+              value={review.rating}
+              onChange={(value) => setReview({ ...review, rating: value })}
+            />
+            <Input.TextArea
+              placeholder="Viết đánh giá của bạn"
+              value={review.comment}
+              onChange={(e) =>
+                setReview({ ...review, comment: e.target.value })
+              }
+            />
+            <Upload
+              beforeUpload={handleImageUpload}
+              onRemove={handleImageRemove}
+              listType="picture-card"
+              showUploadList={review.image ? { showRemoveIcon: true } : false}
+            >
+              {review.image ? (
+                <img
+                  src={review.image}
+                  alt="Uploaded"
+                  style={{ width: "100px" }}
+                />
+              ) : (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+                </div>
+              )}
             </Upload>
           </div>
         </Modal>
+
         {/* Modal hủy đơn hàng */}
         <Modal
           title="Lý Do Hủy"
@@ -771,12 +1037,12 @@ const OrderList = () => {
               onClick={handleRufundSubmit}
               disabled={!selectedReason} // Vô hiệu hóa nếu chưa chọn lý do
             >
-              Hủy Đơn Hàng
+              Trả Đơn Hàng
             </Button>,
           ]}
         >
           <div style={{ marginBottom: "15px", color: "#FF8800" }}>
-            <em>Chọn lý do hủy phù hợp nhất với bạn nhé!</em>
+            <em>Chọn lý do trả phù hợp nhất với bạn nhé!</em>
           </div>
           <Radio.Group
             onChange={(e) => setSelectedReason(e.target.value)}

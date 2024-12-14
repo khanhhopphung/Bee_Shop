@@ -12,6 +12,7 @@ import {
   FiGift,
   FiPercent,
 } from "react-icons/fi";
+import CategoryMenu from "../../components/CategoryMenu";
 
 // import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 type Blog = {
@@ -24,32 +25,51 @@ type Blog = {
 const features = [
   {
     icon: <FiTruck />,
-    title: "Free delivery",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Giao hàng miễn phí",
+    description:
+      "Đảm bảo sự tiện lợi cho bạn với dịch vụ giao hàng nhanh chóng và miễn phí.",
   },
   {
     icon: <FiLock />,
-    title: "100% secure payment",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Thanh toán 100% bảo mật",
+    description:
+      "Bảo vệ thông tin cá nhân của bạn với hệ thống thanh toán an toàn và bảo mật tuyệt đối.",
   },
   {
     icon: <FiCheckSquare />,
-    title: "Quality guarantee",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Đảm bảo chất lượng",
+    description:
+      "Cam kết mang đến sản phẩm chất lượng cao, đáp ứng mọi yêu cầu của bạn.",
   },
   {
     icon: <FiPercent />,
-    title: "Guaranteed savings",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Tiết kiệm đảm bảo",
+    description:
+      "Nhận được ưu đãi lớn và giảm giá hấp dẫn cho các sản phẩm yêu thích của bạn.",
   },
   {
     icon: <FiGift />,
-    title: "Daily offers",
-    description: "Lorem ipsum dolor sit amet, consectetur adipisci elit.",
+    title: "Ưu đãi mỗi ngày",
+    description:
+      "Khám phá những ưu đãi mới mỗi ngày và tận hưởng những món quà bất ngờ từ chúng tôi.",
   },
 ];
 
 const Home: React.FC = () => {
+  const truncateProductName = (name: string, maxWords: number = 8) => {
+    const words = name.split(" ");
+    if (words.length > maxWords) {
+      return words.slice(0, maxWords).join(" ") + "...";
+    }
+    return name;
+  };
+  const truncateBlogName = (name: string, maxWords: number = 18) => {
+    const words = name.split(" ");
+    if (words.length > maxWords) {
+      return words.slice(0, maxWords).join(" ") + "...";
+    }
+    return name;
+  };
   const [products, setProducts] = useState<any[]>([]);
   const [bestproducts, setBestProducts] = useState<any[]>([]);
   const [badproducts, setBadProducts] = useState<any[]>([]);
@@ -210,15 +230,13 @@ const Home: React.FC = () => {
             <div>
               <div
                 className="item-slick1"
-                style={{ backgroundImage: "url(images/slide-04.jpg)" }}
+                style={{ backgroundImage: "url(images/2.jpg)" }}
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
-                    {/* <span className="ltext-202 cl2 respon2">
-                      Men Collection 2018
-                    </span> */}
+                    <span className="ltext-202 cl2 respon2">Sản Phẩm mới</span>
                     <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
-                      Sản Phẩm mới
+                      Thời Trang Sành Điệu
                     </h2>
                     <a
                       href="/products"
@@ -233,13 +251,11 @@ const Home: React.FC = () => {
             <div>
               <div
                 className="item-slick1"
-                style={{ backgroundImage: "url(images/slide-03.jpg)" }}
+                style={{ backgroundImage: "url(images/3.jpg)" }}
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
-                    {/* <span className="ltext-202 cl2 respon2">
-                      hello Collection 2018
-                    </span> */}
+                    <span className="ltext-202 cl2 respon2">Sản Phẩm Mới</span>
                     <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
                       Tối Giản - Sang Trọng
                     </h2>
@@ -256,15 +272,13 @@ const Home: React.FC = () => {
             <div>
               <div
                 className="item-slick1"
-                style={{ backgroundImage: "url(images/slide-02.jpg)" }}
+                style={{ backgroundImage: "url(images/1.jpg)" }}
               >
                 <div className="container h-full">
                   <div className="flex-col-l-m h-full p-t-100 p-b-30">
-                    <span className="ltext-202 cl2 respon2">
-                      Men Collection 2018
-                    </span>
+                    <span className="ltext-202 cl2 respon2">Sản Phẩm Mới</span>
                     <h2 className="ltext-104 cl2 p-t-19 p-b-43 respon1">
-                      New arrivals
+                      Thiết Kế Hiện Đại
                     </h2>
                     <a
                       href="/products"
@@ -276,7 +290,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <div
                 className="item-slick1"
                 style={{ backgroundImage: "url(images/slide-01.jpg)" }}
@@ -298,7 +312,7 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </Carousel>
         </section>
 
@@ -416,7 +430,9 @@ const Home: React.FC = () => {
             </div>
           ))}
         </div>
-
+        {/* <div>
+          <CategoryMenu />
+        </div> */}
         <section className="sec-product bg0 p-t-100 p-b-50">
           <div className="container">
             {/* Tab sản phẩm */}
@@ -504,7 +520,7 @@ const Home: React.FC = () => {
                                         to={`/products/${bestproduct.id}`}
                                         className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
                                       >
-                                        {bestproduct.name}
+                                        {truncateProductName(bestproduct.name)}
                                       </Link>
                                       <span className="stext-105 cl3">
                                         {Number(
@@ -613,7 +629,7 @@ const Home: React.FC = () => {
                                           to={`/products/${badproduct.id}`}
                                           className="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6"
                                         >
-                                          {badproduct.name}
+                                          {truncateProductName(badproduct.name)}
                                         </Link>
                                         <span className="stext-105 cl3">
                                           {Number(
@@ -669,7 +685,7 @@ const Home: React.FC = () => {
                           href={`/blogs/${blog.id}`}
                           className="mtext-101 cl2 hov-cl1 trans-04"
                         >
-                          {blog.title}
+                          {truncateBlogName(blog.title)}
                         </a>
                       </h4>
                       <span className="stext-108 cl6 p-t-10">

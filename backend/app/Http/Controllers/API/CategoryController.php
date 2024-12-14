@@ -18,10 +18,10 @@ class CategoryController extends BaseController
 
     public function index()
     {
-        $category= Category::where('is_active', 1)->orderBy('id','desc')->limit(10)->get();
+        // $category= Category::where('is_active', 1)->orderBy('id','desc')->limit(10)->get();
 
-            // return $this->get( $this->model);   
-            return $this->success($category);
+            return $this->get( $this->model);   
+            // return $this->success($category);
 
     }
 

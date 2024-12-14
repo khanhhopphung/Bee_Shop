@@ -1,55 +1,71 @@
 import { CopyOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Card,
-  Checkbox,
-  CheckboxProps,
-  Col,
-  Input,
-  Row,
-  Space,
-  Tag,
-} from "antd";
-import React, { useState } from "react";
-
-const vouchers = [
-  {
-    id: 1,
-    code: "DISCOUNT10",
-    description: "Giảm 10% cho đơn hàng",
-    status: "active",
-  },
-  {
-    id: 2,
-    code: "FREESHIP",
-    description: "Miễn phí vận chuyển",
-    status: "expired",
-  },
-  {
-    id: 3,
-    code: "NEWUSER",
-    description: "Giảm giá cho người mới",
-    status: "used",
-  },
-  { id: 4, code: "SUMMER20", description: "Giảm 20% mùa hè", status: "active" },
-];
-// Hàm lọc voucher theo mã hoặc mô tả
-
+import { Button, Card, Col, Input, Row, Space, Tag } from "antd";
+import React, { useEffect, useState } from "react";
+interface Promotion {
+  id: number;
+  code: string; // Mã giảm giá
+  discount_type: string;
+  discount_value: string; // Giá trị giảm giá
+  usage_limit: number; // Số lần sử dụng tối đa
+  start_date: string; // Ngày bắt đầu
+  end_date: string; // Ngày kết thúc
+  min_purchase_amount: number | null; // Số tiền tối thiểu để áp dụng
+}
 const Voucher: React.FC = () => {
-  const onChange: CheckboxProps["onChange"] = (e) => {
-    console.log(`checked = ${e.target.checked}`);
-  };
-  const [search, setSearch] = useState("");
+  const [vouchers, setVouchers] = useState<Promotion[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const vouchersPerPage = 6;
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const token = localStorage.getItem("access_token");
 
-  const filteredVouchers = vouchers.filter(
-    (voucher) =>
-      voucher.code.toLowerCase().includes(search.toLowerCase()) ||
-      voucher.description.toLowerCase().includes(search.toLowerCase())
+  // Call API để lấy danh sách voucher
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/get-list-voucher`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data.data)) {
+          setVouchers(data.data);
+        } else {
+          console.error("Dữ liệu API không hợp lệ:", data);
+        }
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+      }
+    };
+
+    fetchVouchers();
+  }, [token]); // Ensure token is checked on fetch
+
+  const filteredVouchers = searchTerm
+    ? vouchers.filter((voucher) =>
+        voucher.code.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : vouchers;
+
+  // Tính toán dữ liệu phân trang
+  const indexOfLastVoucher = currentPage * vouchersPerPage;
+  const indexOfFirstVoucher = indexOfLastVoucher - vouchersPerPage;
+  const currentVouchers = filteredVouchers.slice(
+    indexOfFirstVoucher,
+    indexOfLastVoucher
   );
+  const totalPages = Math.ceil(filteredVouchers.length / vouchersPerPage);
 
-  const handleCopy = (code: string) => {
-    navigator.clipboard.writeText(code);
-    alert("Đã sao chép mã: " + code);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
   return (
     <div className="account-page">
@@ -114,50 +130,68 @@ const Voucher: React.FC = () => {
         </div>
 
         <div className="account-info">
-          <div style={{ padding: "20px" }}>
-            <Space direction="vertical" style={{ width: "100%" }}>
-              {/* Input tìm kiếm voucher */}
-              <Input
-                placeholder="Tìm kiếm voucher"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ width: "300px", marginBottom: "20px" }}
-              />
+          <div className="container my-4">
+            <h2 className="text-center mb-4">Kho Voucher</h2>
 
-              <Row gutter={[16, 16]}>
-                {filteredVouchers.map((voucher) => (
-                  <Col span={8} key={voucher.id}>
-                    <Card
-                      title={`Voucher ${voucher.code}`}
-                      extra={
-                        <Tag
-                          color={
-                            voucher.status === "active"
-                              ? "green"
-                              : voucher.status === "used"
-                              ? "blue"
-                              : "red"
-                          }
-                        >
-                          {voucher.status}
-                        </Tag>
-                      }
-                      actions={[
-                        <Button
-                          icon={<CopyOutlined />}
-                          onClick={() => handleCopy(voucher.code)}
-                        >
-                          Sao chép mã
-                        </Button>,
-                      ]}
-                      style={{ width: "100%" }}
-                    >
-                      <p>{voucher.description}</p>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Space>
+            {/* Thanh tìm kiếm */}
+            <div className="mb-4">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Tìm kiếm mã voucher..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            {/* Danh sách voucher */}
+            <div className="row">
+              {currentVouchers.map((voucher) => (
+                <div className="col-md-4 mb-4" key={voucher.id}>
+                  <div className="card shadow-sm">
+                    <div className="card-body">
+                      <h5 className="card-title text-primary">
+                        {voucher.code}
+                      </h5>
+                      <p className="card-text">
+                        Giảm:{" "}
+                        {voucher.discount_type === "percentage"
+                          ? `${voucher.discount_value}%`
+                          : `${voucher.discount_value}₫`}
+                      </p>
+                      <p className="card-text text-muted">
+                        Điều kiện:{" "}
+                        {voucher.min_purchase_amount
+                          ? `${voucher.min_purchase_amount}₫`
+                          : "Không yêu cầu"}
+                      </p>
+                      <p className="card-text text-danger">
+                        HSD:{" "}
+                        {new Date(voucher.end_date).toLocaleDateString("vi-VN")}
+                      </p>
+                      <button className="btn btn-primary w-100">Lưu</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Phân trang */}
+            <div className="d-flex justify-content-center mt-4">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  className={`btn mx-1 ${
+                    currentPage === index + 1
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  }`}
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -22,6 +22,13 @@ interface Category {
   name: string;
 }
 const Products: React.FC = () => {
+  const truncateProductName = (name: string, maxWords: number = 8) => {
+    const words = name.split(" ");
+    if (words.length > maxWords) {
+      return words.slice(0, maxWords).join(" ") + "...";
+    }
+    return name;
+  };
   const [categories, setCategories] = useState<Category[]>([
     { id: 0, name: "Tất cả sản phẩm" }, // Đối tượng phải nằm trong ngoặc nhọn
   ]);
