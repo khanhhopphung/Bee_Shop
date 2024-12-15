@@ -49,6 +49,9 @@ import ResetPass from "./pages/client/ResetPass";
 import ProductDetail2 from "./pages/client/ProductDetail2";
 import VNPayPayment from "./pages/client/VnPayment";
 import PaymentPage2 from "./pages/client/Checkout2";
+import Pusher from "pusher-js";
+import ShippingPolicy from "./components/ShippingPolicy";
+import ReturnRefundPolicy from "./components/ReturnRefundPolicy";
 
 interface CartItem {
   product_id: any;
@@ -176,6 +179,8 @@ const App: React.FC = () => {
   useEffect(() => {
     dispatch(setQuantityCart(cart.length));
   }, [cart, dispatch]);
+  const [load, setLoad] = useState<string>("");
+
   useEffect(() => {
     const fetchCarts = async () => {
       try {
@@ -212,13 +217,32 @@ const App: React.FC = () => {
     };
 
     fetchCarts();
-  }, []);
+  }, [load]);
 
   const [userName, setUserName] = useState<string | null>(null);
 
   const updateUserName = (name: string) => {
     setUserName(name);
   };
+
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoad(data.code);
+    });
+
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
 
   return (
     <Router>
@@ -251,6 +275,8 @@ const App: React.FC = () => {
           <Route path="ordersuccess" element={<OrderSuccess2 />} />
           <Route path="404" element={<NotFound />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/return-policy" element={<ReturnRefundPolicy />} />
           <Route path="/order-detail/:id" element={<OrderDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/update-password" element={<UpdatePass />} />

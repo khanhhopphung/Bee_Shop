@@ -1500,7 +1500,7 @@ const PaymentPage2: React.FC = () => {
                           Thanh toán bằng VN Pay
                         </label>
                       </div>
-                      <div className="checkbox-container">
+                      {/* <div className="checkbox-container">
                         <label>
                           <input
                             type="checkbox"
@@ -1514,7 +1514,7 @@ const PaymentPage2: React.FC = () => {
                           />{" "}
                           Thanh toán bằng Momo
                         </label>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>
