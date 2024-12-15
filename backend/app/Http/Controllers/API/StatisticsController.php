@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class StatisticsController extends Controller
 {
-
     public function dashboard(Request $request)
     {
         // Lấy giá trị start_date, end_date, year và month từ request
@@ -24,7 +23,6 @@ class StatisticsController extends Controller
     
         // Kiểm tra nếu có ngày được chọn
         if ($startDate && $endDate) {
-            // Chuyển đổi chuỗi ngày thành Carbon instance
             try {
                 $startDate = Carbon::parse($startDate)->startOfDay();
                 $endDate = Carbon::parse($endDate)->endOfDay();
@@ -32,7 +30,6 @@ class StatisticsController extends Controller
                 return response()->json(['error' => 'Invalid date format.'], 400);
             }
         } else {
-            // Nếu không chọn ngày, sử dụng từ trước đến nay
             $startDate = now()->subYear()->startOfDay();  // Bắt đầu từ một năm trước
             $endDate = now()->endOfDay();  // Kết thúc là ngày hiện tại
         }
@@ -53,72 +50,76 @@ class StatisticsController extends Controller
         $totalRevenue = Order::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
         $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
         $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
-    // Sản phẩm bán chạy
-$topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
-->join('products', 'order_details.product_id', '=', 'products.id')
-->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
-->whereBetween('orders.order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
-->groupBy('products.id', 'products.name')
-->orderByDesc('total_sold')
-->limit(10) // Thay đổi từ 5 thành 10
-->get();
-    
+
+        // Sản phẩm bán chạy
+        $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
+            ->whereBetween('orders.order_date', [$startDate, $endDate])
+            ->groupBy('products.id', 'products.name')
+            ->having('total_sold', '>', 5) 
+            ->orderByDesc('total_sold')
+            ->limit(10)
+            ->get();
+
         // Tồn kho
         $lowStockProducts = Product::where('stock', '<', 5)
-        ->select('id', 'name', 'sku', 'price', 'stock', 'category_id', 'is_active', 'created_at', 'updated_at')
-        ->orderBy('stock', 'asc')
-        ->get();
+            ->select('id', 'name', 'sku', 'price', 'stock', 'category_id', 'is_active', 'created_at', 'updated_at')
+            ->orderBy('stock', 'asc')
+            ->get();
 
-    // Tính số lượng sản phẩm tồn kho thấp
-    $lowStockCount = $lowStockProducts->count();
+        // Tính số lượng sản phẩm tồn kho thấp
+        $lowStockCount = $lowStockProducts->count();
 
-    
+        // Sản phẩm đã bán được
         $soldProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
             ->join('products', 'order_details.product_id', '=', 'products.id')
             ->select('products.name', 'products.sku', DB::raw('SUM(order_details.quantity) as total_sold'), DB::raw('SUM(order_details.quantity * order_details.price) as total_revenue'))
-            ->whereBetween('orders.order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
+            ->whereBetween('orders.order_date', [$startDate, $endDate])
             ->groupBy('products.id', 'products.name', 'products.sku')
             ->orderByDesc('total_sold')
             ->get();
-    
-        $unsoldProducts = Product::whereNotIn('products.id', function($query) use ($startDate, $endDate) {
-            $query->select('order_details.product_id')
-                  ->from('order_details')
-                  ->join('orders', 'order_details.order_id', '=', 'orders.id')
-                  ->whereBetween('orders.order_date', [$startDate, $endDate]);
-        })->get();
-      
+
+        // Tất cả sản phẩm đã bán được (không phân loại)
+        $allSoldProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->select('products.id', 'products.name', 'products.sku', DB::raw('SUM(order_details.quantity) as total_sold'), DB::raw('SUM(order_details.quantity * order_details.price) as total_revenue'))
+            ->whereBetween('orders.order_date', [$startDate, $endDate])
+            ->groupBy('products.id', 'products.name', 'products.sku')
+            ->get();
+
         // Thống kê phương thức thanh toán
         $paymentMethodStats = Order::select('payment_method', DB::raw('count(*) as count'))
-            ->whereBetween('order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
+            ->whereBetween('order_date', [$startDate, $endDate])
             ->groupBy('payment_method')
             ->get();
     
         // Thống kê khuyến mãi
         $promotionUsageStats = Promotion::leftJoin('orders', 'promotions.id', '=', 'orders.promotion_id')
-        ->select('promotions.code', DB::raw('count(orders.id) as usage_count'))
-        ->where(function ($query) use ($startDate, $endDate) {
-            $query->whereBetween('orders.order_date', [$startDate, $endDate])
-                  ->orWhereNull('orders.order_date'); // Đảm bảo lấy cả khuyến mãi không có đơn hàng
-        })
-        ->groupBy('promotions.code')
-        ->get();
+            ->select('promotions.code', DB::raw('count(orders.id) as usage_count'))
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('orders.order_date', [$startDate, $endDate])
+                      ->orWhereNull('orders.order_date');
+            })
+            ->groupBy('promotions.code')
+            ->get();
     
         // Tăng trưởng doanh thu nhờ khuyến mãi
         $promotionRevenueGrowth = Order::whereNotNull('promotion_id')
-            ->whereBetween('order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
+            ->whereBetween('order_date', [$startDate, $endDate])
             ->select(DB::raw('SUM(total_amount) as total_revenue'))
             ->first();
     
         // Thống kê vận chuyển
         $shippingStats = Order::select('status', DB::raw('count(*) as count'))
-            ->whereBetween('order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
+            ->whereBetween('order_date', [$startDate, $endDate])
             ->groupBy('status')
             ->get();
     
         return response()->json([
             'total_revenue' => $totalRevenue,
             'sold_products' => $soldProducts,
+            'all_sold_products' => $allSoldProducts, // Thêm biến mới
             'total_orders' => $totalOrders,
             'new_customers' => $newCustomers,
             'top_selling_products' => $topSellingProducts,
@@ -126,12 +127,10 @@ $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_deta
                 'count' => $lowStockCount,
                 'products' => $lowStockProducts,
             ],
-            'unsold_products' => $unsoldProducts,
             'payment_method_stats' => $paymentMethodStats,
             'promotion_usage_stats' => $promotionUsageStats,
             'promotion_revenue_growth' => $promotionRevenueGrowth,
             'shipping_stats' => $shippingStats,
-            
         ]);
     }
 }

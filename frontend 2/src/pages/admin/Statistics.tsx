@@ -73,24 +73,25 @@ const Statistics: React.FC = () => {
     
     switch (type) {
       case 'revenue':
-        content = statistics.sold_products.map((order: any) => ({
-          key: order.id,
-          productName: order.name,
-          quantity: order.total_sold,
-          revenue: formatCurrency(order.total_revenue),
-        }));
+        content = `Tổng doanh thu : ${statistics.total_revenue}`;
         break;
       case 'orders':
         content = `Tổng đơn hàng: ${statistics.total_orders}`;
         break;
-        case 'km':
-        content = `Tăng trưởng doanh thu nhờ khuyến mãi : ${statistics.promotion_revenue_growth}`;
+      case 'km':
+        content = `Tăng trưởng doanh thu nhờ khuyến mãi: ${statistics.promotion_revenue_growth}`;
         break;
+        case 'low_stock':
+          content = statistics.low_stock_products.products.map((product: any) => ({
+            key: product.id,
+            name: product.name,
+            sku: product.sku,
+            stock: product.stock,
+            price: formatCurrency(product.price),
+          }));
+          break;
       
-      case 'low_stock':
-       
-        content = `Sản phẩm sắp hết hàng: ${statistics.low_stock_products.count}`;
-        break;
+     
       default:
         content = null;
     }
@@ -98,6 +99,7 @@ const Statistics: React.FC = () => {
     setModalContent(content);
     setModalVisible(true);
   };
+
   useEffect(() => {
     fetchStatistics();
   }, [startDate, endDate, selectedYear, selectedMonth]);
@@ -115,6 +117,12 @@ const Statistics: React.FC = () => {
   const topSellingColumns = [
     { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
     { title: 'Lượt bán', dataIndex: 'total_sold', key: 'total_sold' },
+  ];
+
+  const soldProductColumns = [
+    { title: 'Tên sản phẩm', dataIndex: 'productName', key: 'productName' },
+    { title: 'Số lượng', dataIndex: 'quantity', key: 'quantity' },
+    { title: 'Doanh thu', dataIndex: 'revenue', key: 'revenue' },
   ];
 
   const promotionColumns = [
@@ -249,8 +257,6 @@ const Statistics: React.FC = () => {
             />
           </Card>
         </Col>
-        
-        
         <Col xs={24} sm={12} md={6}>
           <Card
             hoverable
@@ -278,11 +284,12 @@ const Statistics: React.FC = () => {
     <Table
       dataSource={modalContent}
       columns={[
-        { title: 'Tên sản phẩm', dataIndex: 'productName', key: 'productName' },
-        { title: 'Số lượng', dataIndex: 'quantity', key: 'quantity' },
-        { title: 'Doanh thu', dataIndex: 'revenue', key: 'revenue' },
+        { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+        { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
+        { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
+        { title: 'Giá', dataIndex: 'price', key: 'price' },
       ]}
-      pagination={false}
+      pagination={{ pageSize: 5 }}
     />
   ) : (
     <p>{modalContent}</p>
@@ -299,10 +306,9 @@ const Statistics: React.FC = () => {
             <Table
               columns={topSellingColumns}
               dataSource={statistics.top_selling_products}
-             pagination={{ pageSize: 5 }}
+              pagination={{ pageSize: 5 }}
               rowKey="id"
               size="small"
-              
             />
           </Card>
         </Col>
@@ -322,14 +328,19 @@ const Statistics: React.FC = () => {
         </Col>
         <Col xs={24} sm={8} md={8}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>sản phẩm sắp hết hàng </Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm đã bán</Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Table
-              columns={lowStockColumns}
-              dataSource={statistics.low_stock_products.products}
+              columns={soldProductColumns}
+              dataSource={statistics.sold_products.map((product: any) => ({
+                key: product.id,
+                productName: product.name,
+                quantity: product.total_sold,
+                revenue: formatCurrency(product.total_revenue),
+              }))}
               pagination={{ pageSize: 5 }}
-              rowKey="id"
+              rowKey="key"
               size="small"
             />
           </Card>
@@ -340,7 +351,7 @@ const Statistics: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}> Các Phương thức thanh toán</Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}>Các Phương thức thanh toán</Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Pie {...paymentMethodConfig} />
@@ -348,7 +359,7 @@ const Statistics: React.FC = () => {
         </Col>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}> Thống kê theo Trạng thái</Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}>Thống kê theo Trạng thái</Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Column {...shippingStatusConfig} />
