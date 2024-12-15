@@ -51,7 +51,9 @@ class StatisticsController extends Controller
             ->whereBetween('order_date', [$startDate, $endDate])
             ->sum('total_amount');
 
-        $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
+            $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])
+            ->where('status', '=', 'completed') 
+            ->count();
         $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
 
         // Sản phẩm bán chạy
@@ -60,7 +62,8 @@ class StatisticsController extends Controller
             ->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
             ->whereBetween('orders.order_date', [$startDate, $endDate])
             ->groupBy('products.id', 'products.name')
-            ->having('total_sold', '>', 5)
+            ->where('orders.status', '=', 'completed')
+            ->having('total_sold', '>=', 1)
             ->orderByDesc('total_sold')
             ->limit(10)
             ->get();
@@ -79,6 +82,7 @@ class StatisticsController extends Controller
             ->join('products', 'order_details.product_id', '=', 'products.id')
             ->select('products.name', 'products.sku', DB::raw('SUM(order_details.quantity) as total_sold'), DB::raw('SUM(order_details.quantity * order_details.price) as total_revenue'))
             ->whereBetween('orders.order_date', [$startDate, $endDate])
+            ->where('orders.status', '=', 'completed')
             ->groupBy('products.id', 'products.name', 'products.sku')
             ->orderByDesc('total_sold')
             ->get();
