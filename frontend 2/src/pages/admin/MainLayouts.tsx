@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 
 const { Content, Footer, Sider } = Layout;
 
@@ -30,59 +30,65 @@ function getItem(
   } as MenuItem;
 }
 
-const items: MenuItem[] = [
-  getItem(
-    <Link to="/admin/products">Quản lý sản phẩm</Link>,
-    "1",
-    <ShoppingCartOutlined />
-  ),
-  getItem(
-    <Link to="/admin/categories">Quản lý danh mục</Link>,
-    "2",
-    <FileTextOutlined />
-  ),
-  getItem(
-    <Link to="/admin/users">Quản lý tài khoản</Link>,
-    "3",
-    <UserOutlined />
-  ),
-  getItem(
-    <Link to="/admin/orders">Quản lý đơn hàng</Link>,
-    "4",
-    <ShoppingCartOutlined />
-  ),
-  getItem(
-    <Link to="/admin/reviews">Quản lý bình luận</Link>,
-    "5",
-    <FileTextOutlined />
-  ),
-  getItem(
-    <Link to="/admin/product-variants">Quản lý biến thể</Link>,
-    "6",
-    <FileTextOutlined />
-  ),
-  getItem(
-    <Link to="/admin/promotions">Quản lý khuyến mãi</Link>,
-    "7",
-    <FileTextOutlined />
-  ),
-  getItem(
-    <Link to="/admin/blogs">Quản lý bài viết</Link>,
-    "8",
-    <FileTextOutlined />
-  ),
-  getItem(
-    <Link to="/admin/statistics">Thống kê</Link>,
-    "9",
-    <PieChartOutlined />
-  ),
-];
-
 const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const items: MenuItem[] = [
+    getItem(
+      <span onClick={() => navigate("/admin")}>Dashboard</span>,
+      "1",
+      <DesktopOutlined />
+    ),
+    getItem(
+      <Link to="/admin/products">Quản lý sản phẩm</Link>,
+      "2",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/categories">Quản lý danh mục</Link>,
+      "3",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/users">Quản lý tài khoản</Link>,
+      "4",
+      <UserOutlined />
+    ),
+    getItem(
+      <Link to="/admin/orders">Quản lý đơn hàng</Link>,
+      "5",
+      <ShoppingCartOutlined />
+    ),
+    getItem(
+      <Link to="/admin/reviews">Quản lý bình luận</Link>,
+      "6",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/product-variants">Quản lý biến thể</Link>,
+      "7",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/promotions">Quản lý khuyến mãi</Link>,
+      "8",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/blogs">Quản lý bài viết</Link>,
+      "9",
+      <FileTextOutlined />
+    ),
+    getItem(
+      <Link to="/admin/statistics">Thống kê</Link>,
+      "10",
+      <PieChartOutlined />
+    ),
+  ];
 
   return (
     <Layout style={{ minHeight: "100vh" }}>

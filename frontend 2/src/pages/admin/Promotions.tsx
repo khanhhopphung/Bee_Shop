@@ -415,15 +415,15 @@ const Promotions: React.FC = () => {
 
           <Form.Item
             name="discount_value"
-          
+
             label="giá trị khuyến mãi"
             rules={[{ required: true, message: 'Please enter discount value' }
-              ,{
-                              type: "number",
-                              min: 1 ,
-                              message: "Giá trị không được nhỏ hơn 1 ",
-                              transform: (value) => Number(value),
-                            },
+              , {
+              type: "number",
+              min: 1,
+              message: "Giá trị không được nhỏ hơn 1 ",
+              transform: (value) => Number(value),
+            },
             ]}
           >
             <Input type="number" placeholder="Enter discount value" />
@@ -433,12 +433,12 @@ const Promotions: React.FC = () => {
             name="usage_limit"
             label="số lần sử dụng "
             rules={[{ required: true, message: 'Please enter usage limit' }
-              ,{
-                type: "number",
-                min: 1,
-                message: "Giá trị  không được nhỏ hơn 1 ",
-                transform: (value) => Number(value),
-              },
+              , {
+              type: "number",
+              min: 1,
+              message: "Giá trị  không được nhỏ hơn 1 ",
+              transform: (value) => Number(value),
+            },
             ]}
           >
             <Input type="number" placeholder="Enter usage limit" />

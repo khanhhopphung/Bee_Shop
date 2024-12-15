@@ -18,16 +18,15 @@ class CategoryController extends BaseController
 
     public function index()
     {
-        $category= Category::where('is_active', 1)->orderBy('id','desc')->limit(10)->get();
+        // $category = Category::where('is_active', 1)->orderBy('id', 'desc')->limit(10)->get();
 
-            // return $this->get( $this->model);   
-            return $this->success($category);
-
+        return $this->get( $this->model);   
+        // return $this->success($category);
     }
 
     public function store(StoreCategoryRequest $request)
     {
-            return $this->insert($this->model, $request->all());    
+        return $this->insert($this->model, $request->all());
     }
 
     // /**
@@ -35,12 +34,11 @@ class CategoryController extends BaseController
     //  */
     public function show(Category $category)
     {
-        if($category){
-            return $this->get($category,null,"id",$category->id);
-        }else {
-            return response()->json(['error' => 'Category not found'], 404);        }
-      
-        
+        if ($category) {
+            return $this->get($category, null, "id", $category->id);
+        } else {
+            return response()->json(['error' => 'Category not found'], 404);
+        }
     }
 
     /**
@@ -48,7 +46,7 @@ class CategoryController extends BaseController
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
-            return $this->edit($category, $request->all());
+        return $this->edit($category, $request->all());
     }
 
     // /**
@@ -60,11 +58,11 @@ class CategoryController extends BaseController
             "is_active" => false,
             "deleted_at" => date('Y-m-d H:i:s')
         ];
-        return $this->edit($category, $data );
-        
+        return $this->edit($category, $data);
     }
 
-    public function search(Request $request){
-        return $this->get( $this->model, null,'name',$request->key,null,null,null);
-    } 
+    public function search(Request $request)
+    {
+        return $this->get($this->model, null, 'name', $request->key, null, null, null);
+    }
 }

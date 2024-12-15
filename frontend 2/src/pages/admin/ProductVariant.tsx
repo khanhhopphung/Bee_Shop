@@ -523,7 +523,7 @@ const ProductVariants: React.FC = () => {
               { required: true, message: "Vui lòng nhập giá" },
               {
                 type: "number",
-                min: 1 ,
+                min: 1,
                 message: "Giá không được nhỏ hơn 1 ",
                 transform: (value) => Number(value),
               },
@@ -539,7 +539,7 @@ const ProductVariants: React.FC = () => {
               { required: true, message: "Vui lòng nhập số lượng tồn kho" },
               {
                 type: "number",
-                min: 1 ,
+                min: 1,
                 message: "Tồn kho không được nhỏ hơn 1 ",
                 transform: (value) => Number(value),
               },

@@ -25,11 +25,10 @@ class BlogController extends BaseController
     public function index()
     {
         try {
-            $blogs= Blog::where('is_active', 1)->orderBy('id','desc')->get();
+            // $blogs= Blog::where('is_active', 1)->orderBy('id','desc')->get();
+            return $this->get($this->model);
+            // return $this->success($blogs);
 
-            // return $this->get( $this->model);   
-            return $this->success($blogs);
-            // return $this->get($this->model);
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
@@ -66,8 +65,8 @@ class BlogController extends BaseController
         }
     }
 
-    
-    
+
+
 
 
     /**
@@ -98,55 +97,55 @@ class BlogController extends BaseController
      * Show the form for editing the specified resource.
      */
 
-    
-    
-     public function update(Request $request, Blog $blog)
-     {
-         try {
-             // Log toàn bộ thông tin Request
-             Log::info("Full Request Data:", [
-                 "request" => $request->all(),
-                 "files" => $request->files->all()
-             ]);
-     
-             // Lấy tất cả dữ liệu từ request (ngoại trừ file)
-             $data = $request->except('image'); 
-     
-             if ($request->hasFile('image')) {
-                 // Log khi nhận được file ảnh
-                 Log::info("File is uploaded.", ["file_name" => $request->file('image')->getClientOriginalName()]);
-     
-                 $path = $request->file('image')->store('public/images');
-                 $data['image'] = str_replace('public/', '', $path);
-     
-                 Log::info("Image Uploaded Path:", [$path]);
-             } else {
-                 Log::info("No image found in request.");
-             }
-     
-             // Cập nhật dữ liệu
-             $isUpdated = $blog->update($data);
-     
-             Log::info("Update Status:", [$isUpdated]);
-     
-             return response()->json([
-                 "status" => true,
-                 "message" => "Blog updated successfully",
-                 "data" => $blog->refresh()
-             ], 200);
-         } catch (\Exception $e) {
-             Log::error("Update Error:", ["message" => $e->getMessage()]);
-     
-             return response()->json([
-                 "status" => "error",
-                 "message" => "Error: " . $e->getMessage()
-             ], 500);
-         }
-     }
-     
-     
-     
-    
+
+
+    public function update(Request $request, Blog $blog)
+    {
+        try {
+            // Log toàn bộ thông tin Request
+            Log::info("Full Request Data:", [
+                "request" => $request->all(),
+                "files" => $request->files->all()
+            ]);
+
+            // Lấy tất cả dữ liệu từ request (ngoại trừ file)
+            $data = $request->except('image');
+
+            if ($request->hasFile('image')) {
+                // Log khi nhận được file ảnh
+                Log::info("File is uploaded.", ["file_name" => $request->file('image')->getClientOriginalName()]);
+
+                $path = $request->file('image')->store('public/images');
+                $data['image'] = str_replace('public/', '', $path);
+
+                Log::info("Image Uploaded Path:", [$path]);
+            } else {
+                Log::info("No image found in request.");
+            }
+
+            // Cập nhật dữ liệu
+            $isUpdated = $blog->update($data);
+
+            Log::info("Update Status:", [$isUpdated]);
+
+            return response()->json([
+                "status" => true,
+                "message" => "Blog updated successfully",
+                "data" => $blog->refresh()
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error("Update Error:", ["message" => $e->getMessage()]);
+
+            return response()->json([
+                "status" => "error",
+                "message" => "Error: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
 
 
     /**

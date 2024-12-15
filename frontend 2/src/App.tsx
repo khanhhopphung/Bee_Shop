@@ -300,6 +300,7 @@ const App: React.FC = () => {
         <Route path="register" element={<RegisterAdmin />} />
 
         <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Statistics />} /> {/* Trang mặc định */}
           <Route path="login" element={<LoginAdmin />} />
           <Route path="categories" element={<Categories />} />
           <Route path="promotions" element={<Promotions />} />

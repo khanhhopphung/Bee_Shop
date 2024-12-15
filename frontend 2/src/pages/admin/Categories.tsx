@@ -28,20 +28,20 @@ const Categories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const accessToken = localStorage.getItem("access_token");
-  
+
       // Kiểm tra nếu token không tồn tại
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return; // Dừng việc tải dữ liệu nếu chưa có token
       }
-  
+
       // Thêm token vào headers nếu có
       const response = await axios.get('http://127.0.0.1:8000/api/categories', {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-  
+
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       setCategories(data);
       setFilteredCategories(data);
@@ -51,7 +51,7 @@ const Categories: React.FC = () => {
       setFilteredCategories([]);
     }
   };
-  
+
 
   useEffect(() => {
     fetchCategories();
@@ -84,7 +84,7 @@ const Categories: React.FC = () => {
       title: 'bạn có chắc chắn muốn xóa danh mục không?',
       okText: 'có',
 
-   
+
 
       okType: 'danger',
       cancelText: 'không',
@@ -101,7 +101,7 @@ const Categories: React.FC = () => {
   };
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-  
+
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
@@ -237,15 +237,15 @@ const Categories: React.FC = () => {
           rowKey="id"
           bordered
           pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }} 
+          scroll={{ x: '800' }}
           style={{
             fontSize: '16px',
             borderRadius: '8px',
-            width: '100%', 
+            width: '100%',
           }}
         />
       </div>
-      
+
       <Modal
         open={isModalVisible}
         title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}</span>}

@@ -20,7 +20,7 @@ class StatisticsController extends Controller
         $endDate = $request->input('end_date');
         $selectedYear = $request->input('year');
         $selectedMonth = $request->input('month');
-    
+
         // Kiểm tra nếu có ngày được chọn
         if ($startDate && $endDate) {
             try {
@@ -33,21 +33,24 @@ class StatisticsController extends Controller
             $startDate = now()->subYear()->startOfDay();  // Bắt đầu từ một năm trước
             $endDate = now()->endOfDay();  // Kết thúc là ngày hiện tại
         }
-    
+
         // Nếu có năm được chọn, thay đổi khoảng thời gian để thống kê
         if ($selectedYear) {
             $startDate = Carbon::createFromDate($selectedYear, 1, 1)->startOfDay();
             $endDate = Carbon::createFromDate($selectedYear, 12, 31)->endOfDay();
         }
-    
+
         // Nếu có tháng được chọn, thay đổi khoảng thời gian để thống kê
         if ($selectedMonth) {
             $startDate = Carbon::createFromDate($selectedYear ?? now()->year, $selectedMonth, 1)->startOfDay();
             $endDate = Carbon::createFromDate($selectedYear ?? now()->year, $selectedMonth, 1)->endOfMonth()->endOfDay();
         }
-    
+
         // Thực hiện thống kê theo khoảng thời gian đã chọn
-        $totalRevenue = Order::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
+        $totalRevenue = Order::where('status', 'completed')
+            ->whereBetween('order_date', [$startDate, $endDate])
+            ->sum('total_amount');
+
         $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
         $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
 
@@ -57,7 +60,7 @@ class StatisticsController extends Controller
             ->select('products.name', DB::raw('SUM(order_details.quantity) as total_sold'))
             ->whereBetween('orders.order_date', [$startDate, $endDate])
             ->groupBy('products.id', 'products.name')
-            ->having('total_sold', '>', 5) 
+            ->having('total_sold', '>', 5)
             ->orderByDesc('total_sold')
             ->limit(10)
             ->get();
@@ -93,29 +96,29 @@ class StatisticsController extends Controller
             ->whereBetween('order_date', [$startDate, $endDate])
             ->groupBy('payment_method')
             ->get();
-    
+
         // Thống kê khuyến mãi
         $promotionUsageStats = Promotion::leftJoin('orders', 'promotions.id', '=', 'orders.promotion_id')
             ->select('promotions.code', DB::raw('count(orders.id) as usage_count'))
             ->where(function ($query) use ($startDate, $endDate) {
                 $query->whereBetween('orders.order_date', [$startDate, $endDate])
-                      ->orWhereNull('orders.order_date');
+                    ->orWhereNull('orders.order_date');
             })
             ->groupBy('promotions.code')
             ->get();
-    
+
         // Tăng trưởng doanh thu nhờ khuyến mãi
         $promotionRevenueGrowth = Order::whereNotNull('promotion_id')
             ->whereBetween('order_date', [$startDate, $endDate])
             ->select(DB::raw('SUM(total_amount) as total_revenue'))
             ->first();
-    
+
         // Thống kê vận chuyển
         $shippingStats = Order::select('status', DB::raw('count(*) as count'))
             ->whereBetween('order_date', [$startDate, $endDate])
             ->groupBy('status')
             ->get();
-    
+
         return response()->json([
             'total_revenue' => $totalRevenue,
             'sold_products' => $soldProducts,

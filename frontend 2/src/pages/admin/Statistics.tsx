@@ -70,7 +70,7 @@ const Statistics: React.FC = () => {
 
   const handleCardClick = (type: string) => {
     let content = null;
-    
+
     switch (type) {
       case 'revenue':
         content = `Tổng doanh thu : ${statistics.total_revenue}`;
@@ -81,21 +81,21 @@ const Statistics: React.FC = () => {
       case 'km':
         content = `Tăng trưởng doanh thu nhờ khuyến mãi: ${statistics.promotion_revenue_growth}`;
         break;
-        case 'low_stock':
-          content = statistics.low_stock_products.products.map((product: any) => ({
-            key: product.id,
-            name: product.name,
-            sku: product.sku,
-            stock: product.stock,
-            price: formatCurrency(product.price),
-          }));
-          break;
-      
-     
+      case 'low_stock':
+        content = statistics.low_stock_products.products.map((product: any) => ({
+          key: product.id,
+          name: product.name,
+          sku: product.sku,
+          stock: product.stock,
+          price: formatCurrency(product.price),
+        }));
+        break;
+
+
       default:
         content = null;
     }
-    
+
     setModalContent(content);
     setModalVisible(true);
   };
@@ -275,26 +275,26 @@ const Statistics: React.FC = () => {
 
       {/* Modal for showing detail */}
       <Modal
-  title="Thông tin chi tiết"
-  visible={modalVisible}
-  onCancel={() => setModalVisible(false)}
-  footer={null}
->
-  {Array.isArray(modalContent) ? (
-    <Table
-      dataSource={modalContent}
-      columns={[
-        { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-        { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
-        { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
-        { title: 'Giá', dataIndex: 'price', key: 'price' },
-      ]}
-      pagination={{ pageSize: 5 }}
-    />
-  ) : (
-    <p>{modalContent}</p>
-  )}
-</Modal>
+        title="Thông tin chi tiết"
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+      >
+        {Array.isArray(modalContent) ? (
+          <Table
+            dataSource={modalContent}
+            columns={[
+              { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+              { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
+              { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
+              { title: 'Giá', dataIndex: 'price', key: 'price' },
+            ]}
+            pagination={{ pageSize: 5 }}
+          />
+        ) : (
+          <p>{modalContent}</p>
+        )}
+      </Modal>
 
       {/* Top Selling Products and Promotions */}
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>

@@ -35,7 +35,7 @@ const Reviews: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [form] = Form.useForm();
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -45,7 +45,7 @@ const Reviews: React.FC = () => {
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
-      
+
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return;
