@@ -14,7 +14,7 @@ import Blogs from "./pages/client/Blog";
 import AdminLayout from "./pages/admin/MainLayouts";
 import Layout from "./components/Layout";
 import { message } from "antd";
-import PaymentPage from "./pages/client/Checkout";
+// import PaymentPage from "./pages/client/Checkout2";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
@@ -26,18 +26,14 @@ import AccountPage from "./pages/client/AccountPage";
 import OrderDetail from "./pages/client/OrderDetail";
 import UpdatePass from "./pages/client/UpdatePass";
 import Adrress from "./pages/client/Adrress";
-
 import Categories from "./pages/admin/Categories";
 import Promotions from "./pages/admin/Promotions";
 import AdminBlogs from "./pages/admin/Blogs";
 import Statistics from "./pages/admin/Statistics";
-
 import Review from "./pages/admin/Review";
 import ProductVariants from "./pages/admin/ProductVariant";
-
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
-import FavoriteList from "./pages/client/WishList";
 import Comment from "./components/Comment";
 import OrderList from "./pages/client/OrderList";
 import Voucher from "./pages/client/Voucher";
@@ -53,6 +49,9 @@ import ResetPass from "./pages/client/ResetPass";
 import ProductDetail2 from "./pages/client/ProductDetail2";
 import VNPayPayment from "./pages/client/VnPayment";
 import PaymentPage2 from "./pages/client/Checkout2";
+import Pusher from "pusher-js";
+import ShippingPolicy from "./components/ShippingPolicy";
+import ReturnRefundPolicy from "./components/ReturnRefundPolicy";
 
 interface CartItem {
   product_id: any;
@@ -159,7 +158,7 @@ const App: React.FC = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("API Error:", errorData);
+          message.error("Thêm vào giỏ hàng thất bại");
           return;
         } else if (response.ok) {
           message.success("Thêm vào giỏ hàng thành công! ");
@@ -180,6 +179,8 @@ const App: React.FC = () => {
   useEffect(() => {
     dispatch(setQuantityCart(cart.length));
   }, [cart, dispatch]);
+  const [load, setLoad] = useState<string>("");
+
   useEffect(() => {
     const fetchCarts = async () => {
       try {
@@ -216,13 +217,32 @@ const App: React.FC = () => {
     };
 
     fetchCarts();
-  }, []);
+  }, [load]);
 
   const [userName, setUserName] = useState<string | null>(null);
 
   const updateUserName = (name: string) => {
     setUserName(name);
   };
+
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoad(data.code);
+    });
+
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
 
   return (
     <Router>
@@ -250,11 +270,13 @@ const App: React.FC = () => {
           <Route path="blogs" element={<Blogs />} />
           <Route path="blogs/:id" element={<BlogDetail />} />
           {/* <Route path="payments" element={<PaymentPage />} /> */}
-          <Route path="payments" element={<PaymentPage />} />
+          <Route path="payments" element={<PaymentPage2 />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="ordersuccess" element={<OrderSuccess2 />} />
           <Route path="404" element={<NotFound />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/return-policy" element={<ReturnRefundPolicy />} />
           <Route path="/order-detail/:id" element={<OrderDetail />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/update-password" element={<UpdatePass />} />

@@ -21,16 +21,19 @@ class OrderDetail extends Model
     }
     public function product()
     {
-        return $this->belongsTo(Product::class,'product_id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
-     
+
 
     public function product_variant()
     {
-        return $this->belongsTo(ProductVariant::class,'variant_id');
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
-    
- 
-    
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_id', 'product_id')
+            ->where('order_id', $this->order_id); // Lấy order_id từ order detail
+    }
 }

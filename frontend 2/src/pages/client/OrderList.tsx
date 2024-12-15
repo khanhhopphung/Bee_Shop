@@ -43,6 +43,7 @@ interface Order {
     images: Image[];
     color: Color;
     size: Size;
+    reviews: Reviewh[];
   }[];
 }
 interface Reviewh {
@@ -722,7 +723,37 @@ const OrderList = () => {
                               )}{" "}
                             </p>
                           </div>
-                          <>{console.log(detail.order_id)}</>
+                          {/* {order.status === "completed" &&
+                            detail.reviews.map(
+                              (review) =>
+                                review.product_id !== detail.product.id && (
+                                  // <Link to={`/products/${order.pro}`}>
+                                  <div
+                                    key={review.id}
+                                    style={{ marginLeft: "60px" }}
+                                  >
+                                    <button
+                                      style={{
+                                        backgroundColor: "red",
+                                        margin: "5px",
+                                        color: "white",
+                                        marginLeft: "903px",
+                                        width: "90px",
+                                      }}
+                                      className="order-btn order-btn-reorder"
+                                      onClick={() => {
+                                        setShowReviewForm(true);
+                                        setProductId(detail.product.id);
+                                        setOderId(detail.order_id);
+                                      }}
+                                    >
+                                      Đánh giá
+                                    </button>
+                                  </div>
+                                )
+                              // </Link>
+                            )} */}
+
                           {order.status === "completed" &&
                             order.reviews.length == 0 && (
                               // <Link to={`/products/${order.pro}`}>
@@ -811,6 +842,20 @@ const OrderList = () => {
                           >
                             Đã nhận hàng
                           </button>
+                          <button
+                            style={{
+                              backgroundColor: "red",
+                              margin: "5px",
+                              color: "white",
+                            }}
+                            className="order-btn order-btn-detail"
+                            onClick={() => {
+                              // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
+                              window.location.href = `/order-detail/${order.id}`;
+                            }}
+                          >
+                            Xem chi tiết đơn hàng
+                          </button>
                         </div>
                       )}
                       {order.status == "shipped" && (
@@ -830,13 +875,8 @@ const OrderList = () => {
                         </button>
                       )}
                       {order.status == "completed" && (
-                        // <Link to={`/products/${order.pro}`}>
-                        <div
-                          style={{
-                            width: "90px",
-                          }}
-                        >
-                          <button
+                        <div>
+                          {/* <button
                             style={{
                               width: "90px",
                             }}
@@ -845,19 +885,28 @@ const OrderList = () => {
                             onClick={() => showConfirm(order.id)}
                           >
                             Mua Lại
+                          </button> */}
+                          <button
+                            className="order-btn order-btn-reorder"
+                            onClick={() => handleReorder(order.id)}
+                          >
+                            Mua Lại
                           </button>
 
-                          {/* <button
+                          <button
                             style={{
                               backgroundColor: "red",
                               margin: "5px",
                               color: "white",
                             }}
-                            className="order-btn order-btn-reorder"
-                            onClick={() => setShowReviewForm(true)}
+                            className="order-btn order-btn-detail"
+                            onClick={() => {
+                              // Logic để xem chi tiết đơn hàng, chẳng hạn như chuyển hướng hoặc hiển thị thông tin
+                              window.location.href = `/order-detail/${order.id}`;
+                            }}
                           >
-                            Đánh giá
-                          </button> */}
+                            Xem chi tiết đơn hàng
+                          </button>
                         </div>
                         // </Link>
                       )}

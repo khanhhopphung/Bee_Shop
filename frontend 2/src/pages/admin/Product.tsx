@@ -46,7 +46,7 @@ interface ProductVariant {
   price: number;
   stock: number;
   is_active: boolean;
-  images: { image_url: string }[];
+  images: { image_url: string }[]; 
 }
 
 interface Category {
@@ -221,22 +221,22 @@ const Products: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-
+  
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
     }
-
+  
     try {
       const formData = new FormData();
       for (const key in values) {
         formData.append(key, values[key]);
       }
-
+  
       if (imageFile) {
         formData.append("image", imageFile);
       }
-
+  
       if (currentProduct) {
         await axios.post(
           `http://127.0.0.1:8000/api/products/${currentProduct.id}`,
@@ -258,7 +258,7 @@ const Products: React.FC = () => {
         });
         message.success("Sản phẩm đã được tạo");
       }
-
+  
       setIsModalVisible(false);
       fetchProducts();
       form.resetFields();
@@ -267,7 +267,7 @@ const Products: React.FC = () => {
       message.error("Không thể lưu sản phẩm");
     }
   };
-
+  
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const columns: ColumnsType<Product> = [
     {
@@ -378,25 +378,19 @@ const Products: React.FC = () => {
           />
         </div>
         <Table
-          columns={columns}
-          dataSource={filteredProducts}
-          rowKey="id"
-          bordered
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            showSizeChanger: true,
-            onChange: (page, pageSize) => {
-              setPagination({ current: page, pageSize });
-            },
-          }}
-          scroll={{ x: '800' }}
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%',
-          }}
-        />
+  columns={columns}
+  dataSource={filteredProducts}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    showSizeChanger: true,
+    onChange: (page, pageSize) => {
+      setPagination({ current: page, pageSize });
+    },
+  }}
+/>
 
       </div>
       <Modal
@@ -455,15 +449,15 @@ const Products: React.FC = () => {
               fileList={
                 imageFile
                   ? [
-                    {
-                      uid: "-1",
-                      name: imageFile.name,
-                      status: "done",
-                      url: URL.createObjectURL(imageFile),
-                    },
-                  ]
+                      {
+                        uid: "-1",
+                        name: imageFile.name,
+                        status: "done",
+                        url: URL.createObjectURL(imageFile),
+                      },
+                    ]
                   : currentProduct?.image
-                    ? [
+                  ? [
                       {
                         uid: "-2",
                         name: "Current Image",
@@ -471,7 +465,7 @@ const Products: React.FC = () => {
                         url: `http://127.0.0.1:8000/storage/${currentProduct.image.image_url}`,
                       },
                     ]
-                    : []
+                  : []
               }
               showUploadList={{
                 showRemoveIcon: false,
@@ -533,12 +527,12 @@ const Products: React.FC = () => {
               render: (record: ProductVariant) => renderImages(record.images),
               align: "center",
             },
-
+            
           ]}
           dataSource={variants}
           rowKey="id"
           pagination={{ position: ["bottomCenter"] }}
-
+          
         />
       </Modal>
     </div>

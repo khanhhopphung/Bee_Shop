@@ -10,7 +10,8 @@ class VnPayController extends Controller
     public function createPayment(Request $request)
 {
     $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    $vnp_Returnurl = "http://localhost:3000/api/vnpay/create-payment";
+    $vnp_Returnurl = "http://localhost:3000/ordersuccess";
+    // $vnp_Returnurl = "http://localhost:3000/payments";
     $vnp_TmnCode = "AY8UDN7Q";//Mã website tại VNPAY 
     $vnp_HashSecret = "55TYK0C9CIEB0Q8MU57B3XCUGEFT9J0C"; //Chuỗi bí mật
     

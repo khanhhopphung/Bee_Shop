@@ -29,17 +29,26 @@ const Footer = (props: Props) => {
                   </a>
                 </li>
                 <li className="p-b-10">
-                  <a href="#" className="stext-107 cl7 hov-cl1 trans-04">
+                  <a
+                    href="/privacy-policy"
+                    className="stext-107 cl7 hov-cl1 trans-04"
+                  >
                     Chính sách bảo mật
                   </a>
                 </li>
                 <li className="p-b-10">
-                  <a href="#" className="stext-107 cl7 hov-cl1 trans-04">
+                  <a
+                    href="/shipping-policy"
+                    className="stext-107 cl7 hov-cl1 trans-04"
+                  >
                     Chính sách giao hàng
                   </a>
                 </li>
                 <li className="p-b-10">
-                  <a href="#" className="stext-107 cl7 hov-cl1 trans-04">
+                  <a
+                    href="/return-policy"
+                    className="stext-107 cl7 hov-cl1 trans-04"
+                  >
                     Chính sách đổi trả và hoàn tiền
                   </a>
                 </li>
@@ -51,14 +60,14 @@ const Footer = (props: Props) => {
                 Thông tin
               </a>
               <div className="p-t-27" style={{ marginTop: "-20px" }}>
-                <a href="#" className="fs-18 cl7 hov-cl1 trans-04 m-r-16">
+                <a
+                  href="https://www.facebook.com/profile.php?id=61569659241755"
+                  className="fs-18 cl7 hov-cl1 trans-04 m-r-16"
+                >
                   <i className="fa fa-facebook" />
                 </a>
                 <a href="#" className="fs-18 cl7 hov-cl1 trans-04 m-r-16">
                   <i className="fa fa-instagram" />
-                </a>
-                <a href="#" className="fs-18 cl7 hov-cl1 trans-04 m-r-16">
-                  <i className="fa fa-pinterest-p" />
                 </a>
               </div>
             </div>

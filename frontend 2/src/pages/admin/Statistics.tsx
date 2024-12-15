@@ -12,10 +12,8 @@ const Statistics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState<any>(null);
   const [endDate, setEndDate] = useState<any>(null);
-  const [selectedYear, setSelectedYear] = useState<any>(null);
-  const [selectedMonth, setSelectedMonth] = useState<any>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false); // State for controlling modal visibility
+  const [modalContent, setModalContent] = useState<any>(null); // State to store modal content
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -24,6 +22,7 @@ const Statistics: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(value);
   };
+  
 
   const fetchStatistics = async () => {
     setLoading(true);
@@ -40,12 +39,6 @@ const Statistics: React.FC = () => {
       if (startDate && endDate) {
         params.start_date = startDate.format('YYYY-MM-DD');
         params.end_date = endDate.format('YYYY-MM-DD');
-      }
-      if (selectedYear) {
-        params.year = selectedYear;
-      }
-      if (selectedMonth) {
-        params.month = selectedMonth;
       }
 
       const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', {
@@ -64,43 +57,34 @@ const Statistics: React.FC = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    window.location.reload();
+    localStorage.removeItem("access_token"); // Remove token from localStorage
+    window.location.reload(); // Reload the page to reflect logout
   };
 
   const handleCardClick = (type: string) => {
-    let content = null;
-    
+    // Show the modal with corresponding content based on the card clicked
     switch (type) {
       case 'revenue':
-        content = statistics.sold_products.map((order: any) => ({
-          key: order.id,
-          productName: order.name,
-          quantity: order.total_sold,
-          revenue: formatCurrency(order.total_revenue),
-        }));
+        setModalContent(`Tổng doanh thu: ${formatCurrency(statistics.total_revenue)}`);
         break;
       case 'orders':
-        content = `Tổng đơn hàng: ${statistics.total_orders}`;
+        setModalContent(`Tổng đơn hàng: ${statistics.total_orders}`);
         break;
-        case 'km':
-        content = `Tăng trưởng doanh thu nhờ khuyến mãi : ${statistics.promotion_revenue_growth}`;
+      case 'new_customers':
+        setModalContent(`Người dùng mới: ${statistics.new_customers}`);
         break;
-      
       case 'low_stock':
-       
-        content = `Sản phẩm sắp hết hàng: ${statistics.low_stock_products.count}`;
+        setModalContent(`Sản phẩm sắp hết hàng: ${statistics.low_stock_products.count}`);
         break;
       default:
-        content = null;
+        setModalContent('');
     }
-    
-    setModalContent(content);
     setModalVisible(true);
   };
+
   useEffect(() => {
     fetchStatistics();
-  }, [startDate, endDate, selectedYear, selectedMonth]);
+  }, [startDate, endDate]);
 
   if (loading) {
     return (
@@ -122,11 +106,9 @@ const Statistics: React.FC = () => {
     { title: 'Lượt sử dụng', dataIndex: 'usage_count', key: 'usage_count' },
   ];
 
-  const lowStockColumns = [
-    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-    { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
-    { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
-    { title: 'Giá', dataIndex: 'price', key: 'price', render: (text: number) => formatCurrency(text) },
+  const unsoldProducts = [
+    { title: 'Tên sản phẩm ', dataIndex: 'name', key: 'name' },
+    { title: 'Mã sản phẩm ', dataIndex: 'sku', key: 'sku' },
   ];
 
   const paymentMethodConfig = {
@@ -168,54 +150,51 @@ const Statistics: React.FC = () => {
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#fafafa' }}>
-      {/* Header with Logout */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px', justifyContent: 'flex-end' }}>
-        <Col>
-          <Button type="primary" icon={<PoweroffOutlined />} onClick={handleLogout}>
-            Đăng xuất
-          </Button>
-        </Col>
-      </Row>
-
-      {/* Date Pickers */}
+      {/* Row for Logout Button and Date Pickers */}
       <Row gutter={[16, 16]} style={{ marginBottom: '20px' }} align="middle">
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for Start Date */}
           <DatePicker
-            picker="year"
-            style={{ width: '100%' }}
-            placeholder="Chọn năm"
-            onChange={(date) => {
-              setSelectedYear(date?.year());
-              setSelectedMonth(null);
+            style={{
+              width: '100%',
+              borderRadius: '10px',
+              padding: '10px',
+              border: '1px solid #d9d9d9',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s ease',
             }}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <DatePicker
-            picker="month"
-            style={{ width: '100%' }}
-            placeholder="Chọn tháng"
-            onChange={(date) => {
-              setSelectedMonth(date?.month() + 1);
-              setSelectedYear(null);
-            }}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <DatePicker
-            style={{ width: '100%' }}
             placeholder="Chọn ngày bắt đầu"
             onChange={(date) => setStartDate(date)}
             value={startDate}
+            suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
           />
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
+          {/* DatePicker for End Date */}
           <DatePicker
-            style={{ width: '100%' }}
+            style={{
+              width: '100%',
+              borderRadius: '10px',
+              padding: '10px',
+              border: '1px solid #d9d9d9',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s ease',
+            }}
             placeholder="Chọn ngày kết thúc"
             onChange={(date) => setEndDate(date)}
             value={endDate}
+            suffixIcon={<i className="anticon anticon-calendar" style={{ color: '#1890ff' }} />}
           />
+        </Col>
+        {/* Align Logout button to the right */}
+        <Col xs={24} sm={12} md={8} style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            type="primary"
+            icon={<PoweroffOutlined />}
+            onClick={handleLogout}
+          >
+            Đăng xuất
+          </Button>
         </Col>
       </Row>
 
@@ -249,8 +228,20 @@ const Statistics: React.FC = () => {
             />
           </Card>
         </Col>
-        
-        
+        <Col xs={24} sm={12} md={6}>
+          <Card
+            hoverable
+            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            onClick={() => handleCardClick('new_customers')}
+          >
+            <Title level={4} style={{ color: '#2c3e50' }}>Người dùng mới</Title>
+            <Statistic
+              value={statistics.new_customers}
+              prefix={<UserOutlined />}
+              valueStyle={{ color: '#3498db' }}
+            />
+          </Card>
+        </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
             hoverable
@@ -269,25 +260,13 @@ const Statistics: React.FC = () => {
 
       {/* Modal for showing detail */}
       <Modal
-  title="Thông tin chi tiết"
-  visible={modalVisible}
-  onCancel={() => setModalVisible(false)}
-  footer={null}
->
-  {Array.isArray(modalContent) ? (
-    <Table
-      dataSource={modalContent}
-      columns={[
-        { title: 'Tên sản phẩm', dataIndex: 'productName', key: 'productName' },
-        { title: 'Số lượng', dataIndex: 'quantity', key: 'quantity' },
-        { title: 'Doanh thu', dataIndex: 'revenue', key: 'revenue' },
-      ]}
-      pagination={false}
-    />
-  ) : (
-    <p>{modalContent}</p>
-  )}
-</Modal>
+        title="Thông tin chi tiết"
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+      >
+        <p>{modalContent}</p>
+      </Modal>
 
       {/* Top Selling Products and Promotions */}
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
@@ -299,11 +278,10 @@ const Statistics: React.FC = () => {
             <Table
               columns={topSellingColumns}
               dataSource={statistics.top_selling_products}
-             pagination={{ pageSize: 5 }}
+              pagination={false}
               rowKey="id"
               size="small"
-              
-            />
+            />Thông tin chi tiết
           </Card>
         </Col>
         <Col xs={24} sm={8} md={8}>
@@ -322,12 +300,12 @@ const Statistics: React.FC = () => {
         </Col>
         <Col xs={24} sm={8} md={8}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>sản phẩm sắp hết hàng </Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm không bán được </Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Table
-              columns={lowStockColumns}
-              dataSource={statistics.low_stock_products.products}
+              columns={unsoldProducts}
+              dataSource={statistics.unsold_products}
               pagination={{ pageSize: 5 }}
               rowKey="id"
               size="small"
