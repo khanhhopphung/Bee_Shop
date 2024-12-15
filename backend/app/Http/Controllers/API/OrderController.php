@@ -110,24 +110,11 @@ class OrderController extends Controller
             $order = Order::create([
                 'user_id' => $userId,
                 'total_amount' => $request->total_amount,
-                // <<<<<<< HEAD
                 'discount_promotion_id' => $request->discount_promotion_id,
                 'shipping_promotion_id' => $request->shipping_promotion_id,
                 'discount_amount' => isset($discountAmount) ? $discountAmount : 0,
                 'shipping_discount' => isset($shipDiscount) ? $shipDiscount : 30000,
                 'final_amount' => $fin,
-                // =======
-
-                //                 'promotion_id' => $request->promotion_id,
-
-
-                //         'discount_promotion_id' => $request->discount_promotion_id ?: null,
-                //     'shipping_promotion_id' => $request->shipping_promotion_id ?: null,
-                //     'discount_amount' => isset($discountAmount) ? $discountAmount: null,
-                //     'shipping_discount' => isset($shipDiscount) ? $shipDiscount: null,
-                //     'final_amount' => $fin ,
-
-                // >>>>>>> fix-dev
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -136,19 +123,9 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
-                // <<<<<<< HEAD
                 'address' => $addressF
 
-                // =======
-                //                 'address'=> $addressF,
-                //                 'product_id' => $cartDetails->first()->product_id,
-                //                 'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
-
-                // >>>>>>> fix-dev
             ]);
-            // $order->product_id = $cartDetails->first()->product_id;
-
-            // $order->save();
 
             // Create order details and delete cart items
             foreach ($cartDetails as $cartDetail) {
@@ -198,7 +175,6 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            // <<<<<<< HEAD
             // Load relationships including order_code
             $order->load(['address', 'promotion', 'orderDetails']);
             return response()->json([
@@ -209,20 +185,6 @@ class OrderController extends Controller
                     'orderDetails.product' // Thêm quan hệ product để lấy ảnh
                 ]),
             ], 201);
-            // =======
-            //             $order->load(['orderDetails.product:id,name']);
-
-            //             // Lấy danh sách tên sản phẩm
-            //             $productNames = $order->orderDetails->map(function ($detail) {
-            //                 return $detail->product->name;
-            //             });
-
-            //             return response()->json([
-            //                 'message' => 'Order fetched successfully',
-            //                 'order' => $order,
-            //                 'product_names' => $productNames, // Trả về danh sách tên sản phẩm riêng
-            //             ], 200);
-            // // >>>>>>> fix-dev
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch order. Please try again later.',
@@ -306,29 +268,6 @@ class OrderController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
-        // <<<<<<< HEAD
-        // =======
-
-        //         // Sử dụng eager loading
-        //         $orders = $user->orders()->with([
-        //             'address',
-        //             'promotion',
-        //             'reviews',
-        //             'orderDetails.product',
-        //             'orderDetails.product_variant',
-        //             'orderDetails.product_variant.images',
-        //             'orderDetails.product_variant.color',
-        //             'orderDetails.product_variant.size',
-
-        //         ])->latest('id')->get();
-
-        //         return BaseController::success($orders);
-        //     } catch (\Exception $e) {
-        //         return response()->json([
-        //             'error' => 'Could not fetch orders. Please try again later.',
-        //             'message' => $e->getMessage(),
-        //         ], 500);
-        // >>>>>>> fix-dev
     }
     public function getOneOrderByUser(string $id)
     {

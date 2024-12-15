@@ -36,26 +36,26 @@ const Blogs: React.FC = () => {
     current: 1,
     pageSize: 10,
   });
-
+  
   // Fetch blogs from API
   const fetchBlogs = async () => {
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
-
+  
       // Kiểm tra nếu token không tồn tại
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return; // Dừng việc tải dữ liệu nếu chưa có token
       }
-
+  
       // Thêm token vào headers nếu có
       const response = await axios.get('http://127.0.0.1:8000/api/blogs', {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-
+  
       setBlogs(response.data.data || []);
       setFilteredBlogs(response.data.data || []);
     } catch (error) {
@@ -66,7 +66,7 @@ const Blogs: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
@@ -143,7 +143,7 @@ const Blogs: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-
+  
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
@@ -183,7 +183,7 @@ const Blogs: React.FC = () => {
   const columns: ColumnsType<Blog> = [
 
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STTt</span>,
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>STT</span>,
       dataIndex: 'id',
       key: 'id',
       render: (text: any, record: Blog, index: number) => (
@@ -321,25 +321,25 @@ const Blogs: React.FC = () => {
         </Select>
         <hr />
         <Table
-          columns={columns}
-          dataSource={filteredBlogs}
-          rowKey="id"
-          bordered
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            showSizeChanger: true,
-            onChange: (current, pageSize) => {
-              setPagination({ current, pageSize });
-            },
-          }}
-          scroll={{ x: '800' }}
-          style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%',
-          }}
-        />
+  columns={columns}
+  dataSource={filteredBlogs}
+  rowKey="id"
+  bordered
+  pagination={{
+    current: pagination.current,
+    pageSize: pagination.pageSize,
+    showSizeChanger: true,
+    onChange: (current, pageSize) => {
+      setPagination({ current, pageSize });
+    },
+  }}
+  scroll={{ x: '800' }}
+  style={{
+    fontSize: '16px',
+    borderRadius: '8px',
+    width: '100%',
+  }}
+/>
 
       </div>
       {/* Modal */}
@@ -399,19 +399,19 @@ const Blogs: React.FC = () => {
                       url: URL.createObjectURL(imageFile), // Hiển thị ảnh đã chọn
                     },
                   ]
-                  : currentBlog?.image
+                  : currentBlog?.image 
                     ? [
                       {
                         uid: '-2',
                         name: 'Current Image',
                         status: 'done',
-                        url: `http://127.0.0.1:8000/storage/${currentBlog.image}`,
+                        url: `http://127.0.0.1:8000/storage/${currentBlog.image}`, 
                       },
                     ]
-                    : []
+                    : [] 
               }
               showUploadList={{
-                showRemoveIcon: false,
+                showRemoveIcon: false, 
               }}
             >
               <Button icon={<UploadOutlined />}>Tải ảnh lên</Button>
@@ -423,7 +423,7 @@ const Blogs: React.FC = () => {
               Lưu
             </Button>
           </Form.Item>
-
+          
         </Form>
       </Modal>
     </div>

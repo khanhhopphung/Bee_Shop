@@ -28,20 +28,20 @@ const Categories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const accessToken = localStorage.getItem("access_token");
-
+  
       // Kiểm tra nếu token không tồn tại
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return; // Dừng việc tải dữ liệu nếu chưa có token
       }
-
+  
       // Thêm token vào headers nếu có
       const response = await axios.get('http://127.0.0.1:8000/api/categories', {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-
+  
       const data = Array.isArray(response.data.data) ? response.data.data : [];
       setCategories(data);
       setFilteredCategories(data);
@@ -51,7 +51,7 @@ const Categories: React.FC = () => {
       setFilteredCategories([]);
     }
   };
-
+  
 
   useEffect(() => {
     fetchCategories();
@@ -80,57 +80,40 @@ const Categories: React.FC = () => {
 
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: 'Are you sure you want to deactivate this category?',
+      title: 'Are you sure you want to delete this category?',
       okText: 'Yes',
       okType: 'danger',
       cancelText: 'No',
       onOk: async () => {
         try {
-          // Cập nhật trạng thái is_active thành false (ngừng hoạt động) thay vì xóa
-          await axios.put(`http://127.0.0.1:8000/api/categories/${id}`, { is_active: 0 });
-          message.success('Category deactivated successfully');
-          fetchCategories(); // Tải lại danh sách sau khi thay đổi
+          await axios.delete(`http://127.0.0.1:8000/api/categories/${id}`);
+          message.success('Category deleted successfully');
+          fetchCategories();
         } catch (error) {
-          message.error('Failed to deactivate category');
+          message.error('Failed to delete category');
         }
       },
     });
   };
-
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-
+  
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
     }
-
     try {
-      const categoryData = {
-        ...values,
-        is_active: values.is_active ? " 1" : " 0",
-      };
-
       if (currentCategory) {
-        // Cập nhật danh mục hiện tại
-        if (categoryData.is_active !== currentCategory.is_active) {
-          // Nếu trạng thái is_active thay đổi, đảm bảo không có xóa dữ liệu
-          await axios.put(`http://127.0.0.1:8000/api/categories/${currentCategory.id}`, categoryData);
-          message.success('Category updated successfully');
-        } else {
-          await axios.put(`http://127.0.0.1:8000/api/categories/${currentCategory.id}`, categoryData);
-          message.success('Category updated successfully');
-        }
+        await axios.put(`http://127.0.0.1:8000/api/categories/${currentCategory.id}`, values);
+        message.success('Category updated successfully');
       } else {
-        // Tạo danh mục mới
-        await axios.post('http://127.0.0.1:8000/api/categories', categoryData);
+        await axios.post('http://127.0.0.1:8000/api/categories', values);
         message.success('Category created successfully');
       }
-
       setIsModalVisible(false);
-      fetchCategories(); // Tải lại danh sách danh mục sau khi thay đổi
+      fetchCategories();
     } catch (error) {
-      message.error('Không thể lưu do danh mục đã tồn tại hoặc có lỗi khác');
+      message.error('không thể lưu do danh mục đã tồn tại ');
     }
   };
 
@@ -250,15 +233,15 @@ const Categories: React.FC = () => {
           rowKey="id"
           bordered
           pagination={{ position: ['bottomCenter'], showSizeChanger: true }}
-          scroll={{ x: '800' }}
+          scroll={{ x: '800' }} 
           style={{
             fontSize: '16px',
             borderRadius: '8px',
-            width: '100%',
+            width: '100%', 
           }}
         />
       </div>
-
+      
       <Modal
         open={isModalVisible}
         title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentCategory ? 'Chỉnh sửa danh mục' : 'Thêm danh mục'}</span>}

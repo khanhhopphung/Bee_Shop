@@ -2,7 +2,7 @@ import React from "react";
 
 type Props = {};
 
-const RegisterAdmin: React.FC = () => {
+const RegisterAdmin : React.FC = () => {
   return (
     <div>
       <body className="app app-signup p-0">

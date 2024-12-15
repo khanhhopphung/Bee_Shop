@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space } from "antd";
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, } from "@ant-design/icons";
+import {Table, Button, Modal, Form, Input, message, Switch, Select, Space} from "antd";
+import {DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined,} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ColumnsType } from 'antd/es/table';
 
@@ -38,26 +38,26 @@ const Promotions: React.FC = () => {
     setLoading(true);
     try {
       const accessToken = localStorage.getItem("access_token");
-
+  
       // Kiểm tra nếu token không tồn tại
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         return; // Dừng việc tải dữ liệu nếu chưa có token
       }
-
+  
       // Thêm token vào headers nếu có
       const response = await axios.get("http://127.0.0.1:8000/api/promotions", {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-
+  
       const promotionsData = response.data.data.map((promotion: Promotion) => ({
         ...promotion,
         start_date: dayjs(promotion.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(promotion.end_date).format("YYYY-MM-DD"),
       }));
-
+      
       setPromotions(promotionsData);
       setFilteredPromotions(promotionsData);
     } catch (error) {
@@ -66,7 +66,7 @@ const Promotions: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
 
   const fetchTiers = async () => {
     setLoading(true);
@@ -141,19 +141,18 @@ const Promotions: React.FC = () => {
 
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: "Bạn có chắc chắn muốn ngừng hoạt động khuyến mãi này không?",
-      okText: "Có",
+      title: "bạn có chắc chắn muốn xóa khuyến mãi không",
+      okText: "có",
       okType: "danger",
-      cancelText: "Không",
+      cancelText: "không",
       onOk: async () => {
         try {
-          // Gửi yêu cầu PUT để thay đổi trạng thái của khuyến mãi thành ngừng hoạt động
-          await axios.put(`http://127.0.0.1:8000/api/promotions/${id}`, { is_active: 0 });
+          await axios.delete(`http://127.0.0.1:8000/api/promotions/${id}`);
 
-          message.success("Khuyến mãi đã được ngừng hoạt động");
-          fetchPromotions(); // Tải lại danh sách khuyến mãi sau khi thay đổi
+          message.success("xóa thành công khuyến mãi");
+          fetchPromotions();
         } catch (error) {
-          message.error("Ngừng hoạt động khuyến mãi thất bại");
+          message.error("xóa thất bại khuyến mãi");
         }
       },
     });
@@ -161,7 +160,7 @@ const Promotions: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-
+  
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
@@ -302,8 +301,7 @@ const Promotions: React.FC = () => {
       align: 'center',
     },
   ];
-
-
+  
 
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
@@ -331,7 +329,7 @@ const Promotions: React.FC = () => {
           >
             Thêm khuyến mãi
           </Button>
-
+  
           <Input.Search
             placeholder="tìm kiếm bàng tên mã giảm giá hoặc  giá trị mã giảm giá "
             allowClear
@@ -378,7 +376,7 @@ const Promotions: React.FC = () => {
           loading={loading}
         />
       </div>
-
+  
       <Modal
         open={isModalVisible}
         title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentPromotion ? 'Chỉnh sửa khuyến mãi' : 'Thêm khuyến mãi'}</span>}
@@ -390,68 +388,66 @@ const Promotions: React.FC = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-
+          
         >
           <Form.Item
             name="code"
-            label="Mã khuyến mãi"
+            label="Promotion Code"
             rules={[{ required: true, message: 'Please enter promotion code' }]}
           >
             <Input placeholder="Enter promotion code" />
           </Form.Item>
-
+  
           <Form.Item
             name="discount_type"
-            label="kiểu khuyến mãi"
+            label="Discount Type"
             rules={[{ required: true, message: 'Please select discount type' }]}
           >
             <Select>
               <Select.Option value="percentage">Percentage</Select.Option>
-              <Select.Option value="money">money</Select.Option>
-              <Select.Option value="shipping">shipping</Select.Option>
-
+             
             </Select>
           </Form.Item>
-
+  
           <Form.Item
             name="discount_value"
-            label="giá trị khuyến mãi"
+            label="Discount Value"
             rules={[{ required: true, message: 'Please enter discount value' }]}
           >
             <Input type="number" placeholder="Enter discount value" />
           </Form.Item>
-
+  
           <Form.Item
             name="usage_limit"
-            label="số lần sử dụng "
+            label="Usage Limit"
             rules={[{ required: true, message: 'Please enter usage limit' }]}
           >
             <Input type="number" placeholder="Enter usage limit" />
           </Form.Item>
-
+  
           <Form.Item
             name="start_date"
-            label="ngày bắt đầu"
+            label="Start Date"
             rules={[{ required: true, message: 'Please select start date' }]}
           >
             <Input type="date" />
           </Form.Item>
-
+  
           <Form.Item
             name="end_date"
-            label="ngày kết thúc"
+            label="End Date"
             rules={[{ required: true, message: 'Please select end date' }]}
           >
             <Input type="date" />
           </Form.Item>
-
-          <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
+  
+          <Form.Item name="is_active" label="Active" valuePropName="checked">
             <Switch />
           </Form.Item>
-
+  
           <Form.Item
             name="tier_id"
-            label="cấp bậc sử dụng được khuyến mãi "
+            label="Tier"
             rules={[{ required: true, message: 'Please select a tier' }]}
           >
             <Select placeholder="Select a tier">
@@ -462,7 +458,7 @@ const Promotions: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
-
+  
           <Form.Item>
             <Button type="primary" htmlType="submit" block size="large">
               Lưu
@@ -472,6 +468,6 @@ const Promotions: React.FC = () => {
       </Modal>
     </div>
   );
-
+  
 };
 export default Promotions;

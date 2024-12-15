@@ -27,8 +27,6 @@ interface Order {
   user_id: number;
   order_code: string;
   order_date: string;
-  product_id: number;
-  product_name: string;
   total_amount: number;
   shipping_cost: number;
   payment_method: string;
@@ -75,7 +73,6 @@ const Orders: React.FC = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   const [form] = Form.useForm();
@@ -333,17 +330,7 @@ const Orders: React.FC = () => {
             <p>Total Amount: {order.total_amount}</p>
             <p>Shipping Cost: {order.shipping_cost}</p>
             <p>Payment Method: {order.payment_method}</p>
-            {order.promotion_id && (
-              <p>
-                Promotion: {order.promotion_id}
-              </p>
-
-            )}
-            <p>sản phẩm  {order.product_name}</p>
-
-
             {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
-
             <p>Active: {order.is_active ? "Yes" : "No"}</p>
           </div>
         ),
@@ -376,25 +363,6 @@ const Orders: React.FC = () => {
       ),
       align: "left",
     },
-    // {
-    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>id sản phẩm </span>,
-    //   dataIndex: 'product_id',
-    //   key: 'product_id',
-    //   render: (product_id: number) => (
-    //     <span style={{ fontSize: '16px' }}>{product_id || 'N/A'}</span>
-    //   ),
-    //   align: 'left',
-    // },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>tên sản phẩm </span>,
-      dataIndex: 'product_name',
-      key: 'product_name',
-      render: (product_name: string) => (
-        <span style={{ fontSize: '16px' }}>{product_name || 'N/A'}</span>
-      ),
-      align: 'left',
-    },
-
     {
       title: (
         <span style={{ fontSize: "18px", fontWeight: "bold" }}>
@@ -505,6 +473,8 @@ const Orders: React.FC = () => {
           onChange={(value) => handleStatusChange(value, record.id)}
         >
           <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
+          <Select.Option value="on_hold">Tạm giữ</Select.Option>
+          <Select.Option value="processing">Đang xử lý</Select.Option>
           <Select.Option value="shipped">Đã vận chuyển</Select.Option>
           <Select.Option value="delivered">Đã giao hàng</Select.Option>
           <Select.Option value="returned">Đã trả lại</Select.Option>
@@ -566,11 +536,12 @@ const Orders: React.FC = () => {
             <Select.Option value="pending">Đang giao</Select.Option>
             <Select.Option value="completed">Đã hoàn thành</Select.Option>
             <Select.Option value="cancelled">Đã hủy</Select.Option>
+            <Select.Option value="processing">Đang xử lý</Select.Option>
             <Select.Option value="shipped">Đã gửi</Select.Option>
             <Select.Option value="delivered">Đã giao</Select.Option>
             <Select.Option value="returned">Đã trả lại</Select.Option>
             <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
-          
+            <Select.Option value="on_hold">Tạm giữ</Select.Option>
           </Select>
 
           <Input.Search
