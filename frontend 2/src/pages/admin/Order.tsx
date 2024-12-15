@@ -321,21 +321,21 @@ const Orders: React.FC = () => {
       const image_url = product ? product.image_url : null;
 
       Modal.info({
-        title: "Order Details",
+        title: "Chi tiết đơn hàng ",
         content: (
           <div>
-            <p>Order ID: {order.id}</p>
+            
             <p>
-              User: {users.find((user) => user.id === order.user_id)?.username}
+            Tên : {users.find((user) => user.id === order.user_id)?.username}
             </p>
-            <p>Order Date: {order.order_date}</p>
-            <p>Status: {order.status}</p>
-            <p>Total Amount: {order.total_amount}</p>
-            <p>Shipping Cost: {order.shipping_cost}</p>
-            <p>Payment Method: {order.payment_method}</p>
+            <p>Ngày đặt hàng : {order.order_date}</p>
+            <p>trạng thái đơn hàng : {order.status}</p>
+            <p>Tổng đơn hàng : {order.total_amount}</p>
+            <p>Phí giao hàng : {order.shipping_cost}</p>
+            <p>Phương thức thanh toán : {order.payment_method}</p>
             {order.promotion_id && (
               <p>
-                Promotion: {order.promotion_id}
+                Khuyến mãi : {order.promotion_id}
               </p>
 
             )}
@@ -344,7 +344,7 @@ const Orders: React.FC = () => {
 
             {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
 
-            <p>Active: {order.is_active ? "Yes" : "No"}</p>
+       
           </div>
         ),
       });

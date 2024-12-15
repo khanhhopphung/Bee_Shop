@@ -50,8 +50,8 @@ class StatisticsController extends Controller
         }
     
         // Thực hiện thống kê theo khoảng thời gian đã chọn
-        $totalRevenue = Order::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
-        $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
+        $totalRevenue = Orderr::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
+        $totalOrders = Orderr::whereBetween('order_date', [$startDate, $endDate])->count();
         $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
     // Sản phẩm bán chạy
 $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
@@ -60,7 +60,7 @@ $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_deta
 ->whereBetween('orders.order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
 ->groupBy('products.id', 'products.name')
 ->orderByDesc('total_sold')
-->limit(10) 
+->limit(10) // Thay đổi từ 5 thành 10
 ->get();
     
         // Tồn kho
@@ -88,8 +88,6 @@ $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_deta
                   ->whereBetween('orders.order_date', [$startDate, $endDate]);
         })->get();
       
-
-        
         // Thống kê phương thức thanh toán
         $paymentMethodStats = Order::select('payment_method', DB::raw('count(*) as count'))
             ->whereBetween('order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
@@ -97,11 +95,14 @@ $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_deta
             ->get();
     
         // Thống kê khuyến mãi
-        $promotionUsageStats = Promotion::join('orders', 'promotions.id', '=', 'orders.promotion_id')
-            ->select('promotions.code', DB::raw('count(*) as usage_count'))
-            ->whereBetween('orders.order_date', [$startDate, $endDate]) // Thêm điều kiện ngày
-            ->groupBy('promotions.code')
-            ->get();
+        $promotionUsageStats = Promotion::leftJoin('orders', 'promotions.id', '=', 'orders.promotion_id')
+        ->select('promotions.code', DB::raw('count(orders.id) as usage_count'))
+        ->where(function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('orders.order_date', [$startDate, $endDate])
+                  ->orWhereNull('orders.order_date'); // Đảm bảo lấy cả khuyến mãi không có đơn hàng
+        })
+        ->groupBy('promotions.code')
+        ->get();
     
         // Tăng trưởng doanh thu nhờ khuyến mãi
         $promotionRevenueGrowth = Order::whereNotNull('promotion_id')

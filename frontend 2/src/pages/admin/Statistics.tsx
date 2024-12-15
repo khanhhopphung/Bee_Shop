@@ -340,7 +340,7 @@ const Statistics: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Phương thức thanh toán</Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}> Các Phương thức thanh toán</Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Pie {...paymentMethodConfig} />
@@ -348,7 +348,7 @@ const Statistics: React.FC = () => {
         </Col>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Trạng thái giao hàng</Title>}
+            title={<Title level={4} style={{ color: '#2c3e50' }}> Thống kê theo Trạng thái</Title>}
             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
           >
             <Column {...shippingStatusConfig} />
