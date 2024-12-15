@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { setQuantityCart } from "../../store/quantityCartSlice";
 import { setCartDetailIds } from "../../store/cartDetailSlice";
 import { RootState } from "../../store/store";
+import Pusher from "pusher-js";
+
 import {
   Button,
   Checkbox,
@@ -65,8 +67,25 @@ const Carts: React.FC = () => {
   const dispatch = useDispatch();
   const [ids, setIds] = useState<number[]>([]);
   const [isCheckAll, setIsCheckAll] = useState(false);
+  const [load, setLoad] = useState<string>();
   const [carts, setCarts] = useState<Cart[]>([]);
   const token = localStorage.getItem("access_token");
+
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoad(data.code);
+    });
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
 
   const onChange = (e: any, id: number) => {
     console.log(`checked = ${e.target.checked}, id = ${id}`);
@@ -190,7 +209,7 @@ const Carts: React.FC = () => {
     };
 
     fetchCarts();
-  }, []);
+  }, [load]);
   const handleDelete = async (id: number) => {
     try {
       const response = await fetch(

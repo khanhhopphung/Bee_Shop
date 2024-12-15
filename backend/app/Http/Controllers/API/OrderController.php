@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\API;
 
@@ -23,11 +23,7 @@ use App\Models\Promotion;
 
 class OrderController extends Controller
 {
-   public function __construct(){
-    $randomCode = uniqid('prod_', true);        
-        event(new ProductEvent($randomCode));
-    $this->autoUpdateStatus();
-   }
+    public function __construct() {}
     public function index()
     {
         // Load the necessary relationships and include order_code
@@ -35,27 +31,28 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
-    public function autoUpdateStatus() {
-   
+    public function autoUpdateStatus()
+    {
+
         $orders = Order::where('status', 'delivered')
             ->where('updated_at', '<=', now()->subDays(7)) // So sánh 'updated_at' với thời gian 7 ngày trước
             ->get();
-    
-        foreach ($orders as $order) {           
+
+        foreach ($orders as $order) {
             $order->status = 'completed';
             $order->save();
         }
     }
-    
+
     // Gọi hàm autoUpdateStatus để chạy
-    
-   
+
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreOrderRequest $request)
     {
-        DB::beginTransaction();
+        // DB::beginTransaction();
 
         try {
             $userId = auth()->id();
@@ -74,53 +71,50 @@ class OrderController extends Controller
             if (!$address) {
                 return response()->json(['error' => 'Address not found'], 404);
             }
-            $addressF = $address->address_line."-".$address->state."-".$address->city;
-            if($request->discount_promotion_id != null){
+            $addressF = $address->address_line . "-" . $address->state . "-" . $address->city;
+            if ($request->discount_promotion_id != null) {
                 $voucherDiscount = Promotion::find($request->discount_promotion_id);
-            if(!$voucherDiscount){
-                return response()->json(['error' => 'Voucher not found'], 404);
-            }else if($voucherDiscount->discount_type == 'money'){
-                $discountAmount = $voucherDiscount->discount_value;
-            }else if($voucherDiscount->discount_type == 'percentage'){
-                $discountAmount = $request->total_amount * ($voucherDiscount->discount_value / 100);
-            }
+                if (!$voucherDiscount) {
+                    return response()->json(['error' => 'Voucher not found'], 404);
+                } else if ($voucherDiscount->discount_type == 'money') {
+                    $discountAmount = $voucherDiscount->discount_value;
+                } else if ($voucherDiscount->discount_type == 'percentage') {
+                    $discountAmount = $request->total_amount * ($voucherDiscount->discount_value / 100);
+                }
             }
 
-            if($request->shipping_promotion_id != null){
-            
-            $voucherShip = Promotion::find($request->shipping_promotion_id);
-            if(!$voucherShip){
-                return response()->json(['error' => 'Ship voucher not found' ], 404);
-            }else if($voucherShip->discount_type == 'shipping'){
-                $shipDiscount = $voucherShip->discount_value;
+            if ($request->shipping_promotion_id != null) {
+
+                $voucherShip = Promotion::find($request->shipping_promotion_id);
+                if (!$voucherShip) {
+                    return response()->json(['error' => 'Ship voucher not found'], 404);
+                } else if ($voucherShip->discount_type == 'shipping') {
+                    $shipDiscount = $voucherShip->discount_value;
+                }
             }
-        }
 
-        if(isset($discountAmount) && !isset($shipDiscount)){
-            $fin = $request->total_amount - $discountAmount;
-        }else if(!isset($discountAmount) && isset($shipDiscount)){
-            $fin = $request->total_amount + ($request->shipping_cost - $shipDiscount);
-        } else if(isset($discountAmount) && isset($shipDiscount)){
-            $fin = $request->total_amount - $discountAmount + ($request->shipping_cost - $shipDiscount);
-        } else {
-            $fin = $request->total_amount;
-        }
+            if (isset($discountAmount) && !isset($shipDiscount)) {
+                $fin = $request->total_amount - $discountAmount;
+            } else if (!isset($discountAmount) && isset($shipDiscount)) {
+                $fin = $request->total_amount + ($request->shipping_cost - $shipDiscount);
+            } else if (isset($discountAmount) && isset($shipDiscount)) {
+                $fin = $request->total_amount - $discountAmount + ($request->shipping_cost - $shipDiscount);
+            } else {
+                $fin = $request->total_amount;
+            }
 
-        
+
+
+
             // Create the order
             $order = Order::create([
                 'user_id' => $userId,
                 'total_amount' => $request->total_amount,
-
-                'promotion_id' => $request->promotion_id,
-           
-
-        'discount_promotion_id' => $request->discount_promotion_id ?: null,
-    'shipping_promotion_id' => $request->shipping_promotion_id ?: null,
-    'discount_amount' => isset($discountAmount) ? $discountAmount: null,
-    'shipping_discount' => isset($shipDiscount) ? $shipDiscount: null,
-    'final_amount' => $fin ,
-
+                'discount_promotion_id' => $request->discount_promotion_id,
+                'shipping_promotion_id' => $request->shipping_promotion_id,
+                'discount_amount' => isset($discountAmount) ? $discountAmount : 0,
+                'shipping_discount' => isset($shipDiscount) ? $shipDiscount : 30000,
+                'final_amount' => $fin,
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -129,26 +123,20 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
-                'address'=> $addressF,
-                'product_id' => $cartDetails->first()->product_id,
-                'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
-         
+                'address' => $addressF
+
             ]);
-            // $order->product_id = $cartDetails->first()->product_id;
-       
-            // $order->save();
 
             // Create order details and delete cart items
             foreach ($cartDetails as $cartDetail) {
                 $variant = $cartDetail->productVariant()->get();
                 if ($variant) {
-                    if($variant->first()->stock >= $cartDetail->quantity){
+                    if ($variant->first()->stock >= $cartDetail->quantity) {
                         $variant->first()->stock -= $cartDetail->quantity;
                         $variant->first()->save(); // Cập nhật lại số lượng sản phẩm sau mua hàng
-                    }else {
+                    } else {
                         return BaseController::error('Số Lượng Sản Phẩm Không Đủ !');
                     }
-                   
                 }
                 OrderDetail::create([
                     'order_id' => $order->id,
@@ -159,21 +147,24 @@ class OrderController extends Controller
                 ]);
                 $cartDetail->delete(); // Remove cart detail after order is processed
             }
+            $randomCode = uniqid('prod_', true);
+            event(new ProductEvent($randomCode));
+            $this->autoUpdateStatus();
 
-            DB::commit();
-            return BaseController::success($order->load('address', 'promotion', 'orderDetails'),'Đặt hàng thành công !!!');
+            // DB::commit();
+            return BaseController::success($order, 'Đặt hàng thành công !!!');
             // return response()->json([
             //     'message' => 'Order created successfully',
             //     'order' => $order->load('address', 'promotion', 'orderDetails'),
             // ], 201);
         } catch (\Exception $e) {
-            DB::rollBack();
+            // DB::rollBack();
             return response()->json([
-                "status" =>false,
-                
+                "status" => false,
+
                 'message' => $e->getMessage(),
-                'line'=>$e->getLine(),
-                'file'=>$e->getFile()
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ], 500);
         }
     }
@@ -184,18 +175,16 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            $order->load(['orderDetails.product:id,name']);
-            
-            // Lấy danh sách tên sản phẩm
-            $productNames = $order->orderDetails->map(function ($detail) {
-                return $detail->product->name;
-            });
-    
+            // Load relationships including order_code
+            $order->load(['address', 'promotion', 'orderDetails']);
             return response()->json([
-                'message' => 'Order fetched successfully',
-                'order' => $order,
-                'product_names' => $productNames, // Trả về danh sách tên sản phẩm riêng
-            ], 200);
+                'message' => 'Order created successfully',
+                'order' => $order->load([
+                    'address',
+                    'promotion',
+                    'orderDetails.product' // Thêm quan hệ product để lấy ảnh
+                ]),
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch order. Please try again later.',
@@ -203,7 +192,7 @@ class OrderController extends Controller
             ], 500);
         }
     }
-    
+
     /**
      * Update the specified resource in storage.
      */
@@ -221,7 +210,11 @@ class OrderController extends Controller
             $order->is_active = $request->is_active;
         }
 
+
         $order->save();
+        $randomCode = uniqid('prod_', true);
+        event(new ProductEvent($randomCode));
+        $this->autoUpdateStatus();
         return response()->json([
             'message' => 'Order updated successfully!',
             'order' => $order->load('address', 'promotion', 'orderDetails'), // Include relationships in response
@@ -244,61 +237,65 @@ class OrderController extends Controller
      * Get all orders by user.
      */
     public function getAllOrderByUser()
-{
-    try {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated.'], 401);
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated.'], 401);
+            }
+
+            // Sử dụng eager loading
+            $orders = $user->orders()->with([
+                'address',
+                'promotion',
+                'reviews',
+                'orderDetails.product',
+                'orderDetails.reviews',
+                'orderDetails.product_variant',
+                'orderDetails.product_variant.images',
+                'orderDetails.product_variant.color',
+                'orderDetails.product_variant.size',
+                // 'orderDetails.product_variant.brand',
+                // 'orderDetails.product_variant.product',
+                // 'orderDetails.product_variant.product.category',
+                // 'orderDetails.product_variant.product.category.parent_category',
+            ])->latest('id')->get();
+
+            return BaseController::success($orders);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Could not fetch orders. Please try again later.',
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        // Sử dụng eager loading
-        $orders = $user->orders()->with([
-            'address',
-            'promotion',
-            'reviews',
-            'orderDetails.product',
-            'orderDetails.product_variant',
-            'orderDetails.product_variant.images',
-            'orderDetails.product_variant.color',
-            'orderDetails.product_variant.size',
-       
-        ])->latest('id')->get();
-
-        return BaseController::success($orders);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Could not fetch orders. Please try again later.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
-public function getOneOrderByUser(string $id)
-{
-    try {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated.'], 401);
+    public function getOneOrderByUser(string $id)
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['error' => 'User not authenticated.'], 401);
+            }
+
+            // Tìm đơn hàng cụ thể theo ID và sử dụng eager loading
+            $order = Order::with([
+                'address',
+                'promotion',
+                'orderDetails.product',
+                'orderDetails.product_variant',
+                'orderDetails.product_variant.images',
+                'orderDetails.product_variant.color',
+                'orderDetails.product_variant.size',
+            ])->findOrFail($id);  // Find the order by ID, or throw an exception if not found
+
+            return BaseController::success($order);  // Trả về đơn hàng tìm được
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Could not fetch order. Please try again later.',
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        // Tìm đơn hàng cụ thể theo ID và sử dụng eager loading
-        $order = Order::with([
-            'address',
-            'promotion',
-            'orderDetails.product',
-            'orderDetails.product_variant',
-            'orderDetails.product_variant.images',
-            'orderDetails.product_variant.color',
-            'orderDetails.product_variant.size',
-        ])->findOrFail($id);  // Find the order by ID, or throw an exception if not found
-
-        return BaseController::success($order);  // Trả về đơn hàng tìm được
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => 'Could not fetch order. Please try again later.',
-            'message' => $e->getMessage(),
-        ], 500);
     }
-}
 
 
 
@@ -310,17 +307,15 @@ public function getOneOrderByUser(string $id)
             if ($order->status == 'pending') {
                 // cộng lại số lượng biến thể
                 $orderDetails = $order->orderDetails()->get();
-                foreach($orderDetails as $orderDetail){
-                $variant= $orderDetail->product_variant()->first();
-                $variant->stock += $orderDetail->quantity;
-                $variant->save();
-
-
+                foreach ($orderDetails as $orderDetail) {
+                    $variant = $orderDetail->product_variant()->first();
+                    $variant->stock += $orderDetail->quantity;
+                    $variant->save();
                 }
                 // $variant->stock += $order->orderDetails[0]->quantity;
                 // $variant->save();
 
-                
+
                 $order->status = 'cancelled';
                 $order->save();
             } else {
@@ -328,6 +323,9 @@ public function getOneOrderByUser(string $id)
                     'message' => 'Order cannot be cancelled. Please contact support.',
                 ], 400);
             }
+            $randomCode = uniqid('prod_', true);
+            event(new ProductEvent($randomCode));
+            $this->autoUpdateStatus();
 
             return response()->json([
                 'message' => 'Order cancelled successfully!',
@@ -343,8 +341,4 @@ public function getOneOrderByUser(string $id)
             ], 500);
         }
     }
-   
-    
-    
-
 }
