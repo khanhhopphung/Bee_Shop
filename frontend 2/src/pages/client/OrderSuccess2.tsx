@@ -4,6 +4,7 @@ import { CheckCircleOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
 const OrderSuccess2: React.FC = () => {
+  
   return (
     <Result
       style={{ marginTop: "30px", marginBottom: "30px" }}

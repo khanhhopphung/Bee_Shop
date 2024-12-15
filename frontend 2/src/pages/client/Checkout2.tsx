@@ -4,6 +4,7 @@ import { Button, Form, Input, List, Modal, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import AddAddress from "../../components/AddAddress";
+import Pusher from "pusher-js";
 import axios from "axios";
 interface Cart {
   id: number;
@@ -94,10 +95,9 @@ interface Res {
   data: Cart;
 }
 
-const PaymentPage: React.FC = () => {
+const PaymentPage2: React.FC = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(window.location.search);
-
   const [isFirstPage, setIsFirstPage] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const cartDetailIdsRedux = useSelector(
@@ -110,7 +110,7 @@ const PaymentPage: React.FC = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [order, setOrderdata] = useState<Order>();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState("");
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [code, setCode] = useState("");
@@ -123,23 +123,39 @@ const PaymentPage: React.FC = () => {
   const [idVoucher, setIdVoucher] = useState<number>();
   // const [idShip, setIdShip] = useState<number>();
   const [idShip, setIdShip] = useState<number | null | undefined>();
-
   const [paymentMethod, setPaymentMethod] = useState<string>("");
-
   const [addressId, setAddressId] = useState<number>();
   const [address, setAddress] = useState<Address[]>([]);
   const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
   const [vouchers, setVouchers] = useState<DiscountData>();
 
+  const [checkout, setCheckout] = useState(false);
+
   useEffect(() => {
-    // setTimeout(() => {
-    if (address) {
-      const defaultAddress =
-        address.filter((address) => address.is_default == 1)[0] || null;
-      setDefaultAddress(defaultAddress);
-    }
-    // }, 200);
+    setTimeout(() => {
+      if (address) {
+        const defaultAddress =
+          address.filter((address) => address.is_default == 1)[0] || null;
+        setDefaultAddress(defaultAddress);
+      }
+    }, 200);
   }, [address]);
+
+  useEffect(() => {
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoading(data.code);
+    });
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
 
   // Kiểu cho các tham số
   const checkPrime = (
@@ -202,86 +218,60 @@ const PaymentPage: React.FC = () => {
     get();
   }, []);
 
-  // useEffect(() => {
-  //   const get = async (ids: number[]) => {
-  //     // try {
-  //     const response = await fetch(
-  //       `http://127.0.0.1:8000/api/carts-detail-order`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         body: JSON.stringify({ ids }),
-  //       }
-  //     );
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setCarts(data.cart_details);
-  //       const amount = data.cart_details.reduce((sum: number, cart: any) => {
-  //         return sum + cart.product_variant.price * cart.quantity;
-  //       }, 0);
-  //       console.log(amount);
-  //       setOriginalTotalAmount(amount);
-  //     }
-  //   };
-  //   get(savedCartDetailOrder);
-  // }, []);
-  useEffect(() => {
-    const get = async (ids: number[]) => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/carts-detail-order`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ ids }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          const updatedCarts = data.cart_details
-            .map((cart: any) => {
-              // Xử lý khi sản phẩm hết hàng
-              if (cart.product_variant.stock === 0) {
-                message.warning(
-                  `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
-                );
-                return null;
-              }
-              // Xử lý khi số lượng không đủ
-              if (cart.quantity > cart.product_variant.stock) {
-                message.warning(
-                  `Sản phẩm "${cart.product_variant.name}" chỉ còn lại ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
-                );
-                return { ...cart, quantity: cart.product_variant.stock };
-              }
-              return cart;
-            })
-            .filter(Boolean); // Loại bỏ sản phẩm null (hết hàng)
-
-          setCarts(updatedCarts);
-
-          // Tính lại tổng số tiền
-          const amount = updatedCarts.reduce(
-            (sum: number, cart: any) =>
-              sum + cart.product_variant.price * cart.quantity,
-            0
-          );
-          setOriginalTotalAmount(amount);
+  const getCartDetail = async (ids: number[]) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/carts-detail-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ids }),
         }
-      } catch (error) {
-        console.error("Error fetching cart details:", error);
-      }
-    };
+      );
 
+      if (response.ok) {
+        const data = await response.json();
+        const updatedCarts = data.cart_details
+          .map((cart: any) => {
+            // Xử lý khi sản phẩm hết hàng
+            if (cart.product_variant.stock === 0) {
+              message.warning(
+                `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+              );
+              return null;
+            }
+            // Xử lý khi số lượng không đủ
+            if (cart.quantity > cart.product_variant.stock) {
+              message.warning(
+                `Sản phẩm "${cart.product_variant.name}" chỉ còn lại ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
+              );
+              return { ...cart, quantity: cart.product_variant.stock };
+            }
+            return cart;
+          })
+          .filter(Boolean); // Loại bỏ sản phẩm null (hết hàng)
+
+        setCarts(updatedCarts);
+
+        // Tính lại tổng số tiền
+        const amount = updatedCarts.reduce(
+          (sum: number, cart: any) =>
+            sum + cart.product_variant.price * cart.quantity,
+          0
+        );
+        setOriginalTotalAmount(amount);
+      }
+    } catch (error) {
+      console.error("Error fetching cart details:", error);
+    }
+  };
+
+  useEffect(() => {
     if (savedCartDetailOrder.length > 0) {
-      get(savedCartDetailOrder);
+      getCartDetail(savedCartDetailOrder);
     }
   }, []);
 
@@ -365,6 +355,7 @@ const PaymentPage: React.FC = () => {
     // Nếu phương thức thanh toán là VNPAY
     if (paymentMethod === "vnpay") {
       try {
+        isOrderReady();
         const response = await axios.post(
           "http://localhost:8000/api/vnpay/create-payment",
           {
@@ -374,9 +365,9 @@ const PaymentPage: React.FC = () => {
         );
 
         const data = response.data;
-        console.log(data);
 
         if (data.data) {
+          setCheckout(true);
           // Chuyển hướng đến URL thanh toán VNPay
           window.location.href = data.data;
         }
@@ -384,45 +375,181 @@ const PaymentPage: React.FC = () => {
         console.error("Payment Error:", error);
       }
     } else {
-      // Nếu không phải VNPAY, tạo đơn hàng trực tiếp
       await createOrder();
     }
   };
 
-  const handlePaymentStatus = async () => {
-    try {
-      // Giả sử bạn nhận trạng thái thanh toán từ callback (VNPay trả về thông qua vnp_ReturnUrl)
-      const urlParams = new URLSearchParams(window.location.search);
-      const vnp_ResponseCode = urlParams.get("vnp_ResponseCode"); // Mã phản hồi giao dịch
-
-      if (vnp_ResponseCode === "00") {
-        createOrder(); //
-
-        // setPaymentStatus("Thanh toán thành công");
-        // Bạn có thể tạo đơn hàng hoặc xử lý logic khác ở đây
-      } else {
-        // setPaymentStatus(`Thanh toán thất bại, mã lỗi: ${vnp_ResponseCode}`);
+  // Check order
+  useEffect(() => {
+    const checkOrder = async () => {
+      const checkResponse = await fetch(
+        `http://127.0.0.1:8000/api/carts-detail-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ids: savedCartDetailOrder }),
+        }
+      );
+      if (!checkResponse.ok) {
+        const errorData = await checkResponse.json();
+        message.error(
+          `Không thể kiểm tra tồn kho: ${
+            errorData.message || "Lỗi không xác định"
+          }`
+        );
+        return;
       }
-    } catch (error) {
-      console.error("Error checking payment status:", error);
-      message.error("thanh toán thất bại")
-      // setPaymentStatus("Có lỗi trong quá trình kiểm tra thanh toán");
+
+      const checkData = await checkResponse.json();
+      const updatedCarts = checkData.cart_details
+        .map((cart: any) => {
+          if (cart.product_variant.stock === 0) {
+            message.warning(
+              `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+            );
+            navigate("/carts");
+            return null;
+          }
+          if (cart.quantity > cart.product_variant.stock) {
+            // getCartDetail(savedCartDetailOrder);
+            message.warning(
+              `Sản phẩm "${cart.product_variant.name}" chỉ còn ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
+            );
+            navigate("/carts");
+
+            // navigate("/carts");
+            return { ...cart, quantity: cart.product_variant.stock };
+          }
+          return cart;
+        })
+        .filter(Boolean);
+
+      // if (updatedCarts.length === 0) {
+      //   message.error("Không còn sản phẩm hợp lệ trong giỏ hàng.");
+      //   navigate("/carts");
+
+      //   return;
+      // }
+    };
+    setTimeout(() => {
+      if (loading != "" && checkout == false) {
+        console.log("running order");
+        checkOrder();
+      }
+    }, 1000);
+  }, [loading]);
+
+  // Check if order is ready
+  const isOrderReady = async () => {
+    const checkResponse = await fetch(
+      `http://127.0.0.1:8000/api/carts-detail-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: savedCartDetailOrder }),
+      }
+    );
+
+    if (!checkResponse.ok) {
+      const errorData = await checkResponse.json();
+      message.error(
+        `Không thể kiểm tra tồn kho: ${
+          errorData.message || "Lỗi không xác định"
+        }`
+      );
+      return;
     }
+
+    const checkData = await checkResponse.json();
+    const updatedCarts = checkData.cart_details
+      .map((cart: any) => {
+        if (cart.product_variant.stock === 0) {
+          message.warning(
+            `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+          );
+          return null;
+        }
+        if (cart.quantity > cart.product_variant.stock) {
+          message.warning(
+            `Sản phẩm "${cart.product_variant.name}" chỉ còn ${cart.product_variant.stock}. Số lượng đã được cập nhật.`
+          );
+          return { ...cart, quantity: cart.product_variant.stock };
+        }
+        return cart;
+      })
+      .filter(Boolean);
+
+    if (updatedCarts.length === 0) {
+      message.error("Không còn sản phẩm hợp lệ trong giỏ hàng.");
+      return;
+    }
+
+    setCarts(updatedCarts);
+    // Tính lại tổng tiền
+    const amount = updatedCarts.reduce(
+      (sum: number, cart: any) =>
+        sum + cart.product_variant.price * cart.quantity,
+      0
+    );
+
+    // Gửi yêu cầu tạo đơn hàng
+    localStorage.setItem(
+      "orderData",
+      JSON.stringify({
+        total_amount: amount,
+        discount_promotion_id: idVoucher ? idVoucher : null,
+        shipping_promotion_id: idShip ? idShip : null,
+        address_id: defaultAddress?.id,
+        payment_method: paymentMethod,
+        shipping_cost: 31000,
+        carts_detail: savedCartDetailOrder,
+      })
+    );
   };
 
-  // Gọi hàm handlePaymentStatus khi trang được tải lại (URL callback)
-  React.useEffect(() => {
-    if (window.location.search) {
-      handlePaymentStatus(); // Kiểm tra trạng thái thanh toán
-    }
-  }, []);
+  // const handlePaymentStatus = async () => {
+  //   try {
+  //     // Giả sử bạn nhận trạng thái thanh toán từ callback (VNPay trả về thông qua vnp_ReturnUrl)
+  //     const urlParams = new URLSearchParams(window.location.search);
+  //     const vnp_ResponseCode = urlParams.get("vnp_ResponseCode"); // Mã phản hồi giao dịch
 
+  //     if (vnp_ResponseCode == "00") {
+  //       await createOrder(); //
+
+  //       // setPaymentStatus("Thanh toán thành công");
+  //       // Bạn có thể tạo đơn hàng hoặc xử lý logic khác ở đây
+  //     } else {
+  //       // setPaymentStatus(`Thanh toán thất bại, mã lỗi: ${vnp_ResponseCode}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking payment status:", error);
+  //     message.error("thanh toán thất bại");
+  //     // setPaymentStatus("Có lỗi trong quá trình kiểm tra thanh toán");
+  //   }
+  // };
+
+  // // Gọi hàm handlePaymentStatus khi trang được tải lại (URL callback)
+  // React.useEffect(() => {
+  //   if (window.location.search) {
+  //     handlePaymentStatus(); // Kiểm tra trạng thái thanh toán
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   if (window.location.href === "http://localhost:3000/ordersuccess") {
+  //     createOrder(); //
+  //   }
+  // }, []);
   useEffect(() => {
-    if (window.location.href === "http://localhost:3000/ordersuccess") {
-      createOrder(); //
-    }
-  }, []);
-  
+    console.log(idVoucher);
+  }, [idVoucher]);
+
   const createOrder = async () => {
     // try {
     // Kiểm tra tồn kho trước khi tạo đơn hàng
@@ -483,14 +610,16 @@ const PaymentPage: React.FC = () => {
 
     // Gửi yêu cầu tạo đơn hàng
     const orderData = {
-      total_amount: totalAmount,
+      total_amount: amount,
       discount_promotion_id: idVoucher ? idVoucher : null,
       shipping_promotion_id: idShip ? idShip : null,
       address_id: defaultAddress?.id,
+      // address_id: 1,
       payment_method: paymentMethod,
       shipping_cost: 31000,
       carts_detail: savedCartDetailOrder,
     };
+    console.log(orderData);
 
     const response = await fetch(`http://127.0.0.1:8000/api/orders`, {
       method: "POST",
@@ -1346,11 +1475,11 @@ const PaymentPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={paymentMethod === "cod"}
-                            onChange={() => handlePaymentChange("cod")}
+                            onChange={() => setPaymentMethod("cod")}
                           />
                           <img
                             src="/images/cod.png"
-                            alt="VNPAY Logo"
+                            alt="COD Logo"
                             className="payment-logo"
                           />{" "}
                           Thanh toán khi nhận hàng
@@ -1361,7 +1490,7 @@ const PaymentPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={paymentMethod === "vnpay"}
-                            onChange={() => handlePaymentChange("vnpay")}
+                            onChange={() => setPaymentMethod("vnpay")}
                           />
                           <img
                             src="/images/vnpay.jpg"
@@ -1376,7 +1505,7 @@ const PaymentPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={paymentMethod === "momo"}
-                            onChange={() => handlePaymentChange("momo")}
+                            onChange={() => setPaymentMethod("momo")}
                           />
                           <img
                             src="/images/momo.webp"
@@ -1433,4 +1562,4 @@ const PaymentPage: React.FC = () => {
   );
 };
 
-export default PaymentPage;
+export default PaymentPage2;

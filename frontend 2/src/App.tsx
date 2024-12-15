@@ -14,7 +14,7 @@ import Blogs from "./pages/client/Blog";
 import AdminLayout from "./pages/admin/MainLayouts";
 import Layout from "./components/Layout";
 import { message } from "antd";
-import PaymentPage from "./pages/client/Checkout";
+// import PaymentPage from "./pages/client/Checkout2";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../src/store/store";
 import { setQuantityCart } from "../src/store/quantityCartSlice";
@@ -26,18 +26,14 @@ import AccountPage from "./pages/client/AccountPage";
 import OrderDetail from "./pages/client/OrderDetail";
 import UpdatePass from "./pages/client/UpdatePass";
 import Adrress from "./pages/client/Adrress";
-
 import Categories from "./pages/admin/Categories";
 import Promotions from "./pages/admin/Promotions";
 import AdminBlogs from "./pages/admin/Blogs";
 import Statistics from "./pages/admin/Statistics";
-
 import Review from "./pages/admin/Review";
 import ProductVariants from "./pages/admin/ProductVariant";
-
 import Product from "./pages/admin/Product";
 import Orders from "./pages/admin/Order";
-import FavoriteList from "./pages/client/WishList";
 import Comment from "./components/Comment";
 import OrderList from "./pages/client/OrderList";
 import Voucher from "./pages/client/Voucher";
@@ -159,7 +155,7 @@ const App: React.FC = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("API Error:", errorData);
+          message.error("Thêm vào giỏ hàng thất bại");
           return;
         } else if (response.ok) {
           message.success("Thêm vào giỏ hàng thành công! ");
@@ -250,7 +246,7 @@ const App: React.FC = () => {
           <Route path="blogs" element={<Blogs />} />
           <Route path="blogs/:id" element={<BlogDetail />} />
           {/* <Route path="payments" element={<PaymentPage />} /> */}
-          <Route path="payments" element={<PaymentPage />} />
+          <Route path="payments" element={<PaymentPage2 />} />
           <Route path="ordersuccess/:id" element={<OrderSuccess />} />
           <Route path="ordersuccess" element={<OrderSuccess2 />} />
           <Route path="404" element={<NotFound />} />

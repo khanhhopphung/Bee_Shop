@@ -10,6 +10,7 @@ import {
 import { Steps, Button, Card, Typography, Space, Divider } from "antd";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Pusher from "pusher-js";
 
 interface Order {
   id: number;
@@ -108,9 +109,24 @@ const OrderDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<Order>();
   const [loading, setLoading] = useState(true);
+  const [load, setLoad] = useState("");
 
   useEffect(() => {
-    console.log("jjj");
+    console.log("Bắt đầu ... load");
+    Pusher.logToConsole = true;
+    const pusher = new Pusher("07bc45f6a417f8745a02", {
+      cluster: "ap1",
+    });
+    const channel = pusher.subscribe("new");
+    channel.bind("load", (data: any) => {
+      console.log(data.code);
+      setLoad(data.code);
+    });
+    return () => {
+      pusher.unsubscribe("product");
+    };
+  }, []);
+  useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         const response = await fetch(
@@ -136,7 +152,7 @@ const OrderDetail = () => {
     };
 
     fetchOrderDetails();
-  }, []);
+  }, [load]);
 
   if (loading) return <div>Đang tải dữ liệu...</div>;
   // if (!order) return <div>Không tìm thấy đơn hàng.</div>;

@@ -21,32 +21,31 @@ class PromotionController extends BaseController
         $this->model = Promotion::class;
         $this->autoUpdateStatus();
     }
-    public function autoUpdateStatus() {
+    public function autoUpdateStatus()
+    {
 
-        $promotions= Promotion::where('is_active', true)
+        $promotions = Promotion::where('is_active', true)
             ->where('end_date', '<=', now()) // So sánh 'end_date' với hiện tại
             ->get();
-        if($promotions){
-            foreach ( $promotions as  $promotion) {                  
+        if ($promotions) {
+            foreach ($promotions as  $promotion) {
                 $promotion->is_active = false;
                 $promotion->save();
-           }
+            }
         }
-        
 
-        $promotionStart= Promotion::where('is_active', false)
+
+        $promotionStart = Promotion::where('is_active', false)
             ->where('start_date', '<=', now()) // So sánh 'end_date' với hiện tại
             ->where('end_date', '>', now())
             ->get();
-        if($promotionStart){
+        if ($promotionStart) {
 
-            foreach ( $promotionStart as  $promotion) {           
+            foreach ($promotionStart as  $promotion) {
                 $promotion->is_active = true;
                 $promotion->save();
-           }
+            }
         }
-    
-        
     }
     public function index()
     {
@@ -150,13 +149,14 @@ class PromotionController extends BaseController
         }
     }
 
-    public function check(Request $request){
+    public function check(Request $request)
+    {
         try {
             // kiểm tra người dùng 
             $user = auth()->user();
             $promotion = Promotion::where('code', $request->code)->first();
-            if($promotion && $promotion->is_active){
-                if($user->tier_id == $promotion->tier_id){
+            if ($promotion && $promotion->is_active) {
+                if ($user->tier_id == $promotion->tier_id) {
                     return response()->json([
                         "status" => true,
                         "message" => "Mã khuyến mãi h��p lệ",
@@ -168,7 +168,6 @@ class PromotionController extends BaseController
                         "message" => "Voucher này không dành cho bạn !",
                     ], 200);
                 }
-                
             } else {
                 return response()->json([
                     "status" => false,
@@ -178,102 +177,102 @@ class PromotionController extends BaseController
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "Đã xảy ra l��i: ". $e->getMessage()
+                "message" => "Đã xảy ra l��i: " . $e->getMessage()
             ], 500);
         }
-
     }
 
-//     public function getlistVoucherByUser()
-// {
-//     try {
-//         $user = auth()->user();
-//         $tier = $user->tier()->first();
-        
-//         // Lấy tất cả các mã giảm giá của người dùng theo tier và trạng thái active
-//         $promotions = Promotion::where('tier_id', $tier->id)
-//             ->where('is_active', true)
-//             ->get();
-        
-//         // Phân loại các mã giảm giá theo loại discount_type và chuyển thành mảng
-//         $discountMoney = $promotions->filter(function($promotion) {
-//             return $promotion->discount_type === 'money';
-//         })->values(); // Chuyển thành mảng
+    //     public function getlistVoucherByUser()
+    // {
+    //     try {
+    //         $user = auth()->user();
+    //         $tier = $user->tier()->first();
 
-//         $discountPercentage = $promotions->filter(function($promotion) {
-//             return $promotion->discount_type === 'percentage';
-//         })->values(); // Chuyển thành mảng
+    //         // Lấy tất cả các mã giảm giá của người dùng theo tier và trạng thái active
+    //         $promotions = Promotion::where('tier_id', $tier->id)
+    //             ->where('is_active', true)
+    //             ->get();
 
-//         $discountShipping = $promotions->filter(function($promotion) {
-//             return $promotion->discount_type === 'shipping';
-//         })->values(); // Chuyển thành mảng
+    //         // Phân loại các mã giảm giá theo loại discount_type và chuyển thành mảng
+    //         $discountMoney = $promotions->filter(function($promotion) {
+    //             return $promotion->discount_type === 'money';
+    //         })->values(); // Chuyển thành mảng
 
-//         // Trả về kết quả dưới dạng hai danh sách riêng biệt
-//         return response()->json([
-//             'status' => 'success',
-//             'data' => [
-//                 'discount_money' => $discountMoney,
-//                 'discount_percentage' => $discountPercentage,
-//                 'discount_shipping' => $discountShipping,
-//             ]
-//         ]);
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             "status" => "error",
-//             "message" => "Đã xảy ra lỗi: ". $e->getMessage()
-//         ], 500);
-//     }
-// }
+    //         $discountPercentage = $promotions->filter(function($promotion) {
+    //             return $promotion->discount_type === 'percentage';
+    //         })->values(); // Chuyển thành mảng
 
-public function getlistVoucherByUser()
-{
-    try {
-        $user = auth()->user();
-        $tier = $user->tier()->first();
-        
-        // Get all active vouchers for the user based on their tier
-        $promotions = Promotion::where('tier_id', $tier->id)
-            ->where('is_active', true)
-            ->get();
+    //         $discountShipping = $promotions->filter(function($promotion) {
+    //             return $promotion->discount_type === 'shipping';
+    //         })->values(); // Chuyển thành mảng
 
-        // Get the order IDs where vouchers have already been used by the user
-        $usedOrderIds = Order::where('user_id', $user->id)
-            ->whereNotNull('promotion_id')
-            ->pluck('promotion_id')
-            ->toArray();
+    //         // Trả về kết quả dưới dạng hai danh sách riêng biệt
+    //         return response()->json([
+    //             'status' => 'success',
+    //             'data' => [
+    //                 'discount_money' => $discountMoney,
+    //                 'discount_percentage' => $discountPercentage,
+    //                 'discount_shipping' => $discountShipping,
+    //             ]
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             "status" => "error",
+    //             "message" => "Đã xảy ra lỗi: ". $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
-        // Filter the promotions by discount type and remove those that have been used
-        $discountMoney = $promotions->filter(function($promotion) use ($usedOrderIds) {
-            return $promotion->discount_type === 'money' && !in_array($promotion->id, $usedOrderIds);
-        })->values(); // Convert to array
+    public function getlistVoucherByUser()
+    {
+        try {
+            $user = auth()->user();
+            $tier = $user->tier()->first();
 
-        $discountPercentage = $promotions->filter(function($promotion) use ($usedOrderIds) {
-            return $promotion->discount_type === 'percentage' && !in_array($promotion->id, $usedOrderIds);
-        })->values(); // Convert to array
+            // Get all active vouchers for the user based on their tier
+            $promotions = Promotion::where('tier_id', $tier->id)
+                ->where('is_active', true)
+                ->get();
 
-        $discountShipping = $promotions->filter(function($promotion) use ($usedOrderIds) {
-            return $promotion->discount_type === 'shipping' && !in_array($promotion->id, $usedOrderIds);
-        })->values(); // Convert to array
+            // Get the order IDs where vouchers have already been used by the user
+            $usedOrderIds = Order::where('user_id', $user->id)
+                ->whereNotNull('discount_promotion_id')
+                ->pluck('discount_promotion_id')
+                ->toArray();
 
-        // Return the result as separate lists
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'discount_money' => $discountMoney,
-                'discount_percentage' => $discountPercentage,
-                'discount_shipping' => $discountShipping,
-            ]
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            "status" => "error",
-            "message" => "Đã xảy ra lỗi: ". $e->getMessage()
-        ], 500);
+            // Filter the promotions by discount type and remove those that have been used
+            $discountMoney = $promotions->filter(function ($promotion) use ($usedOrderIds) {
+                return $promotion->discount_type === 'money' && !in_array($promotion->id, $usedOrderIds);
+            })->values(); // Convert to array
+
+            $discountPercentage = $promotions->filter(function ($promotion) use ($usedOrderIds) {
+                return $promotion->discount_type === 'percentage' && !in_array($promotion->id, $usedOrderIds);
+            })->values(); // Convert to array
+
+            $discountShipping = $promotions->filter(function ($promotion) use ($usedOrderIds) {
+                return $promotion->discount_type === 'shipping' && !in_array($promotion->id, $usedOrderIds);
+            })->values(); // Convert to array
+
+            // Return the result as separate lists
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'discount_money' => $discountMoney,
+                    'discount_percentage' => $discountPercentage,
+                    'discount_shipping' => $discountShipping,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Đã xảy ra lỗi: " . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
-public function checkVoucher(Request $request){
+    public function checkVoucher(Request $request)
+    {
         try {
             // kiểm tra người dùng 
             $user = auth()->user();
@@ -285,8 +284,8 @@ public function checkVoucher(Request $request){
 
             // Kiểm tra người dùng đã sử dụng mã giảm giá này chưa
             $userHasUsed = Order::where('user_id', $user->id)
-                                ->where('promotion_id', $promotion->id)
-                                ->exists();
+                ->where('promotion_id', $promotion->id)
+                ->exists();
 
             if ($userHasUsed) {
                 return response()->json(['message' => 'Bạn đã sử dụng mã giảm giá này.'], 400);
@@ -302,19 +301,18 @@ public function checkVoucher(Request $request){
             }
             return BaseController::success($promotion);
 
-// // Áp dụng mã giảm giá vào đơn hàng
-// $order = new Order();
-// $order->user_id = $user->id;
-// $order->promotion_id = $promotion->id;
-// $order->total_amount = $totalAmount - $discountValue; // Áp dụng giảm giá vào tổng tiền
-// $order->save();
+            // // Áp dụng mã giảm giá vào đơn hàng
+            // $order = new Order();
+            // $order->user_id = $user->id;
+            // $order->promotion_id = $promotion->id;
+            // $order->total_amount = $totalAmount - $discountValue; // Áp dụng giảm giá vào tổng tiền
+            // $order->save();
 
         } catch (\Exception $e) {
             return response()->json([
                 "status" => "error",
-                "message" => "Đã xảy ra l��i: ". $e->getMessage()
+                "message" => "Đã xảy ra l��i: " . $e->getMessage()
             ], 500);
         }
-
     }
 }

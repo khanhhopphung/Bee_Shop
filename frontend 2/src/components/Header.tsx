@@ -158,12 +158,9 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 <li className="active-menu">
                   <Link to="/">Trang chủ</Link>
                 </li>
-
-                <li className="relative active-menu">
+                <li className="relative">
                   <Link to="">Danh Mục</Link>
-
-                  <ul className="sub-menu absolute left-1/2 transform -translate-x-1/2 mt-2 w-40 bg-white shadow-lg rounded-md text-center">
-                    {" "}
+                  <ul className="sub-menu mt-2 w-40 bg-white shadow-lg rounded-md text-center">
                     {categories.map((category, index) => (
                       <li key={index} className="relative">
                         <Link
@@ -226,7 +223,6 @@ const Header: React.FC<Props> = ({ quantity }) => {
               />
 
               {/* Icon cart */}
-
               <div className="flex-c-m h-full p-l-18 p-r-70 bor5">
                 <div
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
@@ -242,7 +238,6 @@ const Header: React.FC<Props> = ({ quantity }) => {
                 <div
                   className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
                   data-notify={ids.length}
-                  // style={{ color: "red" }}
                 >
                   <Link
                     to="/wishlist"
@@ -256,11 +251,20 @@ const Header: React.FC<Props> = ({ quantity }) => {
           </nav>
         </div>
       </div>
+
       {/* Header Mobile */}
       <div className="wrap-header-mobile">
         {/* Logo moblie */}
         <div className="logo-mobile">
-          <a href="/">
+          <a
+            href="/"
+            className="logo"
+            style={{
+              color: "inherit",
+              textDecoration: "none",
+              fontWeight: "900",
+            }}
+          >
             <p>BEE STORE</p>
           </a>
         </div>
@@ -276,12 +280,29 @@ const Header: React.FC<Props> = ({ quantity }) => {
               className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
               data-notify={quantityCart}
             >
-              <i className="zmdi zmdi-shopping-cart" />
+              <Link
+                to="/carts"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <i className="zmdi zmdi-shopping-cart" />
+              </Link>
+            </div>
+            <div
+              className="icon-header-item cl2 hov-cl1 trans-04 p-lr-11 icon-header-noti js-show-cart"
+              data-notify={ids.length}
+            >
+              <Link
+                to="/wishlist"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <i className="fa-solid fa-heart"></i>
+              </Link>
             </div>
           </div>
+          {/* Icon user */}
           <AccountDropdown
             userName={userName}
-            role_id={2}
+            role_id={roleId}
             onLogout={handleLogout}
           />
         </div>
