@@ -123,7 +123,9 @@ class OrderController extends Controller
                 'order_date' => now(),
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
-                'address' => $addressF
+                'address' => $addressF,
+                'product_id' => $cartDetails->first()->product_id,
+                'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
 
             ]);
 
@@ -176,7 +178,7 @@ class OrderController extends Controller
     {
         try {
             // Load relationships including order_code
-            $order->load(['address', 'promotion', 'orderDetails']);
+            $order->load(['address', 'promotion', 'orderDetails','orderDetails.product:id,name']);
             return response()->json([
                 'message' => 'Order created successfully',
                 'order' => $order->load([

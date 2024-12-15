@@ -339,7 +339,7 @@ const Orders: React.FC = () => {
               </p>
 
             )}
-            <p>sản phẩm  {order.product_name}</p>
+            <p>sản phẩm : {order.product_name}</p>
 
 
             {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
@@ -386,7 +386,7 @@ const Orders: React.FC = () => {
     //   align: 'left',
     // },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>tên sản phẩm </span>,
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên sản phẩm</span>,
       dataIndex: 'product_name',
       key: 'product_name',
       render: (product_name: string) => (
@@ -563,13 +563,13 @@ const Orders: React.FC = () => {
             }}
           >
             <Select.Option value="all">Tất cả trạng thái</Select.Option>
-            <Select.Option value="pending">Đang giao</Select.Option>
-            <Select.Option value="completed">Đã hoàn thành</Select.Option>
-            <Select.Option value="cancelled">Đã hủy</Select.Option>
-            <Select.Option value="shipped">Đã gửi</Select.Option>
-            <Select.Option value="delivered">Đã giao</Select.Option>
-            <Select.Option value="returned">Đã trả lại</Select.Option>
-            <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+            <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
+          <Select.Option value="shipped">Đã vận chuyển</Select.Option>
+          <Select.Option value="delivered">Đã giao hàng</Select.Option>
+          <Select.Option value="returned">Đã trả lại</Select.Option>
+          <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+          <Select.Option value="cancelled">Đã hủy</Select.Option>
+          <Select.Option value="completed">Hoàn thành</Select.Option>
           
           </Select>
 
