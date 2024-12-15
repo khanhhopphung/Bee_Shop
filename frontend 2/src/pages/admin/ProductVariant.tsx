@@ -135,7 +135,7 @@ const ProductVariants: React.FC = () => {
     form.resetFields();
 
     setIsModalVisible(true);
-    setImages([]); // Xóa danh sách ảnh khi thêm mới
+
   };
 
   const handleEdit = (variant: ProductVariant) => {
@@ -143,24 +143,31 @@ const ProductVariants: React.FC = () => {
     form.setFieldsValue(variant);
 
     setIsModalVisible(true);
-    setImages([]); // Xóa danh sách ảnh khi chỉnh sửa
+    form.setFieldsValue({
+      ...variant,
+      image_url: undefined,
+      is_active: variant.is_active,
+    })
+
   };
 
   const handleDelete = async (id: number) => {
     Modal.confirm({
-      title: "Are you sure you want to delete this product variant?",
-      okText: "Yes",
+      title: "Bạn có chắc chắn muốn ngừng hoạt động biến thể sản phẩm này?",
+      okText: "Có",
       okType: "danger",
-      cancelText: "No",
+      cancelText: "Không",
       onOk: async () => {
         try {
-          await axios.delete(
-            `http://127.0.0.1:8000/api/product-variants/${id}`
-          );
-          message.success("Xóa biến thể sản phẩm thành công");
-          fetchVariants(); // Reload danh sách sau khi xóa
+          await axios.patch(`http://127.0.0.1:8000/api/product-variants/${id}`, {
+            is_active: false, // Update the status to inactive
+          });
+
+          message.success("Đã ngừng hoạt động biến thể sản phẩm thành công");
+          fetchVariants(); // Reload the list after updating
         } catch (error) {
-          message.error("Không thể xóa biến thể sản phẩm");
+          const errorMessage = (error as any).response?.data?.message || "Không thể ngừng hoạt động biến thể sản phẩm";
+          message.error(errorMessage);
         }
       },
     });
@@ -168,7 +175,7 @@ const ProductVariants: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     const accessToken = localStorage.getItem("access_token");
-  
+
     if (!accessToken) {
       message.error("Bạn chưa đăng nhập! Vui lòng đăng nhập để tiếp tục.");
       return;
@@ -436,16 +443,22 @@ const ProductVariants: React.FC = () => {
         </div>
         <hr />
         <Table
-  columns={columns}
-  dataSource={filteredVariants}
-  rowKey="id"
-  bordered
-  pagination={{
-    current: currentPage,
-    pageSize: pageSize,
-    total: filteredVariants.length,
-    onChange: handlePaginationChange,
-  }}
+          columns={columns}
+          dataSource={filteredVariants}
+          rowKey="id"
+          bordered
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: filteredVariants.length,
+            onChange: handlePaginationChange,
+          }}
+          scroll={{ x: '800' }}
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%',
+          }}
         />
       </div>
 
@@ -504,40 +517,40 @@ const ProductVariants: React.FC = () => {
           </Form.Item>
 
           <Form.Item
-  name="price"
-  label="Giá"
-  rules={[
-    { required: true, message: "Vui lòng nhập giá" },
-    {
-      type: "number",
-      min: 0,
-      message: "Giá không được nhỏ hơn 0",
-      transform: (value) => Number(value),
-    },
-  ]}
->
-  <Input type="number" placeholder="Nhập giá" />
-</Form.Item>
+            name="price"
+            label="Giá"
+            rules={[
+              { required: true, message: "Vui lòng nhập giá" },
+              {
+                type: "number",
+                min: 0,
+                message: "Giá không được nhỏ hơn 0",
+                transform: (value) => Number(value),
+              },
+            ]}
+          >
+            <Input type="number" placeholder="Nhập giá" />
+          </Form.Item>
 
-<Form.Item
-  name="stock"
-  label="Tồn kho"
-  rules={[
-    { required: true, message: "Vui lòng nhập số lượng tồn kho" },
-    {
-      type: "number",
-      min: 0,
-      message: "Tồn kho không được nhỏ hơn 0",
-      transform: (value) => Number(value),
-    },
-  ]}
->
-  <Input type="number" placeholder="Nhập tồn kho" />
-</Form.Item>
+          <Form.Item
+            name="stock"
+            label="Tồn kho"
+            rules={[
+              { required: true, message: "Vui lòng nhập số lượng tồn kho" },
+              {
+                type: "number",
+                min: 0,
+                message: "Tồn kho không được nhỏ hơn 0",
+                transform: (value) => Number(value),
+              },
+            ]}
+          >
+            <Input type="number" placeholder="Nhập tồn kho" />
+          </Form.Item>
 
 
-          <Form.Item name="is_active" label="Hoạt động" valuePropName="checked">
-            <Switch defaultChecked />
+          <Form.Item label="Kích hoạt" name="is_active" valuePropName="checked">
+            <Switch />
           </Form.Item>
 
           <Form.Item label="Hình ảnh" name="image_url">

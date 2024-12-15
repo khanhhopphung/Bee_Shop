@@ -274,6 +274,12 @@ const Reviews: React.FC = () => {
             total: filteredReviews.length,
             onChange: handlePaginationChange,
           }}
+          scroll={{ x: '800' }}
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%',
+          }}
         />
       </div>
     </div>

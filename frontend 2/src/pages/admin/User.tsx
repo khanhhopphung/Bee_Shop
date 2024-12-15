@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Input, Modal, Form, message, Switch, Space } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined,  SearchOutlined} from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { ColumnsType } from 'antd/es/table';
 
@@ -31,21 +31,21 @@ const UserPage: React.FC = () => {
     setLoading(true); // Đặt trạng thái loading trước khi bắt đầu
     try {
       const accessToken = localStorage.getItem("access_token");
-  
+
       // Kiểm tra nếu không có token (nghĩa là người dùng chưa đăng nhập)
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
         setLoading(false); // Dừng trạng thái loading và thoát
         return;
       }
-  
+
       // Thêm token vào header của yêu cầu
       const response = await axios.get("http://127.0.0.1:8000/api/users", {
         headers: {
           Authorization: `Bearer ${accessToken}`, // Thêm token vào header
         },
       });
-  
+
       setUsers(response.data); // Cập nhật danh sách người dùng vào state
     } catch (error) {
       message.error("Lấy danh sách người dùng thất bại");
@@ -53,7 +53,7 @@ const UserPage: React.FC = () => {
       setLoading(false); // Kết thúc trạng thái loading
     }
   };
-  
+
 
   useEffect(() => {
     fetchUsers();
@@ -112,21 +112,21 @@ const UserPage: React.FC = () => {
       }
 
       setIsModalVisible(false);
-      fetchUsers(); 
-      form.resetFields(); 
+      fetchUsers();
+      form.resetFields();
     } catch (error) {
       message.error("Lưu người dùng thất bại");
     }
   };  // Show modal for add/edit
   const handleAdd = () => {
     setCurrentUser(null);
-    form.resetFields(); 
+    form.resetFields();
     setIsModalVisible(true);
   };
 
   const handleEdit = (user: User) => {
     setCurrentUser(user);
-    form.setFieldsValue(user); 
+    form.setFieldsValue(user);
     setIsModalVisible(true);
   };
 
@@ -141,7 +141,7 @@ const UserPage: React.FC = () => {
   // Define table columns
   const columns: ColumnsType<User> = [
     {
-      title: <span style={{ fontSize: "18px"}}>STT</span>,
+      title: <span style={{ fontSize: "18px" }}>STT</span>,
       key: "stt",
       render: (_: any, __: any, index: number) => (
         <strong style={{ fontSize: "16px" }}>
@@ -150,7 +150,7 @@ const UserPage: React.FC = () => {
       ),
       align: "center",
     },
-    
+
     {
       title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người dùng</span>,
       dataIndex: "username",
@@ -205,30 +205,7 @@ const UserPage: React.FC = () => {
       ),
       align: 'center',
     },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
-      key: "actions",
-      render: (user: User) => (
-        <Space>
-          {/* <Button
-            type="primary"
-            size="large"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(user)}
-            style={{ marginRight: 8 }}
-          /> */}
-          <Button
-            type="primary"
-            danger
-            size="large"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(user.id)}
 
-          />
-        </Space>
-      ),
-      align: 'center',
-    },
   ];
 
 
@@ -248,10 +225,10 @@ const UserPage: React.FC = () => {
             justifyContent: 'flex-end',
             alignItems: 'center',
             marginBottom: '16px',
-            textAlign : 'right'
+            textAlign: 'right'
           }}
         >
-         
+
 
           <Input.Search
             placeholder="Tìm kiếm người dùng theo tên"
@@ -264,35 +241,35 @@ const UserPage: React.FC = () => {
               maxWidth: '600px',
               borderRadius: '8px',
               height: '48px',
-          
+
             }}
           />
         </div>
         <hr />
         <Table
-  columns={columns}
-  dataSource={filteredUsers}
-  rowKey="id"
-  bordered
-  pagination={{
-    current: pagination.current,
-    pageSize: pagination.pageSize,
-    onChange: (page, pageSize) => {
-      setPagination({ current: page, pageSize });
-    },
-    position: ['bottomCenter'],
-    showSizeChanger: true,
-  }}
-  scroll={{ x: '800' }}
-  style={{
-    fontSize: '16px',
-    borderRadius: '8px',
-    width: '100%',
-  }}
-/>
+          columns={columns}
+          dataSource={filteredUsers}
+          rowKey="id"
+          bordered
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            onChange: (page, pageSize) => {
+              setPagination({ current: page, pageSize });
+            },
+            position: ['bottomCenter'],
+            showSizeChanger: true,
+          }}
+          scroll={{ x: '800' }}
+          style={{
+            fontSize: '16px',
+            borderRadius: '8px',
+            width: '100%',
+          }}
+        />
 
       </div>
-      
+
     </div>
   );
 };
