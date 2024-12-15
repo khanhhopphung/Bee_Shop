@@ -1,0 +1,35 @@
+[33m04b0666[m[33m ([m[1;36mHEAD -> [m[1;32mfix-dev[m[33m)[m HEAD@{0}: commit: update
+[33mdfee856[m HEAD@{1}: commit (merge): update code
+[33me566433[m HEAD@{2}: commit: update
+[33md428344[m HEAD@{3}: commit: update
+[33ma13e263[m HEAD@{4}: commit (merge): update
+[33mf4fef6f[m HEAD@{5}: reset: moving to HEAD
+[33mf4fef6f[m HEAD@{6}: commit: update code
+[33m1e1071c[m HEAD@{7}: pull origin fix-dev: Fast-forward
+[33m6631e7f[m HEAD@{8}: commit: update code
+[33mddb7c5f[m HEAD@{9}: pull origin fix-dev: Fast-forward
+[33m0a7da52[m HEAD@{10}: reset: moving to HEAD
+[33m0a7da52[m HEAD@{11}: commit: update code
+[33m1d42c92[m HEAD@{12}: pull origin fix-dev: Merge made by the 'ort' strategy.
+[33m2b1f634[m HEAD@{13}: commit: update code
+[33m2aeed16[m HEAD@{14}: commit: update code
+[33m46fb4eb[m HEAD@{15}: commit: update code
+[33m2735ae3[m HEAD@{16}: pull origin fix-dev: Fast-forward
+[33m291e499[m HEAD@{17}: commit (merge): update code
+[33mec46c51[m HEAD@{18}: commit: sửa lỗi update
+[33m15a5c51[m HEAD@{19}: commit: update code
+[33mb100bfc[m HEAD@{20}: pull origin fix-dev: Merge made by the 'ort' strategy.
+[33m4d7794d[m HEAD@{21}: commit: update code
+[33m954be04[m HEAD@{22}: pull origin fix-dev: Fast-forward
+[33mbbe647c[m HEAD@{23}: reset: moving to HEAD
+[33mbbe647c[m HEAD@{24}: commit: fix
+[33md55732e[m HEAD@{25}: commit: fix
+[33m4b1c046[m HEAD@{26}: commit: fix
+[33mb8218c0[m HEAD@{27}: pull origin fix-dev: Merge made by the 'ort' strategy.
+[33m8f54f48[m HEAD@{28}: commit: fix
+[33ma4bcf74[m HEAD@{29}: commit: fix
+[33m7abb721[m HEAD@{30}: commit (merge): admin
+[33mc4f4b5e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{31}: checkout: moving from main to fix-dev
+[33mc4f4b5e[m[33m ([m[1;32mmain[m[33m)[m HEAD@{32}: commit: admin
+[33mfd80024[m HEAD@{33}: pull origin fix-dev: Fast-forward
+[33m42e8542[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{34}: clone: from https://github.com/khanhhopphung/Bee_Shop.git

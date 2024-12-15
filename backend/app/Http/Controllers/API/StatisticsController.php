@@ -50,8 +50,8 @@ class StatisticsController extends Controller
         }
     
         // Thực hiện thống kê theo khoảng thời gian đã chọn
-        $totalRevenue = Orderr::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
-        $totalOrders = Orderr::whereBetween('order_date', [$startDate, $endDate])->count();
+        $totalRevenue = Order::whereBetween('order_date', [$startDate, $endDate])->sum('total_amount');
+        $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
         $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
     // Sản phẩm bán chạy
 $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')

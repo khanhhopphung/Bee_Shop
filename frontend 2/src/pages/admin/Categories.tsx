@@ -80,10 +80,10 @@ const Categories: React.FC = () => {
 
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: 'Are you sure you want to deactivate this category?',
-      okText: 'Yes',
+      title: 'bạn có chắc chắn muốn xóa danh mục không?',
+      okText: 'có',
       okType: 'danger',
-      cancelText: 'No',
+      cancelText: 'không',
       onOk: async () => {
         try {
           // Cập nhật trạng thái is_active thành false (ngừng hoạt động) thay vì xóa
@@ -176,7 +176,7 @@ const Categories: React.FC = () => {
       align: 'center',
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Actions</span>,
+      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hoạt động </span>,
       key: 'actions',
       render: (record: Category) => (
         <Space>
