@@ -1,9 +1,24 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Button, Modal, Form, Input, message, Switch, Select, Space } from "antd";
-import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, } from "@ant-design/icons";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  message,
+  Switch,
+  Select,
+  Space,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType } from "antd/es/table";
 
 interface Promotion {
   id: number;
@@ -66,7 +81,6 @@ const Promotions: React.FC = () => {
       setLoading(false);
     }
   };
-
 
   const fetchTiers = async () => {
     setLoading(true);
@@ -148,7 +162,9 @@ const Promotions: React.FC = () => {
       onOk: async () => {
         try {
           // Gửi yêu cầu PUT để thay đổi trạng thái của khuyến mãi thành ngừng hoạt động
-          await axios.put(`http://127.0.0.1:8000/api/promotions/${id}`, { is_active: 0 });
+          await axios.put(`http://127.0.0.1:8000/api/promotions/${id}`, {
+            is_active: 0,
+          });
 
           message.success("Khuyến mãi đã được ngừng hoạt động");
           fetchPromotions(); // Tải lại danh sách khuyến mãi sau khi thay đổi
@@ -207,81 +223,121 @@ const Promotions: React.FC = () => {
       align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên mã giảm giá</span>,
-      dataIndex: 'code',
-      key: 'code',
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'left',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Tên mã giảm giá
+        </span>
+      ),
+      dataIndex: "code",
+      key: "code",
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Loại giảm giá</span>,
-      dataIndex: 'discount_type',
-      key: 'discount_type',
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'left',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Loại giảm giá
+        </span>
+      ),
+      dataIndex: "discount_type",
+      key: "discount_type",
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "left",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Giá trị giảm gía</span>,
-      dataIndex: 'discount_value',
-      key: 'discount_value',
-      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'center',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Giá trị giảm giá
+        </span>
+      ),
+      dataIndex: "discount_value",
+      key: "discount_value",
+      render: (text: number) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Số lần sử dụng</span>,
-      dataIndex: 'usage_limit',
-      key: 'usage_limit',
-      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'center',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Số lần sử dụng
+        </span>
+      ),
+      dataIndex: "usage_limit",
+      key: "usage_limit",
+      render: (text: number) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày áp dụng</span>,
-      dataIndex: 'start_date',
-      key: 'start_date',
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'center',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Ngày áp dụng
+        </span>
+      ),
+      dataIndex: "start_date",
+      key: "start_date",
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Ngày kết thúc</span>,
-      dataIndex: 'end_date',
-      key: 'end_date',
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-      align: 'center',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Ngày kết thúc
+        </span>
+      ),
+      dataIndex: "end_date",
+      key: "end_date",
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
+      align: "center",
     },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Cấp bậc </span>,
+    //   dataIndex: 'tier_id',
+    //   key: 'tier_id',
+    //   render: (tierId: number) => {
+    //     const tier = tiers.find((t) => t.id === tierId);
+    //     return tier ? (
+    //       <span style={{ fontSize: '16px' }}>{tier.tier_name}</span>
+    //     ) : (
+    //       <span style={{ fontSize: '16px', color: '#cf1322' }}>N/A</span>
+    //     );
+    //   },
+    //   align: 'left',
+    // },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Cấp bậc </span>,
-      dataIndex: 'tier_id',
-      key: 'tier_id',
-      render: (tierId: number) => {
-        const tier = tiers.find((t) => t.id === tierId);
-        return tier ? (
-          <span style={{ fontSize: '16px' }}>{tier.tier_name}</span>
-        ) : (
-          <span style={{ fontSize: '16px', color: '#cf1322' }}>N/A</span>
-        );
-      },
-      align: 'left',
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
-      dataIndex: 'is_active',
-      key: 'is_active',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Trạng thái</span>
+      ),
+      dataIndex: "is_active",
+      key: "is_active",
       render: (is_active: boolean) => (
         <span
           style={{
-            fontSize: '16px',
-            color: is_active ? '#3f8600' : '#cf1322',
-            fontWeight: 'bold',
+            fontSize: "16px",
+            color: is_active ? "#3f8600" : "#cf1322",
+            fontWeight: "bold",
           }}
         >
-          {is_active ? 'Hoạt động' : 'Không hoạt dộng'}
+          {is_active ? "Hoạt động" : "Không hoạt dộng"}
         </span>
       ),
-      align: 'center',
+      align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Actions</span>,
-      key: 'actions',
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Actions</span>
+      ),
+      key: "actions",
       render: (record: Promotion) => (
         <Space>
           <Button
@@ -299,41 +355,39 @@ const Promotions: React.FC = () => {
           />
         </Space>
       ),
-      align: 'center',
+      align: "center",
     },
   ];
 
-
-
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div
         style={{
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px 24px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px",
           }}
         >
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={handleAdd}
-            style={{ fontSize: '16px', height: '40px' }}
+            style={{ fontSize: "16px", height: "40px" }}
           >
             Thêm khuyến mãi
           </Button>
 
           <Input.Search
-            placeholder="tìm kiếm bàng tên mã giảm giá hoặc  giá trị mã giảm giá "
+            placeholder="Tìm kiếm mã giảm giá"
             allowClear
             enterButton={<SearchOutlined />}
             size="large"
@@ -341,9 +395,9 @@ const Promotions: React.FC = () => {
             onChange={(e) => handleSearch(e.target.value)}
             onSearch={handleSearch}
             style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
+              maxWidth: "600px",
+              borderRadius: "8px",
+              height: "48px",
             }}
           />
         </div>
@@ -352,8 +406,8 @@ const Promotions: React.FC = () => {
           allowClear
           style={{
             width: 250,
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
           }}
           onChange={(value) => handleDiscountRangeFilter(value)}
         >
@@ -374,28 +428,27 @@ const Promotions: React.FC = () => {
             total: promotions.length,
             onChange: handlePaginationChange,
           }}
-          scroll={{ x: '800' }}
+          scroll={{ x: "800" }}
           loading={loading}
         />
       </div>
 
       <Modal
         open={isModalVisible}
-        title={<span style={{ fontSize: '20px', fontWeight: 'bold' }}>{currentPromotion ? 'Chỉnh sửa khuyến mãi' : 'Thêm khuyến mãi'}</span>}
+        title={
+          <span style={{ fontSize: "20px", fontWeight: "bold" }}>
+            {currentPromotion ? "Chỉnh sửa khuyến mãi" : "Thêm khuyến mãi"}
+          </span>
+        }
         onCancel={() => setIsModalVisible(false)}
         footer={null}
         centered
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-
-        >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             name="code"
             label="Mã khuyến mãi"
-            rules={[{ required: true, message: 'Please enter promotion code' }]}
+            rules={[{ required: true, message: "Please enter promotion code" }]}
           >
             <Input placeholder="Enter promotion code" />
           </Form.Item>
@@ -403,27 +456,26 @@ const Promotions: React.FC = () => {
           <Form.Item
             name="discount_type"
             label="kiểu khuyến mãi"
-            rules={[{ required: true, message: 'Please select discount type' }]}
+            rules={[{ required: true, message: "Please select discount type" }]}
           >
             <Select>
               <Select.Option value="percentage">Percentage</Select.Option>
               <Select.Option value="money">money</Select.Option>
               <Select.Option value="shipping">shipping</Select.Option>
-
             </Select>
           </Form.Item>
 
           <Form.Item
             name="discount_value"
-
             label="giá trị khuyến mãi"
-            rules={[{ required: true, message: 'Please enter discount value' }
-              , {
-              type: "number",
-              min: 1,
-              message: "Giá trị không được nhỏ hơn 1 ",
-              transform: (value) => Number(value),
-            },
+            rules={[
+              { required: true, message: "Please enter discount value" },
+              {
+                type: "number",
+                min: 1,
+                message: "Giá trị không được nhỏ hơn 1 ",
+                transform: (value) => Number(value),
+              },
             ]}
           >
             <Input type="number" placeholder="Enter discount value" />
@@ -432,13 +484,14 @@ const Promotions: React.FC = () => {
           <Form.Item
             name="usage_limit"
             label="số lần sử dụng "
-            rules={[{ required: true, message: 'Please enter usage limit' }
-              , {
-              type: "number",
-              min: 1,
-              message: "Giá trị  không được nhỏ hơn 1 ",
-              transform: (value) => Number(value),
-            },
+            rules={[
+              { required: true, message: "Please enter usage limit" },
+              {
+                type: "number",
+                min: 1,
+                message: "Giá trị  không được nhỏ hơn 1 ",
+                transform: (value) => Number(value),
+              },
             ]}
           >
             <Input type="number" placeholder="Enter usage limit" />
@@ -447,7 +500,7 @@ const Promotions: React.FC = () => {
           <Form.Item
             name="start_date"
             label="ngày bắt đầu"
-            rules={[{ required: true, message: 'Please select start date' }]}
+            rules={[{ required: true, message: "Please select start date" }]}
           >
             <Input type="date" />
           </Form.Item>
@@ -455,7 +508,7 @@ const Promotions: React.FC = () => {
           <Form.Item
             name="end_date"
             label="ngày kết thúc"
-            rules={[{ required: true, message: 'Please select end date' }]}
+            rules={[{ required: true, message: "Please select end date" }]}
           >
             <Input type="date" />
           </Form.Item>
@@ -467,7 +520,7 @@ const Promotions: React.FC = () => {
           <Form.Item
             name="tier_id"
             label="cấp bậc sử dụng được khuyến mãi "
-            rules={[{ required: true, message: 'Please select a tier' }]}
+            rules={[{ required: true, message: "Please select a tier" }]}
           >
             <Select placeholder="Select a tier">
               {tiers.map((tier) => (
@@ -487,6 +540,5 @@ const Promotions: React.FC = () => {
       </Modal>
     </div>
   );
-
 };
 export default Promotions;

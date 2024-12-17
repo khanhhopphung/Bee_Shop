@@ -22,6 +22,9 @@ interface Order {
   address_id: number;
   payment_method: string;
   shipping_cost: string;
+  final_amount: string;
+  discount_amount: string;
+  shipping_discount: string;
   created_at: string;
   updated_at: string;
   order_code: string;
@@ -239,16 +242,33 @@ const OrderDetail = () => {
           <Title level={4}>Thanh toán</Title>
           <Card>
             <p>
-              <strong>Tổng tiền:</strong>{" "}
+              <strong>Tổng tiền: </strong>{" "}
               {(Number(order.total_amount) || 0).toLocaleString()} VND
             </p>
             <p>
-              <strong>Phương thức:</strong> {order.payment_method}
-            </p>
-            {/* <p>
-              <strong>Phí vận chuyển:</strong>{" "}
+              <strong>Phí vận chuyển: </strong>{" "}
               {(Number(order.shipping_cost) || 0).toLocaleString()} VND
-            </p> */}
+            </p>
+            {Number(order.discount_amount) > 0 && (
+              <p>
+                <strong>Giảm giá: </strong>-{" "}
+                {(Number(order.discount_amount) || 0).toLocaleString()} VND
+              </p>
+            )}
+            {Number(order.shipping_discount) > 0 && (
+              <p style={{ display: "block" }}>
+                <strong>Giảm giá: </strong>-{" "}
+                {(Number(order.shipping_discount) || 0).toLocaleString()} VND
+              </p>
+            )}
+
+            <p style={{ color: "red" }}>
+              <strong>Tổng thanh toán: </strong>
+              {(Number(order.final_amount) || 0).toLocaleString()} VND
+            </p>
+            <p>
+              <strong>Phương thức thanh toán:</strong> {order.payment_method}
+            </p>
           </Card>
 
           {/* Chức năng hỗ trợ */}

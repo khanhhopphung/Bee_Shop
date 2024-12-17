@@ -453,23 +453,21 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                           {products?.product_variants
                             ?.filter(
                               (variant, index, self) =>
+                                variant.stock > 0 && // Chỉ lấy biến thể có stock > 0
                                 self.findIndex(
                                   (v) => v.color_id === variant.color_id
-                                ) === index
+                                ) === index // Loại bỏ trùng lặp theo color_id
                             )
-                            .map((variant, index) => (
+                            .map((variant) => (
                               <div
                                 className="item-slick3"
                                 data-thumb="images/product-detail-01.jpg"
-                                key={index}
+                                key={variant.id} // Sử dụng id hoặc một giá trị duy nhất
                               >
-                                {/* <>
-                                  <p>{variant?.image?.[0]?.image_url}</p>
-                                </> */}
                                 <div className="wrap-pic-w pos-relative">
                                   <img
                                     src={`http://127.0.0.1:8000/storage/${variant?.image?.[0]?.image_url}`}
-                                    alt={`product variant ${index}`}
+                                    alt={`Product variant ${variant.color_id}`}
                                     style={{
                                       width: "120px",
                                       marginRight: "10px",
@@ -690,9 +688,9 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                             >
                               Thêm vào giỏ
                             </button>
-                            <button className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
+                            {/* <button className="flex-c-m stext-101 cl0 size-101 bg1 bor1 hov-btn1 p-lr-15 trans-04 js-addcart-detail">
                               Mua ngay
-                            </button>
+                            </button> */}
                           </div>
                         </div>
                       </div>
@@ -826,12 +824,12 @@ const ProductDetail2: React.FC<ProductDetailProps> = ({ addToCart }) => {
                           </div>
                           <p className="comment">
                             {review.comment}
-                            <div>
+                            {/* <div>
                               <img
                                 src="https://t.vietgiaitri.com/2018/12/6/tho-snowball-tro-lai-cuc-dang-yeu-trong-trailer-nhan-vat-moi-cua-249.jpg"
                                 alt=""
                               />
-                            </div>
+                            </div> */}
                           </p>
                         </div>
                       </div>

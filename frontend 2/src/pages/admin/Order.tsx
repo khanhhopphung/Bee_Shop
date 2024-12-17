@@ -255,7 +255,6 @@ const Orders: React.FC = () => {
     const currentOrder = orders.find((order) => order.id === order_id);
     if (!currentOrder) {
       message.error("Đơn hàng không tồn tại!");
-
       return;
     }
 
@@ -269,8 +268,6 @@ const Orders: React.FC = () => {
     // Định nghĩa thứ tự trạng thái hợp lệ
     const statusOrder = [
       "pending",
-      "on_hold",
-      "processing",
       "shipped",
       "delivered",
       "returned",
@@ -282,10 +279,13 @@ const Orders: React.FC = () => {
     const newStatusIndex = statusOrder.indexOf(newStatus);
 
     // Kiểm tra trạng thái mới có hợp lệ không
-    if (newStatusIndex <= currentStatusIndex) {
-      message.error(" trạng thái không hợp lệ!");
+    if (newStatusIndex !== currentStatusIndex + 1) {
+      message.error(
+        "Trạng thái không hợp lệ! Bạn chỉ có thể chuyển sang trạng thái tiếp theo."
+      );
       return;
     }
+
     try {
       await axios.put(
         `http://127.0.0.1:8000/api/orders/${order_id}`,
@@ -324,27 +324,18 @@ const Orders: React.FC = () => {
         title: "Chi tiết đơn hàng ",
         content: (
           <div>
-            
             <p>
-            Tên : {users.find((user) => user.id === order.user_id)?.username}
+              Tên : {users.find((user) => user.id === order.user_id)?.username}
             </p>
             <p>Ngày đặt hàng : {order.order_date}</p>
             <p>trạng thái đơn hàng : {order.status}</p>
             <p>Tổng đơn hàng : {order.total_amount}</p>
             <p>Phí giao hàng : {order.shipping_cost}</p>
             <p>Phương thức thanh toán : {order.payment_method}</p>
-            {order.promotion_id && (
-              <p>
-                Khuyến mãi : {order.promotion_id}
-              </p>
-
-            )}
+            {order.promotion_id && <p>Khuyến mãi : {order.promotion_id}</p>}
             <p>sản phẩm : {order.product_name}</p>
 
-
             {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
-
-       
           </div>
         ),
       });
@@ -375,24 +366,6 @@ const Orders: React.FC = () => {
         <span style={{ fontSize: "16px" }}>{orderCode || "N/A"}</span>
       ),
       align: "left",
-    },
-    // {
-    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>id sản phẩm </span>,
-    //   dataIndex: 'product_id',
-    //   key: 'product_id',
-    //   render: (product_id: number) => (
-    //     <span style={{ fontSize: '16px' }}>{product_id || 'N/A'}</span>
-    //   ),
-    //   align: 'left',
-    // },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên sản phẩm</span>,
-      dataIndex: 'product_name',
-      key: 'product_name',
-      render: (product_name: string) => (
-        <span style={{ fontSize: '16px' }}>{product_name || 'N/A'}</span>
-      ),
-      align: 'left',
     },
 
     {
@@ -468,17 +441,17 @@ const Orders: React.FC = () => {
       ),
       align: "left",
     },
-    {
-      title: (
-        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Khuyến mãi</span>
-      ),
-      dataIndex: "promotion",
-      key: "promotion",
-      render: (promotion: { code: string }) => (
-        <span style={{ fontSize: "16px" }}>{promotion?.code || "N/A"}</span>
-      ),
-      align: "left",
-    },
+    // {
+    //   title: (
+    //     <span style={{ fontSize: "18px", fontWeight: "bold" }}>Khuyến mãi</span>
+    //   ),
+    //   dataIndex: "promotion",
+    //   key: "promotion",
+    //   render: (promotion: { code: string }) => (
+    //     <span style={{ fontSize: "16px" }}>{promotion?.code || "N/A"}</span>
+    //   ),
+    //   align: "left",
+    // },
     {
       title: (
         <span style={{ fontSize: "18px", fontWeight: "bold" }}>
@@ -564,13 +537,12 @@ const Orders: React.FC = () => {
           >
             <Select.Option value="all">Tất cả trạng thái</Select.Option>
             <Select.Option value="pending">Chờ xác nhận đơn hàng</Select.Option>
-          <Select.Option value="shipped">Đã vận chuyển</Select.Option>
-          <Select.Option value="delivered">Đã giao hàng</Select.Option>
-          <Select.Option value="returned">Đã trả lại</Select.Option>
-          <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
-          <Select.Option value="cancelled">Đã hủy</Select.Option>
-          <Select.Option value="completed">Hoàn thành</Select.Option>
-          
+            <Select.Option value="shipped">Đã vận chuyển</Select.Option>
+            <Select.Option value="delivered">Đã giao hàng</Select.Option>
+            <Select.Option value="returned">Đã trả lại</Select.Option>
+            <Select.Option value="refunded">Đã hoàn tiền</Select.Option>
+            <Select.Option value="cancelled">Đã hủy</Select.Option>
+            <Select.Option value="completed">Hoàn thành</Select.Option>
           </Select>
 
           <Input.Search

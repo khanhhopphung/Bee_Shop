@@ -6,6 +6,7 @@ import { RootState } from "../../store/store";
 import AddAddress from "../../components/AddAddress";
 import Pusher from "pusher-js";
 import axios from "axios";
+import Voucher from "./Voucher";
 interface Cart {
   id: number;
   cart_id: number;
@@ -77,7 +78,7 @@ interface Promotion {
   end_date: string;
   is_active: number;
   max_discount: number;
-  min_purchase_amount: string | null;
+  min_purchase_amount: number;
   tier_id: number;
   created_at: string | null;
   updated_at: string;
@@ -115,12 +116,12 @@ const PaymentPage2: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [code, setCode] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
-
   const [originalTotalAmount, setOriginalTotalAmount] = useState<number>(0);
-  useEffect(() => {
-    console.log(originalTotalAmount);
-  }, [originalTotalAmount]);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [shipAmount, setShipAmount] = useState(31000);
+
   const [idVoucher, setIdVoucher] = useState<number>();
+  const [minPurchaseAmount, setMinPurchaseAmount] = useState<Number>(0);
   // const [idShip, setIdShip] = useState<number>();
   const [idShip, setIdShip] = useState<number | null | undefined>();
   const [paymentMethod, setPaymentMethod] = useState<string>("");
@@ -128,7 +129,6 @@ const PaymentPage2: React.FC = () => {
   const [address, setAddress] = useState<Address[]>([]);
   const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
   const [vouchers, setVouchers] = useState<DiscountData>();
-
   const [checkout, setCheckout] = useState(false);
 
   useEffect(() => {
@@ -162,6 +162,7 @@ const PaymentPage2: React.FC = () => {
     // e: React.ChangeEvent<HTMLInputElement>,
     addressId: number
   ) => {
+    setAddressId(addressId);
     // Cập nhật trạng thái của địa chỉ mới được chọn
     const updatedAddresses = address.map((addr) => {
       if (addr.id === addressId) {
@@ -169,9 +170,10 @@ const PaymentPage2: React.FC = () => {
       }
       return { ...addr, is_default: 0 };
     });
+    console.log(updatedAddresses);
 
     // Cập nhật lại state của địa chỉ
-    setAddress(updatedAddresses);
+    // setAddress(updatedAddresses);
   };
   // call api update địa chỉ
   const updateAddress = async () => {
@@ -189,10 +191,11 @@ const PaymentPage2: React.FC = () => {
     );
     if (response.ok) {
       const data = await response.json();
-      setAddress(data.addresses);
+      setAddress(data.data);
     }
   };
   useEffect(() => {
+    console.log(isFirstPage);
     if (isFirstPage == false) {
       console.log("running first page");
       updateAddress();
@@ -239,7 +242,8 @@ const PaymentPage2: React.FC = () => {
             // Xử lý khi sản phẩm hết hàng
             if (cart.product_variant.stock === 0) {
               message.warning(
-                `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+                `Sản phẩm đã hết hàng và bị xóa khỏi giỏ hàng.`
+                // `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
               );
               return null;
             }
@@ -356,13 +360,29 @@ const PaymentPage2: React.FC = () => {
     if (paymentMethod === "vnpay") {
       try {
         isOrderReady();
-        const response = await axios.post(
-          "http://localhost:8000/api/vnpay/create-payment",
-          {
-            amount: totalAmount, // Số tiền
-            description: "Thanh toán đơn hàng", // Thông tin mô tả đơn hàng
-          }
-        );
+        // console.log(totalAmount + shipAmount - discountShipping);
+        // console.log(totalAmount);
+        // console.log(shipAmount);
+        // console.log(discountShipping);
+        // return;
+        let response;
+        if (discountShipping > 0) {
+          response = await axios.post(
+            "http://localhost:8000/api/vnpay/create-payment",
+            {
+              amount: Number(totalAmount + shipAmount - discountShipping), // Số tiền
+              description: "Thanh toán đơn hàng", // Thông tin mô tả đơn hàng
+            }
+          );
+        } else {
+          response = await axios.post(
+            "http://localhost:8000/api/vnpay/create-payment",
+            {
+              amount: Number(totalAmount + shipAmount), // Số tiền
+              description: "Thanh toán đơn hàng", // Thông tin mô tả đơn hàng
+            }
+          );
+        }
 
         const data = response.data;
 
@@ -770,11 +790,34 @@ const PaymentPage2: React.FC = () => {
   //   setIdShip(voucher.id);
   //   console.log(voucher.id);
   // };
+  const [discountShipping, setDiscountShipping] = useState<number>(0);
   const handleShippingVoucherSelect = (voucher: Promotion) => {
-    setSelectedShippingVoucher((prevSelected) =>
-      prevSelected?.id === voucher.id ? null : voucher
-    );
-    setIdShip((prevId) => (prevId === voucher.id ? null : voucher.id));
+    // setSelectedShippingVoucher((prevSelected) =>
+    //   prevSelected?.id === voucher.id ? null : voucher
+    // );
+    // setIdShip((prevId) => (prevId === voucher.id ? null : voucher.id));
+    setSelectedShippingVoucher((prevSelected) => {
+      const isSelected = prevSelected?.id === voucher.id;
+      if (isSelected) {
+        // Nếu bỏ chọn voucher
+        setShipAmount(31000); // Khôi phục giá ban đầu
+        return null;
+      } else {
+        if (totalAmount >= voucher.min_purchase_amount) {
+          // Nếu chọn voucher mới
+          setShipAmount(31000); // Đặt lại giá ban đầu trước khi áp dụng voucher mới
+          setDiscountShipping(voucher.discount_value);
+          return voucher;
+        } else {
+          message.error(
+            "Tổng giá trị đơn hàng không đủ để áp dụng mã giảm giá"
+          );
+          return null;
+        }
+      }
+    });
+
+    setIdShip(voucher.id);
   };
 
   // Xử lý khi chọn voucher giảm giá tiền (phần trăm hoặc tiền mặt)
@@ -802,11 +845,19 @@ const PaymentPage2: React.FC = () => {
         setTotalAmount(originalTotalAmount); // Khôi phục giá ban đầu
         return null;
       } else {
-        // Nếu chọn voucher mới
-        setTotalAmount(originalTotalAmount); // Đặt lại giá ban đầu trước khi áp dụng voucher mới
-        return voucher;
+        if (totalAmount >= voucher.min_purchase_amount) {
+          // Nếu chọn voucher mới
+          setTotalAmount(originalTotalAmount); // Đặt lại giá ban đầu trước khi áp dụng voucher mới
+          return voucher;
+        } else {
+          message.error(
+            "Tổng giá trị đơn hàng không đủ để áp dụng mã giảm giá"
+          );
+          return null;
+        }
       }
     });
+    setMinPurchaseAmount(voucher.discount_value);
     setIdVoucher(voucher.id);
   };
 
@@ -834,29 +885,43 @@ const PaymentPage2: React.FC = () => {
       const discountValue = selectedDiscountVoucher.discount_value;
       const discountType = selectedDiscountVoucher.discount_type;
       const maxDiscount = selectedDiscountVoucher.max_discount || Infinity;
-
       if (discountType === "money") {
         // const discountAmount = Math.min(discountValue, maxDiscount);
         // const newTotal = originalTotalAmount - discountAmount;
         const newTotal = originalTotalAmount - discountValue;
         setTotalAmount(newTotal);
+        setDiscountAmount(discountValue);
         // setTotalAmount(Math.max(0, newTotal));
         console.log("New Total Amount (Money):", newTotal);
       } else if (discountType === "percentage") {
         const calculatedDiscount = originalTotalAmount * (discountValue / 100);
+        if (calculatedDiscount > selectedDiscountVoucher.max_discount) {
+          const newTotal =
+            originalTotalAmount - selectedDiscountVoucher.max_discount;
+          setTotalAmount(newTotal);
+          setDiscountAmount(Number(selectedDiscountVoucher.max_discount));
+        } else {
+          const newTotal =
+            originalTotalAmount - originalTotalAmount * (discountValue / 100);
+          setTotalAmount(newTotal);
+          setDiscountAmount(Number(calculatedDiscount));
+        }
         // const discountAmount = Math.min(calculatedDiscount, maxDiscount);
         // const newTotal = originalTotalAmount - discountAmount;
-        const newTotal =
-          originalTotalAmount - originalTotalAmount * (discountValue / 100);
-        setTotalAmount(newTotal);
+
         // setTotalAmount(Math.max(0, newTotal));
-        console.log("New Total Amount (Percentage):", newTotal);
       }
 
       message.success("Đã áp dụng voucher thành công!");
     }
     handleCancelDiscount();
   };
+  useEffect(() => {
+    console.log(discountAmount);
+  }, [discountAmount]);
+  useEffect(() => {
+    console.log(discountShipping);
+  }, [discountShipping]);
 
   return (
     <form className="bg0 p-t-75 p-b-85">
@@ -1032,7 +1097,7 @@ const PaymentPage2: React.FC = () => {
 
                       <div className="discount-list">
                         {/* Vouchers freeship */}
-                        {/* {vouchers &&
+                        {vouchers &&
                           vouchers.discount_shipping.map((voucher, index) => (
                             <div className="discount-item" key={index}>
                               <div className="discount-left">
@@ -1050,8 +1115,13 @@ const PaymentPage2: React.FC = () => {
                                   </span>
                                   <p className="discount-description">
                                     Giảm tối đa{" "}
-                                    {voucher.discount_value
+                                    {/* {voucher.discount_value
                                       ? voucher.discount_value + "₫"
+                                      : "N/A"} */}
+                                    {voucher.discount_value
+                                      ? Number(
+                                          voucher.discount_value
+                                        ).toLocaleString() + " đ"
                                       : "N/A"}
                                   </p>
                                   <div className="discount-status">
@@ -1071,7 +1141,7 @@ const PaymentPage2: React.FC = () => {
                                 </div>
                               </div>
                             </div>
-                          ))} */}
+                          ))}
 
                         {/* Vouchers giảm giá tiền (phần trăm hoặc tiền mặt) */}
                         {vouchers &&
@@ -1089,7 +1159,7 @@ const PaymentPage2: React.FC = () => {
                                     Mã giảm giá
                                   </span>
                                   <p className="discount-description">
-                                    Giảm
+                                    Giảm{" "}
                                     {voucher.discount_value
                                       ? Number(
                                           voucher.discount_value
@@ -1157,7 +1227,7 @@ const PaymentPage2: React.FC = () => {
                                     {voucher.discount_value
                                       ? Number(
                                           voucher.discount_value
-                                        ).toLocaleString() + "₫"
+                                        ).toLocaleString() + " ₫"
                                       : "N/A"}
                                   </p>
                                   <div className="discount-status">
@@ -1357,7 +1427,7 @@ const PaymentPage2: React.FC = () => {
                             <input
                               type="radio"
                               name="address"
-                              checked={address.is_default === 1}
+                              checked={address.is_default == 1}
                               className="address-checkbox"
                               style={{ marginRight: "15px" }}
                               // onChange={() => setAddressId(address.id)}
@@ -1368,7 +1438,6 @@ const PaymentPage2: React.FC = () => {
                               style={{
                                 fontSize: "14px",
                                 fontWeight: "600",
-                                color: "#333",
                                 marginRight: "10px",
                                 whiteSpace: "nowrap",
                               }}
@@ -1519,6 +1588,106 @@ const PaymentPage2: React.FC = () => {
                   </div>
                 </div>
               </div>
+              <h3 style={{ marginTop: "20px" }}>Chi tiết thanh toán</h3>
+
+              <div className="flex-w flex-t p-t-27 p-b-33">
+                <div className="size-208">
+                  <span
+                    className="text-lg text-gray-700 "
+                    style={{ fontSize: "12px" }}
+                  >
+                    Tổng tiền hàng
+                  </span>
+                </div>
+
+                <div className="size-209 p-t-1">
+                  <span
+                    className="mtext-110 cl2"
+                    style={{
+                      fontSize: "px",
+                    }}
+                  >
+                    {originalTotalAmount !== undefined
+                      ? originalTotalAmount.toLocaleString() + "₫"
+                      : "N/A"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex-w flex-t">
+                <div className="size-208">
+                  <span
+                    className="text-lg text-gray-700 "
+                    style={{ fontSize: "12px" }}
+                  >
+                    Tổng tiền phí vận chuyển
+                  </span>
+                </div>
+
+                <div className="size-209 p-t-1">
+                  <span
+                    className="mtext-110 cl2"
+                    style={{
+                      fontSize: "px",
+                    }}
+                  >
+                    {31000 + "₫"}
+                  </span>
+                </div>
+              </div>
+
+              {selectedShippingVoucher && (
+                <div className="flex-w flex-t p-t-27 p-b-33">
+                  <div className="size-208">
+                    <span
+                      className="text-lg text-gray-700 "
+                      style={{ fontSize: "12px" }}
+                    >
+                      Giảm giá phí vận chuyển
+                    </span>
+                  </div>
+
+                  <div className="size-209 p-t-1">
+                    <span
+                      className="mtext-110 cl2"
+                      style={{
+                        fontSize: "px",
+                        color: "red",
+                      }}
+                    >
+                      {selectedShippingVoucher !== undefined
+                        ? -selectedShippingVoucher?.discount_value.toLocaleString() +
+                          "₫"
+                        : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {selectedDiscountVoucher && (
+                <div className="flex-w flex-t">
+                  <div className="size-208">
+                    <span
+                      className="text-lg text-gray-700 "
+                      style={{ fontSize: "12px" }}
+                    >
+                      Giảm giá sản phẩm
+                    </span>
+                  </div>
+                  {/* <>{console.log(discountAmount)}</> */}
+
+                  <div className="size-209 p-t-1">
+                    <span
+                      className="mtext-110 cl2"
+                      style={{
+                        fontSize: "px",
+                        color: "red",
+                      }}
+                    >
+                      {discountAmount ? -Number(discountAmount) + "₫" : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="flex-w flex-t p-t-27 p-b-33">
                 <div className="size-208">
@@ -1540,7 +1709,12 @@ const PaymentPage2: React.FC = () => {
                     }}
                   >
                     {totalAmount !== undefined
-                      ? totalAmount.toLocaleString() + "₫"
+                      ? (
+                          totalAmount +
+                          31000 -
+                          // (selectedDiscountVoucher?.discount_value || 0) -
+                          (selectedShippingVoucher?.discount_value || 0)
+                        ).toLocaleString() + "₫"
                       : "N/A"}
                   </span>
                 </div>

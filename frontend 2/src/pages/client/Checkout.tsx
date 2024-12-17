@@ -250,7 +250,7 @@ const PaymentPage: React.FC = () => {
               // Xử lý khi sản phẩm hết hàng
               if (cart.product_variant.stock === 0) {
                 message.warning(
-                  `Sản phẩm "${cart.product_variant.name}" đã hết hàng và bị xóa khỏi giỏ hàng.`
+                  `Sản phẩm đã hết hàng và bị xóa khỏi giỏ hàng.`
                 );
                 return null;
               }

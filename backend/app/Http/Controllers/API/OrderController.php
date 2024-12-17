@@ -13,7 +13,7 @@ use App\Models\CartDetail;
 use App\Models\OrderDetail;
 use App\Models\ShippingAddress;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Http\Controllers\BaseController;
@@ -23,9 +23,14 @@ use App\Models\Promotion;
 
 class OrderController extends Controller
 {
-    public function __construct() {}
+    public function __construct()
+    {
+        $this->autoUpdateStatus();
+        $this->autoSumTotalSpent();
+    }
     public function index()
     {
+
         // Load the necessary relationships and include order_code
         $orders = Order::with(['address', 'promotion', 'orderDetails'])->get();
         return response()->json($orders);
@@ -41,6 +46,35 @@ class OrderController extends Controller
         foreach ($orders as $order) {
             $order->status = 'completed';
             $order->save();
+        }
+    }
+
+    public function autoSumTotalSpent()
+    {
+        $userIds = \DB::table('users')->pluck('id');
+        foreach ($userIds as $userId) {
+            // Lấy tổng final_amount từ bảng orders cho mỗi user_id
+            $totalSpent = \DB::table('orders')
+                ->where('user_id', $userId)
+                ->where('status', 'completed')
+                ->sum('final_amount');
+            $data = [
+                'total_spent' => $totalSpent
+            ];
+            if ($totalSpent < 5000000) {
+                $data['tier_id'] = 1;
+            } else if ($totalSpent >= 5000000) {
+                $data['tier_id'] = 2;
+            } else if ($totalSpent >= 10000000) {
+                $data['tier_id'] = 3;
+            } else if ($totalSpent >= 500000000) {
+                $data['tier_id'] = 4;
+            }
+
+            // Cập nhật total_spent trong bảng users
+            \DB::table('users')
+                ->where('id', $userId)
+                ->update($data);
         }
     }
 
@@ -113,8 +147,8 @@ class OrderController extends Controller
                 'discount_promotion_id' => $request->discount_promotion_id,
                 'shipping_promotion_id' => $request->shipping_promotion_id,
                 'discount_amount' => isset($discountAmount) ? $discountAmount : 0,
-                'shipping_discount' => isset($shipDiscount) ? $shipDiscount : 30000,
-                'final_amount' => $fin,
+                'shipping_discount' => isset($shipDiscount) ? $shipDiscount : 0,
+                'final_amount' => $fin + 31000,
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -124,8 +158,8 @@ class OrderController extends Controller
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
                 'address' => $addressF,
-                'product_id' => $cartDetails->first()->product_id,
-                'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
+                // 'product_id' => $cartDetails->first()->product_id,
+                // 'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
 
             ]);
 
@@ -153,6 +187,8 @@ class OrderController extends Controller
             event(new ProductEvent($randomCode));
             $this->autoUpdateStatus();
 
+
+
             // DB::commit();
             return BaseController::success($order, 'Đặt hàng thành công !!!');
             // return response()->json([
@@ -178,7 +214,7 @@ class OrderController extends Controller
     {
         try {
             // Load relationships including order_code
-            $order->load(['address', 'promotion', 'orderDetails','orderDetails.product:id,name']);
+            $order->load(['address', 'promotion', 'orderDetails', 'orderDetails.product:id,name']);
             return response()->json([
                 'message' => 'Order created successfully',
                 'order' => $order->load([
@@ -241,6 +277,7 @@ class OrderController extends Controller
     public function getAllOrderByUser()
     {
         try {
+
             $user = Auth::user();
             if (!$user) {
                 return response()->json(['error' => 'User not authenticated.'], 401);

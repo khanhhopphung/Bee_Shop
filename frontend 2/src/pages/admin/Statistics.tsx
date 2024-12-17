@@ -1,11 +1,403 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Table, Card, Spin, Row, Col, Statistic, message, Typography, DatePicker, Button, Modal } from 'antd';
-import { DollarCircleOutlined, ShoppingCartOutlined, UserOutlined, AlertOutlined, PoweroffOutlined } from '@ant-design/icons';
-import { Pie, Column } from '@ant-design/charts';
-import dayjs from 'dayjs';
+// import React, { useEffect, useState } from 'react';
+
+// import axios from 'axios';
+// import { Table, Card, Spin, Row, Col, Statistic, message, Typography, DatePicker, Button, Modal } from 'antd';
+// import { DollarCircleOutlined, ShoppingCartOutlined, UserOutlined, AlertOutlined, PoweroffOutlined } from '@ant-design/icons';
+// import { Pie, Column } from '@ant-design/charts';
+// import dayjs from 'dayjs';
+
+// const { Title } = Typography;
+
+// const Statistics: React.FC = () => {
+//   const [statistics, setStatistics] = useState<any>(null);
+//   const [loading, setLoading] = useState(true);
+//   const [startDate, setStartDate] = useState<any>(null);
+//   const [endDate, setEndDate] = useState<any>(null);
+//   const [selectedYear, setSelectedYear] = useState<any>(null);
+//   const [selectedMonth, setSelectedMonth] = useState<any>(null);
+//   const [modalVisible, setModalVisible] = useState(false);
+//   const [modalContent, setModalContent] = useState<any>(null);
+
+//   const formatCurrency = (value: number) => {
+//     return new Intl.NumberFormat('vi-VN', {
+//       style: 'currency',
+//       currency: 'VND',
+//       minimumFractionDigits: 0,
+//     }).format(value);
+//   };
+
+//   const fetchStatistics = async () => {
+//     setLoading(true);
+//     try {
+//       const accessToken = localStorage.getItem("access_token");
+
+//       if (!accessToken) {
+//         message.error("Bạn chưa đăng nhập!");
+//         setLoading(false);
+//         return;
+//       }
+
+//       const params: any = {};
+//       if (startDate && endDate) {
+//         params.start_date = startDate.format('YYYY-MM-DD');
+//         params.end_date = endDate.format('YYYY-MM-DD');
+//       }
+//       if (selectedYear) {
+//         params.year = selectedYear;
+//       }
+//       if (selectedMonth) {
+//         params.month = selectedMonth;
+//       }
+
+//       const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', {
+//         params,
+//         headers: {
+//           Authorization: `Bearer ${accessToken}`,
+//         },
+//       });
+
+//       setStatistics(response.data);
+//     } catch (err) {
+//       message.error('Không thể tải thống kê.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("access_token");
+//     window.location.reload();
+//   };
+
+//   const handleCardClick = (type: string) => {
+//     let content = null;
+
+//     switch (type) {
+//       case 'revenue':
+//         content = `Tổng doanh thu : ${statistics.total_revenue}`;
+//         break;
+//       case 'orders':
+//         content = `Tổng đơn hàng: ${statistics.total_orders}`;
+//         break;
+//       case 'km':
+//         content = `Tăng trưởng doanh thu nhờ khuyến mãi: ${statistics.promotion_revenue_growth}`;
+//         break;
+//       case 'low_stock':
+//         content = statistics.low_stock_products.products.map((product: any) => ({
+//           key: product.id,
+//           name: product.name,
+//           sku: product.sku,
+//           stock: product.stock,
+//           price: formatCurrency(product.price),
+//         }));
+//         break;
+
+//       default:
+//         content = null;
+//     }
+
+//     setModalContent(content);
+//     setModalVisible(true);
+//   };
+
+//   useEffect(() => {
+//     fetchStatistics();
+//   }, [startDate, endDate, selectedYear, selectedMonth]);
+
+//   if (loading) {
+//     return (
+//       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+//         <Spin size="large" />
+//       </div>
+//     );
+//   }
+
+//   if (!statistics) return null;
+
+//   const topSellingColumns = [
+//     { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+//     { title: 'Lượt bán', dataIndex: 'total_sold', key: 'total_sold' },
+//   ];
+
+//   const soldProductColumns = [
+//     { title: 'Tên sản phẩm', dataIndex: 'productName', key: 'productName' },
+//     { title: 'Số lượng', dataIndex: 'quantity', key: 'quantity' },
+//     { title: 'Doanh thu', dataIndex: 'revenue', key: 'revenue' },
+//   ];
+
+//   const promotionColumns = [
+//     { title: 'Tên khuyến mãi', dataIndex: 'code', key: 'code' },
+//     { title: 'Lượt sử dụng', dataIndex: 'usage_count', key: 'usage_count' },
+//   ];
+
+//   const lowStockColumns = [
+//     { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+//     { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
+//     { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
+//     { title: 'Giá', dataIndex: 'price', key: 'price', render: (text: number) => formatCurrency(text) },
+//   ];
+
+//   const paymentMethodConfig = {
+//     appendPadding: 10,
+//     data: statistics.payment_method_stats,
+//     angleField: 'count',
+//     colorField: 'payment_method',
+//     radius: 0.8,
+//     interactions: [{ type: 'element-active' }],
+//   };
+
+//   const shippingStatusConfig = {
+//     data: statistics.shipping_stats,
+//     xField: 'status',
+//     yField: 'count',
+//     color: 'blue',
+//     label: {
+//       position: 'top',
+//       style: {
+//         fill: '#fff',
+//         opacity: 1,
+//       },
+//     },
+//     xAxis: {
+//       label: {
+//         autoHide: true,
+//         autoRotate: false,
+//       },
+//     },
+//     meta: {
+//       status: {
+//         alias: 'Shipping Status',
+//       },
+//       count: {
+//         alias: 'Number of Orders',
+//       },
+//     },
+//   };
+
+//   return (
+//     <div style={{ padding: '30px', backgroundColor: '#fafafa' }}>
+//       {/* Header with Logout */}
+//       <Row gutter={[16, 16]} style={{ marginBottom: '20px', justifyContent: 'flex-end' }}>
+//         <Col>
+//           <Button type="primary" icon={<PoweroffOutlined />} onClick={handleLogout}>
+//             Đăng xuất
+//           </Button>
+//         </Col>
+//       </Row>
+
+//       {/* Date Pickers */}
+//       <Row gutter={[16, 16]} style={{ marginBottom: '20px' }} align="middle">
+//         <Col xs={24} sm={12} md={6}>
+//           <DatePicker
+//             picker="year"
+//             style={{ width: '100%' }}
+//             placeholder="Chọn năm"
+//             onChange={(date) => {
+//               setSelectedYear(date?.year());
+//               setSelectedMonth(null);
+//             }}
+//           />
+//         </Col>
+//         <Col xs={24} sm={12} md={6}>
+//           <DatePicker
+//             picker="month"
+//             style={{ width: '100%' }}
+//             placeholder="Chọn tháng"
+//             onChange={(date) => {
+//               setSelectedMonth(date?.month() + 1);
+//               setSelectedYear(null);
+//             }}
+//           />
+//         </Col>
+//         <Col xs={24} sm={12} md={6}>
+//           <DatePicker
+//             style={{ width: '100%' }}
+//             placeholder="Chọn ngày bắt đầu"
+//             onChange={(date) => setStartDate(date)}
+//             value={startDate}
+//           />
+//         </Col>
+//         <Col xs={24} sm={12} md={6}>
+//           <DatePicker
+//             style={{ width: '100%' }}
+//             placeholder="Chọn ngày kết thúc"
+//             onChange={(date) => setEndDate(date)}
+//             value={endDate}
+//           />
+//         </Col>
+//       </Row>
+
+//       {/* Overview Statistics */}
+//       <Row gutter={[16, 16]}>
+//         <Col xs={24} sm={12} md={6}>
+//           <Card
+//             hoverable
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//             onClick={() => handleCardClick('revenue')}
+//           >
+//             <Title level={4} style={{ color: '#2c3e50' }}>Tổng doanh thu</Title>
+//             <Statistic
+//               value={formatCurrency(statistics.total_revenue)}
+//               prefix={<DollarCircleOutlined />}
+//               valueStyle={{ color: '#3f8600' }}
+//             />
+//           </Card>
+//         </Col>
+//         <Col xs={24} sm={12} md={6}>
+//           <Card
+//             hoverable
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//             onClick={() => handleCardClick('orders')}
+//           >
+//             <Title level={4} style={{ color: '#2c3e50' }}>Tổng đơn hàng</Title>
+//             <Statistic
+//               value={statistics.total_orders}
+//               prefix={<ShoppingCartOutlined />}
+//               valueStyle={{ color: '#ff7f50' }}
+//             />
+//           </Card>
+//         </Col>
+//         <Col xs={24} sm={12} md={6}>
+//           <Card
+//             hoverable
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//             onClick={() => handleCardClick('low_stock')}
+//           >
+//             <Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm sắp hết hàng</Title>
+//             <Statistic
+//               value={statistics.low_stock_products.count}
+//               prefix={<AlertOutlined />}
+//               valueStyle={{ color: '#e74c3c' }}
+//             />
+//           </Card>
+//         </Col>
+//       </Row>
+
+//       {/* Modal for showing detail */}
+//       <Modal
+//         title="Thông tin chi tiết"
+//         visible={modalVisible}
+//         onCancel={() => setModalVisible(false)}
+//         footer={null}
+//       >
+//         {Array.isArray(modalContent) ? (
+//           <Table
+//             dataSource={modalContent}
+//             columns={[
+//               { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
+//               { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
+//               { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
+//               { title: 'Giá', dataIndex: 'price', key: 'price' },
+//             ]}
+//             pagination={{ pageSize: 5 }}
+//           />
+//         ) : (
+//           <p>{modalContent}</p>
+//         )}
+//       </Modal>
+
+//       {/* Top Selling Products and Promotions */}
+//       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+//         <Col xs={24} sm={8} md={8}>
+//           <Card
+//             title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm bán chạy</Title>}
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//           >
+//             <Table
+//               columns={topSellingColumns}
+//               dataSource={statistics.top_selling_products}
+//               pagination={{ pageSize: 5 }}
+//               rowKey="id"
+//               size="small"
+//             />
+//           </Card>
+//         </Col>
+//         <Col xs={24} sm={8} md={8}>
+//           <Card
+//             title={<Title level={4} style={{ color: '#2c3e50' }}>Khuyến mãi</Title>}
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//           >
+//             <Table
+//               columns={promotionColumns}
+//               dataSource={statistics.promotion_usage_stats}
+//               pagination={{ pageSize: 3 }}
+//               rowKey="code"
+//               bordered
+//             />
+//           </Card>
+//         </Col>
+//         <Col xs={24} sm={8} md={8}>
+//           <Card
+//             title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm đã bán</Title>}
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//           >
+//             <Table
+//               columns={soldProductColumns}
+//               dataSource={statistics.sold_products.map((product: any) => ({
+//                 key: product.id,
+//                 productName: product.name,
+//                 quantity: product.total_sold,
+//                 revenue: formatCurrency(product.total_revenue),
+//               }))}
+//               pagination={{ pageSize: 5 }}
+//               rowKey="key"
+//               size="small"
+//             />
+//           </Card>
+//         </Col>
+//       </Row>
+
+//       {/* Payment Methods and Shipping Status */}
+//       <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+//         <Col span={12}>
+//           <Card
+//             title={<Title level={4} style={{ color: '#2c3e50' }}>Các Phương thức thanh toán</Title>}
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//           >
+//             <Pie {...paymentMethodConfig} />
+//           </Card>
+//         </Col>
+//         <Col span={12}>
+//           <Card
+//             title={<Title level={4} style={{ color: '#2c3e50' }}>Thống kê theo Trạng thái</Title>}
+//             style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+//           >
+//             <Column {...shippingStatusConfig} />
+//           </Card>
+//         </Col>
+//       </Row>
+//     </div>
+//   );
+// };
+
+// export default Statistics;
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  Table,
+  Card,
+  Spin,
+  Row,
+  Col,
+  Statistic,
+  message,
+  Typography,
+  DatePicker,
+  Button,
+  Modal,
+  Select,
+} from "antd";
+import {
+  DollarCircleOutlined,
+  ShoppingCartOutlined,
+  AlertOutlined,
+  PoweroffOutlined,
+} from "@ant-design/icons";
+import { Pie, Column } from "@ant-design/charts";
 
 const { Title } = Typography;
+const { Option } = Select;
 
 const Statistics: React.FC = () => {
   const [statistics, setStatistics] = useState<any>(null);
@@ -14,13 +406,18 @@ const Statistics: React.FC = () => {
   const [endDate, setEndDate] = useState<any>(null);
   const [selectedYear, setSelectedYear] = useState<any>(null);
   const [selectedMonth, setSelectedMonth] = useState<any>(null);
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState<any>(null);
+  const [lowStockModalVisible, setLowStockModalVisible] = useState(false);
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [highStockModalVisible, setHighStockModalVisible] = useState(false);
+  const [highStockProducts, setHighStockProducts] = useState<any[]>([]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
       minimumFractionDigits: 0,
     }).format(value);
   };
@@ -32,32 +429,31 @@ const Statistics: React.FC = () => {
 
       if (!accessToken) {
         message.error("Bạn chưa đăng nhập!");
-        setLoading(false);
         return;
       }
 
       const params: any = {};
       if (startDate && endDate) {
-        params.start_date = startDate.format('YYYY-MM-DD');
-        params.end_date = endDate.format('YYYY-MM-DD');
+        params.start_date = startDate.format("YYYY-MM-DD");
+        params.end_date = endDate.format("YYYY-MM-DD");
       }
-      if (selectedYear) {
-        params.year = selectedYear;
-      }
-      if (selectedMonth) {
-        params.month = selectedMonth;
-      }
+      if (selectedYear) params.year = selectedYear;
+      if (selectedMonth) params.month = selectedMonth;
+      // Thêm tham số ngày
 
-      const response = await axios.get('http://127.0.0.1:8000/api/statistics/dashboard', {
-        params,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/statistics/dashboard",
+        {
+          params,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       setStatistics(response.data);
     } catch (err) {
-      message.error('Không thể tải thống kê.');
+      message.error("Không thể tải thống kê.");
     } finally {
       setLoading(false);
     }
@@ -69,35 +465,30 @@ const Statistics: React.FC = () => {
   };
 
   const handleCardClick = (type: string) => {
-    let content = null;
-
     switch (type) {
-      case 'revenue':
-        content = `Tổng doanh thu : ${statistics.total_revenue}`;
+      case "revenue":
+        setModalContent({
+          revenueInfo: statistics.total_revenue,
+          soldProducts: statistics.sold_products.map((product: any) => ({
+            key: product.id,
+            product_name: product.name,
+            total_sold: product.total_sold,
+            total_revenue: formatCurrency(product.total_revenue),
+          })),
+        });
+        setModalVisible(true);
         break;
-      case 'orders':
-        content = `Tổng đơn hàng: ${statistics.total_orders}`;
+      case "low_stock":
+        setLowStockProducts(statistics.low_stock_products.products);
+        setLowStockModalVisible(true);
         break;
-      case 'km':
-        content = `Tăng trưởng doanh thu nhờ khuyến mãi: ${statistics.promotion_revenue_growth}`;
+      case "low_stock_nhieu":
+        setHighStockProducts(statistics.low_stock_products_nhieu.products);
+        setHighStockModalVisible(true);
         break;
-      case 'low_stock':
-        content = statistics.low_stock_products.products.map((product: any) => ({
-          key: product.id,
-          name: product.name,
-          sku: product.sku,
-          stock: product.stock,
-          price: formatCurrency(product.price),
-        }));
-        break;
-
-
       default:
-        content = null;
+        break;
     }
-
-    setModalContent(content);
-    setModalVisible(true);
   };
 
   useEffect(() => {
@@ -106,7 +497,14 @@ const Statistics: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -115,103 +513,70 @@ const Statistics: React.FC = () => {
   if (!statistics) return null;
 
   const topSellingColumns = [
-    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-    { title: 'Lượt bán', dataIndex: 'total_sold', key: 'total_sold' },
+    { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
+    { title: "Lượt bán", dataIndex: "total_sold", key: "total_sold" },
   ];
 
   const soldProductColumns = [
-    { title: 'Tên sản phẩm', dataIndex: 'productName', key: 'productName' },
-    { title: 'Số lượng', dataIndex: 'quantity', key: 'quantity' },
-    { title: 'Doanh thu', dataIndex: 'revenue', key: 'revenue' },
-  ];
-
-  const promotionColumns = [
-    { title: 'Tên khuyến mãi', dataIndex: 'code', key: 'code' },
-    { title: 'Lượt sử dụng', dataIndex: 'usage_count', key: 'usage_count' },
+    { title: "Tên sản phẩm", dataIndex: "product_name", key: "product_name" },
+    { title: "Số lượng", dataIndex: "total_sold", key: "total_sold" },
+    { title: "Doanh thu", dataIndex: "total_revenue", key: "total_revenue" },
   ];
 
   const lowStockColumns = [
-    { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-    { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
-    { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
-    { title: 'Giá', dataIndex: 'price', key: 'price', render: (text: number) => formatCurrency(text) },
+    { title: "Tên sản phẩm", dataIndex: "product_name", key: "product_name" },
+    { title: "Kích thước", dataIndex: "size_name", key: "size_name" },
+    { title: "Màu sắc", dataIndex: "color_name", key: "color_name" },
+    { title: "Tồn kho", dataIndex: "stock", key: "stock" },
+    { title: "Giá", dataIndex: "price", key: "price" },
   ];
 
-  const paymentMethodConfig = {
-    appendPadding: 10,
-    data: statistics.payment_method_stats,
-    angleField: 'count',
-    colorField: 'payment_method',
-    radius: 0.8,
-    interactions: [{ type: 'element-active' }],
-  };
+  const promotionColumns = [
+    { title: "Tên khuyến mãi", dataIndex: "code", key: "code" },
+    { title: "Lượt sử dụng", dataIndex: "usage_count", key: "usage_count" },
+  ];
 
   const shippingStatusConfig = {
     data: statistics.shipping_stats,
-    xField: 'status',
-    yField: 'count',
-    color: 'blue',
+    xField: "status",
+    yField: "count",
+    color: "blue",
     label: {
-      position: 'top',
+      position: "top",
       style: {
-        fill: '#fff',
+        fill: "#fff",
         opacity: 1,
       },
     },
-    xAxis: {
-      label: {
-        autoHide: true,
-        autoRotate: false,
-      },
-    },
     meta: {
-      status: {
-        alias: 'Shipping Status',
-      },
-      count: {
-        alias: 'Number of Orders',
-      },
+      status: { alias: "Trạng thái vận chuyển" },
+      count: { alias: "Số lượng đơn hàng" },
     },
   };
 
   return (
-    <div style={{ padding: '30px', backgroundColor: '#fafafa' }}>
+    <div style={{ padding: "30px", backgroundColor: "#fafafa" }}>
       {/* Header with Logout */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px', justifyContent: 'flex-end' }}>
+      <Row
+        gutter={[16, 16]}
+        style={{ marginBottom: "20px", justifyContent: "flex-end" }}
+      >
         <Col>
-          <Button type="primary" icon={<PoweroffOutlined />} onClick={handleLogout}>
+          <Button
+            type="primary"
+            icon={<PoweroffOutlined />}
+            onClick={handleLogout}
+          >
             Đăng xuất
           </Button>
         </Col>
       </Row>
 
       {/* Date Pickers */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '20px' }} align="middle">
+      <Row gutter={[16, 16]} style={{ marginBottom: "20px" }} align="middle">
         <Col xs={24} sm={12} md={6}>
           <DatePicker
-            picker="year"
-            style={{ width: '100%' }}
-            placeholder="Chọn năm"
-            onChange={(date) => {
-              setSelectedYear(date?.year());
-              setSelectedMonth(null);
-            }}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <DatePicker
-            picker="month"
-            style={{ width: '100%' }}
-            placeholder="Chọn tháng"
-            onChange={(date) => {
-              setSelectedMonth(date?.month() + 1);
-              setSelectedYear(null);
-            }}
-          />
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <DatePicker
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder="Chọn ngày bắt đầu"
             onChange={(date) => setStartDate(date)}
             value={startDate}
@@ -219,10 +584,35 @@ const Statistics: React.FC = () => {
         </Col>
         <Col xs={24} sm={12} md={6}>
           <DatePicker
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             placeholder="Chọn ngày kết thúc"
             onChange={(date) => setEndDate(date)}
             value={endDate}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Select
+            style={{ width: "100%" }}
+            placeholder="Chọn tháng"
+            onChange={(value) => {
+              setSelectedMonth(value);
+            }}
+            value={selectedMonth}
+          >
+            {Array.from({ length: 12 }, (_, i) => (
+              <Option key={i + 1} value={i + 1}>{`Tháng ${i + 1}`}</Option>
+            ))}
+          </Select>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <DatePicker
+            picker="year"
+            style={{ width: "100%" }}
+            placeholder="Chọn năm"
+            onChange={(date) => {
+              setSelectedYear(date?.year());
+              setSelectedMonth(null);
+            }}
           />
         </Col>
       </Row>
@@ -232,42 +622,79 @@ const Statistics: React.FC = () => {
         <Col xs={24} sm={12} md={6}>
           <Card
             hoverable
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
-            onClick={() => handleCardClick('revenue')}
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
+            onClick={() => handleCardClick("revenue")}
           >
-            <Title level={4} style={{ color: '#2c3e50' }}>Tổng doanh thu</Title>
+            <Title level={4} style={{ color: "#2c3e50" }}>
+              Tổng doanh thu
+            </Title>
             <Statistic
               value={formatCurrency(statistics.total_revenue)}
               prefix={<DollarCircleOutlined />}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
             hoverable
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
-            onClick={() => handleCardClick('orders')}
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
           >
-            <Title level={4} style={{ color: '#2c3e50' }}>Tổng đơn hàng</Title>
+            <Title level={4} style={{ color: "#2c3e50" }}>
+              Tổng đơn hàng
+            </Title>
             <Statistic
               value={statistics.total_orders}
               prefix={<ShoppingCartOutlined />}
-              valueStyle={{ color: '#ff7f50' }}
+              valueStyle={{ color: "#ff7f50" }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
             hoverable
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
-            onClick={() => handleCardClick('low_stock')}
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
+            onClick={() => handleCardClick("low_stock")}
           >
-            <Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm sắp hết hàng</Title>
+            <Title level={4} style={{ color: "#2c3e50" }}>
+              Sản phẩm sắp hết hàng
+            </Title>
             <Statistic
               value={statistics.low_stock_products.count}
               prefix={<AlertOutlined />}
-              valueStyle={{ color: '#e74c3c' }}
+              valueStyle={{ color: "#e74c3c" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card
+            hoverable
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
+            onClick={() => handleCardClick("low_stock_nhieu")}
+          >
+            <Title level={4} style={{ color: "#2c3e50" }}>
+              Sản phẩm tồn kho nhiều
+            </Title>
+            <Statistic
+              value={statistics.low_stock_products_nhieu.count}
+              prefix={<AlertOutlined />}
+              valueStyle={{ color: "#3498db" }}
             />
           </Card>
         </Col>
@@ -280,28 +707,82 @@ const Statistics: React.FC = () => {
         onCancel={() => setModalVisible(false)}
         footer={null}
       >
-        {Array.isArray(modalContent) ? (
-          <Table
-            dataSource={modalContent}
-            columns={[
-              { title: 'Tên sản phẩm', dataIndex: 'name', key: 'name' },
-              { title: 'Mã sản phẩm', dataIndex: 'sku', key: 'sku' },
-              { title: 'Tồn kho', dataIndex: 'stock', key: 'stock' },
-              { title: 'Giá', dataIndex: 'price', key: 'price' },
-            ]}
-            pagination={{ pageSize: 5 }}
-          />
-        ) : (
-          <p>{modalContent}</p>
+        {modalContent && (
+          <>
+            <h3>Tổng doanh thu: {formatCurrency(modalContent.revenueInfo)}</h3>
+            <Table
+              dataSource={modalContent.soldProducts}
+              columns={soldProductColumns}
+              pagination={{ pageSize: 5 }}
+              rowKey="key"
+            />
+          </>
         )}
       </Modal>
 
-      {/* Top Selling Products and Promotions */}
-      <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-        <Col xs={24} sm={8} md={8}>
+      {/* Modal for Low Stock Products */}
+      <Modal
+        title="Sản phẩm sắp hết hàng"
+        visible={lowStockModalVisible}
+        onCancel={() => setLowStockModalVisible(false)}
+        footer={null}
+      >
+        <Table
+          dataSource={lowStockProducts.map((product: any) => ({
+            key: product.id,
+            product_name: product.product_name,
+            size_name: product.size_name,
+            color_name: product.color_name,
+            stock: product.stock,
+            price: formatCurrency(product.price),
+          }))}
+          columns={lowStockColumns}
+          pagination={{ pageSize: 5 }}
+          rowKey="key"
+        />
+      </Modal>
+
+      {/* Modal for High Stock Products */}
+      <Modal
+        title="Sản phẩm tồn kho nhiều"
+        visible={highStockModalVisible}
+        onCancel={() => setHighStockModalVisible(false)}
+        footer={null}
+      >
+        <Table
+          dataSource={highStockProducts.map((product: any) => ({
+            key: product.id,
+            product_name: product.product_name,
+            size_name: product.size_name,
+            color_name: product.color_name,
+            stock: product.stock,
+            price: formatCurrency(product.price),
+          }))}
+          columns={lowStockColumns}
+          pagination={{ pageSize: 5 }}
+          rowKey="key"
+        />
+      </Modal>
+
+      <Row gutter={[16, 16]} style={{ marginTop: "20px", display: "flex" }}>
+        <Col
+          xs={24}
+          sm={8}
+          md={8}
+          style={{ display: "flex", flexDirection: "column" }}
+        >
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm bán chạy</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            title={
+              <Title level={4} style={{ color: "#2c3e50" }}>
+                Sản phẩm bán chạy
+              </Title>
+            }
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+              flex: 1, // Allow the card to grow
+            }}
           >
             <Table
               columns={topSellingColumns}
@@ -309,58 +790,146 @@ const Statistics: React.FC = () => {
               pagination={{ pageSize: 5 }}
               rowKey="id"
               size="small"
+              style={{ height: "100%" }} // Fill Card height
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={8}>
+        <Col
+          xs={24}
+          sm={8}
+          md={8}
+          style={{ display: "flex", flexDirection: "column" }}
+        >
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Khuyến mãi</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            title={
+              <Title level={4} style={{ color: "#2c3e50" }}>
+                Khuyến mãi
+              </Title>
+            }
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+              flex: 1, // Allow the card to grow
+            }}
           >
             <Table
               columns={promotionColumns}
               dataSource={statistics.promotion_usage_stats}
-              pagination={{ pageSize: 3 }}
+              pagination={{ pageSize: 5 }}
               rowKey="code"
               bordered
+              style={{ height: "100%" }} // Fill Card height
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8} md={8}>
+        <Col
+          xs={24}
+          sm={8}
+          md={8}
+          style={{ display: "flex", flexDirection: "column" }}
+        >
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Sản phẩm đã bán</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            title={
+              <Title level={4} style={{ color: "#2c3e50" }}>
+                Tất cả sản phẩm
+              </Title>
+            }
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+              flex: 1, // Allow the card to grow
+            }}
           >
             <Table
-              columns={soldProductColumns}
-              dataSource={statistics.sold_products.map((product: any) => ({
+              columns={[
+                { title: "Tên sản phẩm", dataIndex: "name", key: "name" },
+                { title: "SKU", dataIndex: "sku", key: "sku" },
+                { title: "Giá", dataIndex: "price", key: "price" },
+                { title: "Tồn kho", dataIndex: "stock", key: "stock" },
+                {
+                  title: "Kích thước",
+                  dataIndex: "size_name",
+                  key: "size_name",
+                },
+                {
+                  title: "Màu sắc",
+                  dataIndex: "color_name",
+                  key: "color_name",
+                },
+              ]}
+              dataSource={statistics.all_products.map((product: any) => ({
                 key: product.id,
-                productName: product.name,
-                quantity: product.total_sold,
-                revenue: formatCurrency(product.total_revenue),
+                name: product.name,
+                sku: product.sku,
+                price: formatCurrency(product.price),
+                stock: product.stock,
+                size_name: product.size_name,
+                color_name: product.color_name,
               }))}
               pagination={{ pageSize: 5 }}
               rowKey="key"
               size="small"
+              style={{ height: "100%" }} // Fill Card height
             />
           </Card>
         </Col>
       </Row>
 
       {/* Payment Methods and Shipping Status */}
-      <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
+      <Row gutter={[16, 16]} style={{ marginTop: "20px" }}>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Các Phương thức thanh toán</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            title={
+              <Title level={4} style={{ color: "#2c3e50" }}>
+                Tỉ lệ Đơn hàng
+              </Title>
+            }
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
           >
-            <Pie {...paymentMethodConfig} />
+            <Pie
+              data={[
+                {
+                  type: "Đơn hàng thành công",
+                  value: statistics.success_rate,
+                  color: "#3f8600",
+                },
+                {
+                  type: "Đơn hàng bị hủy",
+                  value: statistics.cancellation_rate,
+                  color: "#e74c3c",
+                },
+                {
+                  type: "Đơn hàng trả lại",
+                  value: statistics.return_rate,
+                  color: "#ffbf00",
+                },
+              ]}
+              angleField="value"
+              colorField="type"
+              radius={0.8}
+              interactions={[{ type: "element-active" }]}
+              style={{ height: "300px" }}
+            />
           </Card>
         </Col>
         <Col span={12}>
           <Card
-            title={<Title level={4} style={{ color: '#2c3e50' }}>Thống kê theo Trạng thái</Title>}
-            style={{ borderRadius: '10px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', backgroundColor: '#fff' }}
+            title={
+              <Title level={4} style={{ color: "#2c3e50" }}>
+                Thống kê theo Trạng thái
+              </Title>
+            }
+            style={{
+              borderRadius: "10px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#fff",
+            }}
           >
             <Column {...shippingStatusConfig} />
           </Card>

@@ -29,33 +29,33 @@ class ProductController extends BaseController
 
 
     public function bestProduct()
-{
-    $bestSellingProducts = DB::table('products')
-        ->join('order_details', 'products.id', '=', 'order_details.product_id')
-        ->leftJoin('product_variants', 'products.id', '=', 'product_variants.product_id') // Join với bảng product_variants
-        ->leftJoin('images', function ($join) {
-            $join->on('products.id', '=', 'images.product_id') // Join với images
-                 ->whereNull('images.variant_id'); // Điều kiện variant_id trong bảng images phải là NULL
-        })
-        ->select(
-            'products.id',
-            'products.name',
-            'products.price',
-            DB::raw('SUM(order_details.quantity) as total_sold'),
-            'images.image_url', // Lấy image_url từ bảng images
-            'images.alt_text', // Lấy alt_text từ bảng images
-            DB::raw('MAX(product_variants.price) as price_max'), // Giá cao nhất của product_variants
-            DB::raw('MIN(product_variants.price) as price_min'), // Giá thấp nhất của product_variants
-            DB::raw('SUM(product_variants.stock) as stock') // Tổng số lượng tồn kho từ product_variants
-        )
-        ->whereNotNull('product_variants.id') // Lọc các sản phẩm có biến thể
-        ->groupBy('products.id', 'products.name', 'products.price', 'images.image_url', 'images.alt_text')
-        ->orderByDesc('total_sold')
-        ->limit(12)
-        ->get();
+    {
+        $bestSellingProducts = DB::table('products')
+            ->join('order_details', 'products.id', '=', 'order_details.product_id')
+            ->leftJoin('product_variants', 'products.id', '=', 'product_variants.product_id') // Join với bảng product_variants
+            ->leftJoin('images', function ($join) {
+                $join->on('products.id', '=', 'images.product_id') // Join với images
+                    ->whereNull('images.variant_id'); // Điều kiện variant_id trong bảng images phải là NULL
+            })
+            ->select(
+                'products.id',
+                'products.name',
+                'products.price',
+                DB::raw('SUM(order_details.quantity) as total_sold'),
+                'images.image_url', // Lấy image_url từ bảng images
+                'images.alt_text', // Lấy alt_text từ bảng images
+                DB::raw('MAX(product_variants.price) as price_max'), // Giá cao nhất của product_variants
+                DB::raw('MIN(product_variants.price) as price_min'), // Giá thấp nhất của product_variants
+                DB::raw('SUM(product_variants.stock) as stock') // Tổng số lượng tồn kho từ product_variants
+            )
+            ->whereNotNull('product_variants.id') // Lọc các sản phẩm có biến thể
+            ->groupBy('products.id', 'products.name', 'products.price', 'images.image_url', 'images.alt_text')
+            ->orderByDesc('total_sold')
+            ->limit(12)
+            ->get();
 
-    return $this->success($bestSellingProducts);
-}
+        return $this->success($bestSellingProducts);
+    }
 
 
     public function badProduct()
@@ -160,7 +160,9 @@ class ProductController extends BaseController
     public function indexClient()
     {
         $products = Product::with(['productVariants.images'])
-            ->whereHas('productVariants')  // Lọc chỉ những sản phẩm có biến thể
+            ->whereHas('productVariants', function ($query) {
+                $query->where('stock', '>', 0); // Lọc chỉ các biến thể có stock > 0
+            })
             ->latest('id')
             ->get();
 
@@ -168,15 +170,18 @@ class ProductController extends BaseController
             $product['stock'] = $product->productVariants->sum('stock');
             $product['price_max'] = $product->productVariants->max('price');
             $product['price_min'] = $product->productVariants->min('price');
-            $product['image_url'] = Image::where('product_id', $product['id'])->first()->image_url;
-            $product['alt_text'] = Image::where('product_id', $product['id'])->first()->alt_text;
+
+            // Lấy hình ảnh đầu tiên
+            $image = Image::where('product_id', $product['id'])->first();
+            $product['image_url'] = $image ? $image->image_url : null;
+            $product['alt_text'] = $image ? $image->alt_text : null;
 
             return $product;
         });
 
-
         return $this->success($products);
     }
+
 
 
     public function store(Request $request)
@@ -219,51 +224,110 @@ class ProductController extends BaseController
         }
     }
 
+    // public function show(Product $product)
+    // {
+    //     // Lấy tổng số lượng tồn kho và các giá trị giá tối đa, tối thiểu
+    //     $product['stock'] = $product->productVariants->sum('stock');
+    //     $product['price_max'] = $product->productVariants->max('price');
+    //     $product['price_min'] = $product->productVariants->min('price');
+
+    //     // Lấy hình ảnh đầu tiên của sản phẩm
+    //     $images = $product->image()->first();
+    //     $product['image_url'] = $images['image_url'];
+    //     $product['alt_text'] = $images['alt_text'];
+
+    //     // Khởi tạo các mảng để chứa màu sắc và kích cỡ
+    //     $product['color'] = collect();  // Sử dụng collect() thay vì mảng thông thường
+    //     $product['size'] = collect();   // Sử dụng collect() thay vì mảng thông thường
+
+    //     // Lọc các biến thể có tồn kho lớn hơn 0 và thu thập thông tin
+    //     foreach ($product->productVariants as $variant) {
+    //         if ($variant->stock > 0) { // Kiểm tra nếu biến thể có tồn kho
+    //             $variant['color'] = $variant->color()->first()['color_name'];
+    //             $variant['size'] = $variant->size()->first()['size_name'];
+    //             $variant['image'] = $variant->images()->get();
+
+    //             // Sử dụng phương thức push() để thêm phần tử vào collection
+    //             $product['color']->push([
+    //                 'id' => $variant['color_id'],
+    //                 'name' => $variant['color'],
+    //                 'availableColors' => $product->productVariants->pluck('size.size_name')
+    //                     ->unique()
+    //                     ->values()
+    //                     ->toArray()
+    //             ]);
+    //             $product['size']->push([
+    //                 'id' => $variant['size_id'],
+    //                 'name' => $variant['size'],
+    //                 'availableSizes' => $product->productVariants->pluck('color.color_name')
+
+    //                     ->unique()
+    //                     ->values()
+    //                     ->toArray()
+    //             ]);
+
+    //             // Loại bỏ phần tử trùng lặp dựa trên 'id' sau khi thêm
+    //             $product['color'] = $product['color']->unique('id')->values();
+    //             $product['size'] = $product['size']->unique('id')->values();
+    //         }
+    //     }
+
+    //     return $this->success($product);
+    // }
+
+
     public function show(Product $product)
     {
-        // Lấy tổng số lượng tồn kho và các giá trị giá tối đa, tối thiểu
+        // Tính tổng số lượng tồn kho và giá trị giá tối đa, tối thiểu
         $product['stock'] = $product->productVariants->sum('stock');
-        $product['price_max'] = $product->productVariants->max('price');
-        $product['price_min'] = $product->productVariants->min('price');
+        $product['price_max'] = $product->productVariants->where('stock', '>', 0)->max('price');
+        $product['price_min'] = $product->productVariants->where('stock', '>', 0)->min('price');
 
         // Lấy hình ảnh đầu tiên của sản phẩm
-        $images = $product->image()->first();
-        $product['image_url'] = $images['image_url'];
-        $product['alt_text'] = $images['alt_text'];
+        $image = $product->image()->first();
+        $product['image_url'] = $image ? $image['image_url'] : null;
+        $product['alt_text'] = $image ? $image['alt_text'] : null;
 
-        // Khởi tạo các mảng để chứa màu sắc và kích cỡ
-        $product['color'] = collect();  // Sử dụng collect() thay vì mảng thông thường
-        $product['size'] = collect();   // Sử dụng collect() thay vì mảng thông thường
+        // Khởi tạo các collection cho màu sắc và kích cỡ
+        $product['color'] = collect();
+        $product['size'] = collect();
 
-        // Lọc các biến thể có tồn kho lớn hơn 0 và thu thập thông tin
+        // Lọc và xử lý các biến thể có stock > 0
         foreach ($product->productVariants as $variant) {
-            if ($variant->stock > 0) { // Kiểm tra nếu biến thể có tồn kho
-                $variant['color'] = $variant->color()->first()['color_name'];
-                $variant['size'] = $variant->size()->first()['size_name'];
+            if ($variant->stock > 0) { // Chỉ xử lý biến thể có stock > 0
+                $variant['color'] = $variant->color()->first()?->color_name;
+                $variant['size'] = $variant->size()->first()?->size_name;
                 $variant['image'] = $variant->images()->get();
 
-                // Sử dụng phương thức push() để thêm phần tử vào collection
-                $product['color']->push(['id' => $variant['color_id'],
-                 'name' => $variant['color'],
-                 'availableColors' => $product->productVariants->pluck('size.size_name')
-                 ->unique()
-                 ->values()
-                 ->toArray()
-                ]);
-                $product['size']->push(['id' => $variant['size_id'],
-                 'name' => $variant['size'],
-                 'availableSizes' => $product->productVariants->pluck('color.color_name')
-                 
-                 ->unique()
-                 ->values()
-                 ->toArray()
+                // Thêm màu sắc vào collection
+                $product['color']->push([
+                    'id' => $variant['color_id'],
+                    'name' => $variant['color'],
+                    'availableColors' => $product->productVariants
+                        ->where('stock', '>', 0)
+                        ->pluck('size.size_name')
+                        ->unique()
+                        ->values()
+                        ->toArray()
                 ]);
 
-                // Loại bỏ phần tử trùng lặp dựa trên 'id' sau khi thêm
-                $product['color'] = $product['color']->unique('id')->values();
-                $product['size'] = $product['size']->unique('id')->values();
+                // Thêm kích cỡ vào collection
+                $product['size']->push([
+                    'id' => $variant['size_id'],
+                    'name' => $variant['size'],
+                    'availableSizes' => $product->productVariants
+                        ->where('stock', '>', 0)
+                        ->pluck('color.color_name')
+                        ->unique()
+                        ->values()
+                        ->toArray()
+                ]);
             }
         }
+
+        // Loại bỏ các mục trùng lặp
+        $product['color'] = $product['color']->unique('id')->values();
+        $product['size'] = $product['size']->unique('id')->values();
 
         return $this->success($product);
     }
@@ -377,85 +441,84 @@ class ProductController extends BaseController
     }
 
     public function getRelatedProducts($id, Product $product)
-{
-    // Lấy sản phẩm
-    $product = Product::find($id);
-    if (!$product) {
-        return BaseController::error('Product not found');
-    }
+    {
+        // Lấy sản phẩm
+        $product = Product::find($id);
+        if (!$product) {
+            return BaseController::error('Product not found');
+        }
 
-    // Tính giá min, max của sản phẩm hiện tại (nếu cần)
-    $product['price_max'] = $product->productVariants->max('price');
-    $product['price_min'] = $product->productVariants->min('price');
-
-    // Gợi ý sản phẩm dựa trên danh mục
-    $relatedProducts = Product::where('category_id', $product->category_id)
-        ->where('id', '!=', $product->id) // Loại trừ chính nó
-        ->with('image', 'productVariants') // Lấy cả hình ảnh và biến thể sản phẩm
-        ->limit(10) // Giới hạn số lượng sản phẩm liên quan
-        ->get();
-
-    // Tính giá min, max cho mỗi sản phẩm liên quan
-    $relatedProducts->each(function ($relatedProduct) {
-        $relatedProduct['price_max'] = $relatedProduct->productVariants->max('price');
-        $relatedProduct['price_min'] = $relatedProduct->productVariants->min('price');
-    });
-
-    return BaseController::success($relatedProducts);
-}
-public function getVariants($id)
-{
-    try {
-        // Kiểm tra sản phẩm tồn tại
-        $product = Product::findOrFail($id);
-
-        // Lấy biến thể của sản phẩm và eager load mối quan hệ với 'images'
-        $productVariants = $product->productVariants()
-            ->with('images') // Nạp ảnh liên quan đến biến thể
-            ->get();
-
-        // Trả về dữ liệu thành công
-        return response()->json([
-            'success' => true,
-            'data' => $productVariants,
-        ]);
-    } catch (\Exception $e) {
-        // Trả về lỗi nếu có sự cố
-        return response()->json([
-            'success' => false,
-            'message' => 'Không thể lấy biến thể sản phẩm.',
-        ], 500);
-    }
-}
-
-// Thêm phương thức mới trong ProductController
-
-public function latestProducts()
-{
-    // Lấy các sản phẩm mới nhất (sắp xếp theo ngày tạo giảm dần)
-    $products = Product::with(['productVariants.images'])
-        ->latest('created_at') // Sắp xếp theo ngày tạo giảm dần
-        ->take(10) // Lấy 10 sản phẩm mới nhất
-        ->get();
-
-    // Map các thông tin cần thiết cho mỗi sản phẩm
-    $products->map(function ($product) {
-        // Tính tổng tồn kho của tất cả các biến thể sản phẩm
-        $product['stock'] = $product->productVariants->sum('stock');
-        // Tính giá tối đa và tối thiểu của sản phẩm
+        // Tính giá min, max của sản phẩm hiện tại (nếu cần)
         $product['price_max'] = $product->productVariants->max('price');
         $product['price_min'] = $product->productVariants->min('price');
-        
-        // Lấy thông tin hình ảnh của sản phẩm (ví dụ: hình ảnh chính)
-        $image = $product->image()->first();
-        $product['image_url'] = $image ? $image->image_url : null;
-        $product['alt_text'] = $image ? $image->alt_text : null;
 
-        return $product;
-    });
+        // Gợi ý sản phẩm dựa trên danh mục
+        $relatedProducts = Product::where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id) // Loại trừ chính nó
+            ->with('image', 'productVariants') // Lấy cả hình ảnh và biến thể sản phẩm
+            ->limit(10) // Giới hạn số lượng sản phẩm liên quan
+            ->get();
 
-    // Trả về danh sách sản phẩm dưới dạng JSON
-    return $this->success($products);
-}
+        // Tính giá min, max cho mỗi sản phẩm liên quan
+        $relatedProducts->each(function ($relatedProduct) {
+            $relatedProduct['price_max'] = $relatedProduct->productVariants->max('price');
+            $relatedProduct['price_min'] = $relatedProduct->productVariants->min('price');
+        });
 
+        return BaseController::success($relatedProducts);
+    }
+    public function getVariants($id)
+    {
+        try {
+            // Kiểm tra sản phẩm tồn tại
+            $product = Product::findOrFail($id);
+
+            // Lấy biến thể của sản phẩm và eager load mối quan hệ với 'images'
+            $productVariants = $product->productVariants()
+                ->with('images') // Nạp ảnh liên quan đến biến thể
+                ->get();
+
+            // Trả về dữ liệu thành công
+            return response()->json([
+                'success' => true,
+                'data' => $productVariants,
+            ]);
+        } catch (\Exception $e) {
+            // Trả về lỗi nếu có sự cố
+            return response()->json([
+                'success' => false,
+                'message' => 'Không thể lấy biến thể sản phẩm.',
+            ], 500);
+        }
+    }
+
+    // Thêm phương thức mới trong ProductController
+
+    public function latestProducts()
+    {
+        // Lấy các sản phẩm mới nhất (sắp xếp theo ngày tạo giảm dần)
+        $products = Product::with(['productVariants.images'])
+            ->latest('created_at') // Sắp xếp theo ngày tạo giảm dần
+            ->take(10) // Lấy 10 sản phẩm mới nhất
+            ->get();
+
+        // Map các thông tin cần thiết cho mỗi sản phẩm
+        $products->map(function ($product) {
+            // Tính tổng tồn kho của tất cả các biến thể sản phẩm
+            $product['stock'] = $product->productVariants->sum('stock');
+            // Tính giá tối đa và tối thiểu của sản phẩm
+            $product['price_max'] = $product->productVariants->max('price');
+            $product['price_min'] = $product->productVariants->min('price');
+
+            // Lấy thông tin hình ảnh của sản phẩm (ví dụ: hình ảnh chính)
+            $image = $product->image()->first();
+            $product['image_url'] = $image ? $image->image_url : null;
+            $product['alt_text'] = $image ? $image->alt_text : null;
+
+            return $product;
+        });
+
+        // Trả về danh sách sản phẩm dưới dạng JSON
+        return $this->success($products);
+    }
 }
