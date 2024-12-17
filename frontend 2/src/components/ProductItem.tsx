@@ -50,12 +50,12 @@ const ProductItem = (props: Props) => {
               src={`http://127.0.0.1:8000/storage/${image_url}`}
               alt={`Product: ${name}`}
             />
-            <a
+            {/* <a
               href="#"
               className="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04"
             >
               Mua Ngay{" "}
-            </a>
+            </a> */}
           </div>
         </Link>
         <div className="block2-txt flex-w flex-t p-t-14">

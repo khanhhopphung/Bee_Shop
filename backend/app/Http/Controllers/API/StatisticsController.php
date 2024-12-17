@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Promotion;
 use Illuminate\Http\Request;
@@ -51,10 +52,27 @@ class StatisticsController extends Controller
             ->whereBetween('order_date', [$startDate, $endDate])
             ->sum('total_amount');
 
-            $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])
-            ->where('status', '=', 'completed') 
+        $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])
+            ->where('status', '=', 'completed')
             ->count();
-        $newCustomers = User::where('created_at', '>=', $startDate)->count(); // Khách hàng mới trong khoảng thời gian
+
+        // Thống kê tất cả sản phẩm
+        $allProducts = Product::select(
+            'products.id',
+            'products.name',
+            'products.sku',
+            'product_variants.price',
+            'product_variants.stock',
+            'sizes.size_name as size_name',
+            'colors.color_name as color_name'
+        )
+            ->join('product_variants', 'products.id', '=', 'product_variants.product_id')
+            ->join('sizes', 'product_variants.size_id', '=', 'sizes.id')
+            ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+            ->get();
+
+
+
 
         // Sản phẩm bán chạy
         $topSellingProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
@@ -68,14 +86,32 @@ class StatisticsController extends Controller
             ->limit(10)
             ->get();
 
+
+
         // Tồn kho
-        $lowStockProducts = Product::where('stock', '<', 5)
-            ->select('id', 'name', 'sku', 'price', 'stock', 'category_id', 'is_active', 'created_at', 'updated_at')
-            ->orderBy('stock', 'asc')
+        $lowStockProducts = ProductVariant::select(
+            'product_variants.id',
+            'products.name as product_name',
+            'sizes.size_name as size_name',
+            'colors.color_name as color_name',
+            'product_variants.price',
+            'product_variants.stock',
+            'product_variants.is_active',
+            'product_variants.created_at',
+            'product_variants.updated_at'
+        )
+            ->join('products', 'product_variants.product_id', '=', 'products.id')
+            ->join('sizes', 'product_variants.size_id', '=', 'sizes.id')
+            ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+            ->where('product_variants.stock', '<', 10)
+            ->orderBy('product_variants.stock', 'asc')
             ->get();
 
-        // Tính số lượng sản phẩm tồn kho thấp
+        // Đếm số lượng
         $lowStockCount = $lowStockProducts->count();
+
+        // Thống kê tài khoản người dùng
+        $totalUsers = User::count();
 
         // Sản phẩm đã bán được
         $soldProducts = Order::join('order_details', 'orders.id', '=', 'order_details.order_id')
@@ -123,12 +159,67 @@ class StatisticsController extends Controller
             ->groupBy('status')
             ->get();
 
+        // Ánh xạ tên hiển thị
+        $statusLabels = [
+            'completed' => 'Đơn hàng đã hoàn thành',
+            'pending' => 'Đơn hàng đang chờ',
+            'cancelled' => 'Đơn hàng bị hủy',
+            'returned' => 'Đơn hàng đã trả',
+            'shipped' => ' đang vận chuyển',
+            'delivered' => 'đang giao hàng',
+            'refunded' => 'đã hoàn lại',
+
+            // Thêm bất kỳ trạng thái nào khác bạn muốn ánh xạ
+        ];
+
+        // Thay đổi tên hiển thị trong kết quả
+        $shippingStats->transform(function ($item) use ($statusLabels) {
+            $item->status = $statusLabels[$item->status] ?? $item->status; // Sử dụng tên hiển thị mới hoặc giữ nguyên nếu không có ánh xạ
+            return $item;
+        });
+        // Thống kê đơn hàng trong khoảng thời gian đã chọn
+        $totalOrders = Order::whereBetween('order_date', [$startDate, $endDate])->count();
+        $successfulOrders = Order::where('status', 'completed')->whereBetween('order_date', [$startDate, $endDate])->count();
+        $canceledOrders = Order::where('status', 'cancelled')->whereBetween('order_date', [$startDate, $endDate])->count();
+        $returnedOrders = Order::where('status', 'returned')->whereBetween('order_date', [$startDate, $endDate])->count();
+
+        // Tính tỉ lệ
+        $successRate = $totalOrders > 0 ? ($successfulOrders / $totalOrders) * 100 : 0;
+        $cancellationRate = $totalOrders > 0 ? ($canceledOrders / $totalOrders) * 100 : 0;
+        $returnRate = $totalOrders > 0 ? ($returnedOrders / $totalOrders) * 100 : 0;
+
+        // Tồn kho nhieu
+        $lowStockProductsNhieu = ProductVariant::select(
+            'product_variants.id',
+            'products.name as product_name',
+            'sizes.size_name as size_name',
+            'colors.color_name as color_name',
+            'product_variants.price',
+            'product_variants.stock',
+            'product_variants.is_active',
+            'product_variants.created_at',
+            'product_variants.updated_at'
+        )
+            ->join('products', 'product_variants.product_id', '=', 'products.id')
+            ->join('sizes', 'product_variants.size_id', '=', 'sizes.id')
+            ->join('colors', 'product_variants.color_id', '=', 'colors.id')
+            ->where('product_variants.stock', '>', 100)
+            ->orderBy('product_variants.stock', 'asc')
+            ->get();
+        // Đếm số lượng
+        $lowStockCountNhieu = $lowStockProductsNhieu->count();
+
+
         return response()->json([
+            'low_stock_products_nhieu' => [
+                'count' => $lowStockCountNhieu,
+                'products' => $lowStockProductsNhieu,
+            ],
+            'all_products' => $allProducts,
             'total_revenue' => $totalRevenue,
             'sold_products' => $soldProducts,
-            'all_sold_products' => $allSoldProducts, // Thêm biến mới
+            'all_sold_products' => $allSoldProducts,
             'total_orders' => $totalOrders,
-            'new_customers' => $newCustomers,
             'top_selling_products' => $topSellingProducts,
             'low_stock_products' => [
                 'count' => $lowStockCount,
@@ -138,6 +229,10 @@ class StatisticsController extends Controller
             'promotion_usage_stats' => $promotionUsageStats,
             'promotion_revenue_growth' => $promotionRevenueGrowth,
             'shipping_stats' => $shippingStats,
+            'total_users' => $totalUsers,
+            'success_rate' => $successRate,
+            'cancellation_rate' => $cancellationRate,
+            'return_rate' => $returnRate,
         ]);
     }
 }

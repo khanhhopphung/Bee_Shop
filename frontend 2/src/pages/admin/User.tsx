@@ -1,8 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Modal, Form, message, Switch, Space } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  Form,
+  message,
+  Switch,
+  Space,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
-import { ColumnsType } from 'antd/es/table';
+import { ColumnsType } from "antd/es/table";
 
 interface User {
   id: number;
@@ -53,7 +67,6 @@ const UserPage: React.FC = () => {
       setLoading(false); // Kết thúc trạng thái loading
     }
   };
-
 
   useEffect(() => {
     fetchUsers();
@@ -117,7 +130,7 @@ const UserPage: React.FC = () => {
     } catch (error) {
       message.error("Lưu người dùng thất bại");
     }
-  };  // Show modal for add/edit
+  }; // Show modal for add/edit
   const handleAdd = () => {
     setCurrentUser(null);
     form.resetFields();
@@ -152,61 +165,78 @@ const UserPage: React.FC = () => {
     },
 
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tên người dùng</span>,
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Tên người dùng
+        </span>
+      ),
       dataIndex: "username",
       key: "username",
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Email</span>,
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Email</span>
+      ),
       dataIndex: "email",
       key: "email",
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Số điện thoại</span>,
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Số điện thoại
+        </span>
+      ),
       dataIndex: "phone",
       key: "phone",
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+      render: (text: string) => (
+        <span style={{ fontSize: "16px" }}>{text}</span>
+      ),
     },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã vai trò</span>,
+    //   dataIndex: "role_id",
+    //   key: "role_id",
+    //   render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    // },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã cấp bậc</span>,
+    //   dataIndex: "tier_id",
+    //   key: "tier_id",
+    //   render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    // },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng điểm</span>,
+    //   dataIndex: "points_total",
+    //   key: "points_total",
+    //   render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    // },
+    // {
+    //   title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng chi tiêu</span>,
+    //   dataIndex: "total_spent",
+    //   key: "total_spent",
+    //   render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
+    // },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã vai trò</span>,
-      dataIndex: "role_id",
-      key: "role_id",
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mã cấp bậc</span>,
-      dataIndex: "tier_id",
-      key: "tier_id",
-      render: (text: string) => <span style={{ fontSize: '16px' }}>{text}</span>,
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng điểm</span>,
-      dataIndex: "points_total",
-      key: "points_total",
-      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Tổng chi tiêu</span>,
-      dataIndex: "total_spent",
-      key: "total_spent",
-      render: (text: number) => <span style={{ fontSize: '16px' }}>{text}</span>,
-    },
-    {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Trạng thái</span>,
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Trạng thái</span>
+      ),
       dataIndex: "is_active",
       key: "is_active",
       render: (is_active: boolean, user: User) => (
-        <Switch
-          checked={is_active}
-          onChange={() => handleStatusToggle(user)}
-        />
+        <Switch checked={is_active} onChange={() => handleStatusToggle(user)} />
       ),
-      align: 'center',
+      align: "center",
     },
     {
-      title: <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Hành động</span>,
+      title: (
+        <span style={{ fontSize: "18px", fontWeight: "bold" }}>Hành động</span>
+      ),
       key: "actions",
       render: (user: User) => (
         <Space>
@@ -223,36 +253,32 @@ const UserPage: React.FC = () => {
             size="large"
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(user.id)}
-
           />
         </Space>
       ),
-      align: 'center',
+      align: "center",
     },
   ];
 
-
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div
         style={{
-          background: '#fff',
-          borderRadius: '8px',
-          padding: '16px 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: "#fff",
+          borderRadius: "8px",
+          padding: "16px 24px",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         }}
       >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            marginBottom: '16px',
-            textAlign: 'right'
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            marginBottom: "16px",
+            textAlign: "right",
           }}
         >
-
-
           <Input.Search
             placeholder="Tìm kiếm người dùng theo tên"
             allowClear
@@ -261,10 +287,9 @@ const UserPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              maxWidth: '600px',
-              borderRadius: '8px',
-              height: '48px',
-
+              maxWidth: "600px",
+              borderRadius: "8px",
+              height: "48px",
             }}
           />
         </div>
@@ -280,19 +305,17 @@ const UserPage: React.FC = () => {
             onChange: (page, pageSize) => {
               setPagination({ current: page, pageSize });
             },
-            position: ['bottomCenter'],
+            position: ["bottomCenter"],
             showSizeChanger: true,
           }}
-          scroll={{ x: '800' }}
+          scroll={{ x: "800" }}
           style={{
-            fontSize: '16px',
-            borderRadius: '8px',
-            width: '100%',
+            fontSize: "16px",
+            borderRadius: "8px",
+            width: "100%",
           }}
         />
-
       </div>
-
     </div>
   );
 };

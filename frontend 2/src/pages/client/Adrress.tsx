@@ -332,9 +332,9 @@ const Adrress: React.FC = () => {
                             </Button>
                           </Popconfirm>
                         </div>
-                        <Button style={{ marginBottom: "20px" }}>
+                        {/* <Button style={{ marginBottom: "20px" }}>
                           Thiết lập mặc định
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   ))
