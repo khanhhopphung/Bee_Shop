@@ -871,7 +871,7 @@ const Statistics: React.FC = () => {
               pagination={{ pageSize: 5 }}
               rowKey="key"
               size="small"
-              style={{ height: "100%" }} // Fill Card height
+              scroll={{ y: 300 }} // Fill Card height
             />
           </Card>
         </Col>

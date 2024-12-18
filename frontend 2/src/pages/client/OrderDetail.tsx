@@ -177,7 +177,7 @@ const OrderDetail = () => {
           </Card>
 
           {/* Thanh tiến trình */}
-          <Steps
+          {/* <Steps
             current={getStatusIndex(order.status)}
             style={{ marginBottom: "40px" }}
           >
@@ -187,7 +187,7 @@ const OrderDetail = () => {
             <Step title="Hoàn tất" icon={<GiftOutlined />} />
             <Step title="Đánh giá" icon={<StarOutlined />} />
             <Step title="Hủy" icon={<PauseCircleOutlined />} />
-          </Steps>
+          </Steps> */}
 
           {/* Thông tin chi tiết sản phẩm */}
           <Title level={4}>Sản phẩm</Title>

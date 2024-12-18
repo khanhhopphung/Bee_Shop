@@ -14,9 +14,9 @@ const Contact: React.FC = () => {
   return (
     <section className="bg0 p-t-104 p-b-116">
       <div className="container">
-        <div className="flex-w flex-tr">
-          {/* Contact Form */}
-          <div className="size-210 bor10 p-lr-70 p-t-55 p-b-70 p-lr-15-lg w-full-md">
+        {/* <div className="flex-w flex-tr"> */}
+        {/* Contact Form */}
+        {/* <div className="size-210 bor10 p-lr-70 p-t-55 p-b-70 p-lr-15-lg w-full-md">
             <form onSubmit={handleSubmit}>
               <h4 className="mtext-105 cl2 txt-center p-b-30">
                 Gửi tin nhắn cho chúng tôi
@@ -55,11 +55,19 @@ const Contact: React.FC = () => {
                 Gửi
               </button>
             </form>
-          </div>
-
-          {/* Contact Information */}
-          <div className="size-210 bor10 flex-w flex-col-m p-lr-93 p-tb-30 p-lr-15-lg w-full-md">
-            {/* <div className="flex-w w-full p-b-42">
+          </div> */}
+        <h5
+          className="ltext-105 cl5 txt-center respon1"
+          style={{ marginBottom: "50px", marginTop: "-60px" }}
+        >
+          Liên hệ với chúng tôi
+        </h5>
+        {/* Contact Information */}
+        <div
+          className="size-210 bor10 flex-w flex-col-m p-lr-93 p-tb-30 p-lr-15-lg w-full-md"
+          style={{ marginLeft: "350px" }}
+        >
+          {/* <div className="flex-w w-full p-b-42">
               <span className="fs-18 cl5 txt-center size-211">
                 <span className="lnr lnr-map-marker"></span>
               </span>
@@ -73,41 +81,39 @@ const Contact: React.FC = () => {
               </div>
             </div> */}
 
-            <div className="flex-w w-full p-b-42">
-              <span className="fs-18 cl5 txt-center size-211">
-                <span className="lnr lnr-phone-handset"></span>
-              </span>
+          <div className="flex-w w-full p-b-42">
+            <span className="fs-18 cl5 txt-center size-211">
+              <span className="lnr lnr-phone-handset"></span>
+            </span>
 
-              <div className="size-212 p-t-2">
-                <span className="mtext-110 cl2">Gọi cho chúng tôi</span>
-                <p className="stext-115 cl1 size-213 p-t-18">+84 68249852</p>
-              </div>
+            <div className="size-212 p-t-2">
+              <span className="mtext-110 cl2">Gọi cho chúng tôi</span>
+              <p className="stext-115 cl1 size-213 p-t-18">+84 68249852</p>
             </div>
+          </div>
 
-            <div className="flex-w w-full p-b-42">
-              <span className="fs-18 cl5 txt-center size-211">
-                <span className="lnr lnr-envelope"></span>
-              </span>
+          <div className="flex-w w-full p-b-42">
+            <span className="fs-18 cl5 txt-center size-211">
+              <span className="lnr lnr-envelope"></span>
+            </span>
 
-              <div className="size-212 p-t-2">
-                <span className="mtext-110 cl2">Hỗ trợ</span>
-                <p className="stext-115 cl1 size-213 p-t-18">
-                  BeeShop@gmail.com
-                </p>
-              </div>
+            <div className="size-212 p-t-2">
+              <span className="mtext-110 cl2">Hỗ trợ</span>
+              <p className="stext-115 cl1 size-213 p-t-18">BeeShop@gmail.com</p>
             </div>
-            <div className="flex-w w-full">
-              <span className="fs-18 cl5 txt-center size-211">
-                <i className="fa fa-facebook" />
-              </span>
+          </div>
+          <div className="flex-w w-full">
+            <span className="fs-18 cl5 txt-center size-211">
+              <i className="fa fa-facebook" />
+            </span>
 
-              <div className="size-212 p-t-2">
-                <span className="mtext-110 cl2">Trang cá nhân</span>
-                <p className="stext-115 cl1 size-213 p-t-18">BeeShop</p>
-              </div>
+            <div className="size-212 p-t-2">
+              <span className="mtext-110 cl2">Trang cá nhân</span>
+              <p className="stext-115 cl1 size-213 p-t-18">BeeShop</p>
             </div>
           </div>
         </div>
+        {/* </div> */}
       </div>
     </section>
   );
