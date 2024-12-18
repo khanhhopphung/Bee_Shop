@@ -39,6 +39,20 @@ interface Order {
   created_at: string;
   updated_at: string;
   products: Product[];
+  order_details: OrderDetail[];
+  final_amount: string;
+}
+interface OrderDetail {
+  id: number;
+  product_id: number;
+  variant_id: number;
+  quantity: number;
+  price: number;
+  // product: Product;
+  product: {
+    name: string;
+    image_url: { url: string }[]; // Giả sử hình ảnh được lưu trữ trong mảng
+  };
 }
 
 interface Promotion {
@@ -56,13 +70,13 @@ interface Address {
   address_line: string;
 }
 
-type Product = {
+interface Product {
   id: number;
   image_url: string;
   name: string;
   price: number;
   // Các trường khác của sản phẩm
-};
+}
 
 const Orders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -82,6 +96,10 @@ const Orders: React.FC = () => {
   const handleTableChange = (paginationInfo: any) => {
     setPagination(paginationInfo);
   };
+
+  useEffect(() => {
+    console.log(orders);
+  }, [orders]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -315,25 +333,41 @@ const Orders: React.FC = () => {
   };
 
   const handleViewDetails = (orderId: number) => {
-    const order = orders.find((order) => order.id === orderId);
+    const order: Order | undefined = orders.find(
+      (order) => order.id === orderId
+    );
     if (order) {
-      const product = order.products?.[0]; // Giả sử bạn muốn hiển thị ảnh của sản phẩm đầu tiên
-      const image_url = product ? product.image_url : null;
+      console.log(order);
 
       Modal.info({
-        title: "Chi tiết đơn hàng ",
+        title: "Chi tiết đơn hàng",
         content: (
           <div>
             <p>
-              Tên : {users.find((user) => user.id === order.user_id)?.username}
+              Tên: {users.find((user) => user.id === order.user_id)?.username}
             </p>
-            <p>Ngày đặt hàng : {order.order_date}</p>
-            <p>trạng thái đơn hàng : {order.status}</p>
-            <p>Tổng đơn hàng : {order.total_amount}</p>
-            <p>Phí giao hàng : {order.shipping_cost}</p>
-            <p>Phương thức thanh toán : {order.payment_method}</p>
-            {order.promotion_id && <p>Khuyến mãi : {order.promotion_id}</p>}
-            <p>sản phẩm : {order.product_name}</p>
+            <p>Ngày đặt hàng: {order.order_date}</p>
+            <p>Trạng thái đơn hàng: {order.status}</p>
+            <p>Tổng đơn hàng: {order.final_amount.toLocaleString()}₫</p>
+            {/* <p>Tổng đơn hàng: {order.final_amount.toLocaleString()}₫</p> */}
+            <p>Phí giao hàng: {order.shipping_cost.toLocaleString()}₫</p>
+            <p>Phương thức thanh toán: {order.payment_method}</p>
+            {order.promotion_id && <p>Khuyến mãi: {order.promotion_id}</p>}
+
+            <h4>Sản phẩm:</h4>
+            {order.order_details.map((order_detail) => (
+              <div key={order_detail.id} style={{ marginBottom: "10px" }}>
+                <p>
+                  <strong>Tên sản phẩm:</strong> {order_detail.product.name}
+                </p>
+                <p>
+                  <strong>Giá:</strong> {order_detail.price.toLocaleString()}₫
+                </p>
+                <p>
+                  <strong>Số lượng:</strong> {order_detail.quantity}
+                </p>
+              </div>
+            ))}
 
             {order.promotion_id && <p>Promotion: {order.promotion_id}</p>}
           </div>
@@ -383,18 +417,17 @@ const Orders: React.FC = () => {
       ),
       align: "left",
     },
-
     {
       title: (
         <span style={{ fontSize: "18px", fontWeight: "bold" }}>
           Tổng đơn hàng
         </span>
       ),
-      dataIndex: "total_amount",
-      key: "total_amount",
-      render: (totalAmount: number) => (
+      dataIndex: "final_amount",
+      key: "final_amount",
+      render: (final_amount: number) => (
         <strong style={{ fontSize: "16px" }}>
-          {totalAmount.toLocaleString()}₫
+          {Number(final_amount).toLocaleString("vi-VN")}₫
         </strong>
       ),
       align: "left",
@@ -546,7 +579,7 @@ const Orders: React.FC = () => {
           </Select>
 
           <Input.Search
-            placeholder="Tìm kiếm bằng user, status, hoặc address"
+            placeholder="Tìm kiếm bằng user hoặc mã đơn hàng"
             allowClear
             size="large"
             enterButton={<SearchOutlined />}

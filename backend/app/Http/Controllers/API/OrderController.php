@@ -32,7 +32,7 @@ class OrderController extends Controller
     {
 
         // Load the necessary relationships and include order_code
-        $orders = Order::with(['address', 'promotion', 'orderDetails'])->get();
+        $orders = Order::with(['address', 'promotion', 'orderDetails.product'])->get();
         return response()->json($orders);
     }
 
@@ -137,18 +137,27 @@ class OrderController extends Controller
                 $fin = $request->total_amount;
             }
 
-
+            // Tổng tiền hàng
+            // 250.000₫
+            // Tổng tiền phí vận chuyển
+            // 31000₫
+            // Giảm giá phí vận chuyển
+            // -30000₫
+            // Giảm giá sản phẩm
+            // -50000₫
+            //  Tổng tiền
+            // 201.000₫
 
 
             // Create the order
             $order = Order::create([
                 'user_id' => $userId,
-                'total_amount' => $request->total_amount,
+                'total_amount' => $request->total_amount + 31000,
                 'discount_promotion_id' => $request->discount_promotion_id,
                 'shipping_promotion_id' => $request->shipping_promotion_id,
                 'discount_amount' => isset($discountAmount) ? $discountAmount : 0,
                 'shipping_discount' => isset($shipDiscount) ? $shipDiscount : 0,
-                'final_amount' => $fin + 31000,
+                'final_amount' => $fin,
                 'status' => 'pending',
                 'address_id' => $request->address_id,
                 'payment_method' => $request->payment_method,
@@ -158,8 +167,7 @@ class OrderController extends Controller
                 'name' => $address->recipient_name,
                 'phone' => $address->phone,
                 'address' => $addressF,
-                // 'product_id' => $cartDetails->first()->product_id,
-                // 'product_name' => Product::find($cartDetails->first()->product_id)->name ?? 'Unknown Product',
+
 
             ]);
 
@@ -171,14 +179,15 @@ class OrderController extends Controller
                         $variant->first()->stock -= $cartDetail->quantity;
                         $variant->first()->save(); // Cập nhật lại số lượng sản phẩm sau mua hàng
                     } else {
-                        return BaseController::error('Số Lượng Sản Phẩm Không Đủ !');
+                        $quantity = $variant->first()->stock;
+                        // return BaseController::error('Số Lượng Sản Phẩm Không Đủ !');
                     }
                 }
                 OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $cartDetail->product_id,
                     'variant_id' => $cartDetail->variant_id,
-                    'quantity' => $cartDetail->quantity,
+                    'quantity' => $quantity ?? $cartDetail->quantity,
                     'price' => $cartDetail->product_price,
                 ]);
                 $cartDetail->delete(); // Remove cart detail after order is processed
@@ -213,16 +222,13 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         try {
-            // Load relationships including order_code
-            $order->load(['address', 'promotion', 'orderDetails', 'orderDetails.product:id,name']);
+            // Load relationships
+            $order->load(['address', 'promotion', 'orderDetails']);
+
             return response()->json([
-                'message' => 'Order created successfully',
-                'order' => $order->load([
-                    'address',
-                    'promotion',
-                    'orderDetails.product' // Thêm quan hệ product để lấy ảnh
-                ]),
-            ], 201);
+                'message' => 'Order retrieved successfully',
+                'order' => $order,
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Could not fetch order. Please try again later.',
